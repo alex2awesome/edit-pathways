@@ -12,7 +12,7 @@ os.environ['AWS_SECRET_ACCESS_KEY'] = secret_access_key
 os.environ['AWS_ENDPOINT'] = endpoint
 
 import logging
-from scripts.dsp.dsp_utils import data_io_s3
+from util.dsp_utils import data_io_s3
 service = data_io_s3.connect_to_s3()
 
 def splitall(path):
