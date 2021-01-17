@@ -1,0 +1,74 @@
+## Scrapy docker setup
+shub image init
+
+# then, move in the right docker stuff for selenium: https://support.scrapinghub.com/support/solutions/articles/22000240310-deploying-custom-docker-image-with-selenium-on-scrapy-cloud
+# put the right stuff in requirements.txt
+
+docker build . -t selenium-scrapy
+
+## configure for gcloud
+gcloud auth login
+gcloud auth configure-docker
+
+docker tag selenium-scrapy us.gcr.io/usc-research/selenium-scrapy-newssniff
+docker push us.gcr.io/usc-research/selenium-scrapy-newssniff
+
+
+## on remote host
+### bash command
+$ docker run -v /home/alexander_spangher:/app/working_dir -it us.gcr.io/usc-research/selenium-scrapy-newssniff /bin/bash
+### full command
+docker run -v /home/:/app/working_dir -it us.gcr.io/usc-research/selenium-scrapy-newssniff scrapy crawl newssniff-search-scraper -a num_splits=5 -a split_num=1  -o working_dir/output-1-5.json
+docker run -v /home/:/app/working_dir -it us.gcr.io/usc-research/selenium-scrapy-newssniff scrapy crawl newssniff-article-page -a num_splits=4 -a split_num=1  -o working_dir/final-output-1-4.json
+
+## on remote docker
+scrapy crawl newssniff-article-scraper -a num_splits=5 -a split_num=1  -o working_dir/output-1-5.json
+scrapy crawl newssniff-search-scraper -a num_splits=5 -a split_num=1 -o working_dir/output-1-5.json
+scrapy crawl newssniff-article-page -a num_splits=5 -a split_num=0 -o working_dir/output-1-5.json
+
+## to launch
+gcloud beta compute \
+    --project=usc-research instances create-with-container s-1-1 \
+    --zone=us-central1-a \
+    --machine-type=e2-standard-2 \
+    --subnet=default \
+    --network-tier=PREMIUM \
+    --metadata=google-logging-enabled=true \
+    --maintenance-policy=MIGRATE \
+    --service-account=520950082549-compute@developer.gserviceaccount.com \
+    --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append \
+    --tags=http-server,https-server \
+    --image=cos-stable-85-13310-1041-161 \
+    --image-project=cos-cloud \
+    --boot-disk-size=10GB \
+    --boot-disk-type=pd-standard \
+    --boot-disk-device-name=s-1-1 \
+    --container-image=us.gcr.io/usc-research/selenium-scrapy-newssniff:latest \
+    --container-restart-policy=always \
+    --container-privileged \
+    --container-stdin \
+    --labels=container-vm=cos-stable-85-13310-1041-161
+    --container-command="scrapy crawl newssniff-search-scraper -a num_splits=5 -a split_num=0 -o working_dir/output-0-5.json" \
+    --container-mount-host-path=mount-path=/app/working_dir,host-path=/home/,mode=rw
+
+
+
+## to ssh into launched instance:
+gcloud beta compute ssh --zone "us-central1-a" "s-1-1" --project "usc-research"
+
+
+
+## I'm not sure these do anything...
+     --reservation-affinity=any \
+     --no-shielded-secure-boot \
+     --shielded-vtpm \
+     --shielded-integrity-monitoring\
+
+
+
+## DSP make Jupyter Spark
+katie jupyter run \
+    --identities aspangher-bcs-test \
+    --notebook-content-uri s3://yakira3-jupyter \
+    --node-size Small
+

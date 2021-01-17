@@ -1,0 +1,4 @@
+selenium==3.141.0
+pandas==1.0.1
+scrapy-selenium==0.0.7
+tqdm==4.56.0
