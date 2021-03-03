@@ -2,12 +2,12 @@
 
 #scrapy crawl newssniff-article-page -a num_splits=5 -a split_num=2
 
-if False
+if True
 then
   for i in 1 2 3 4 5 6 7 8
   do
-  gcloud beta compute \
-      --project=usc-research instances create-with-container s-4-$i \
+  echo gcloud beta compute \
+      --project=usc-research instances create-with-container s-5-$i \
       --zone=us-central1-a \
       --machine-type=e2-standard-4 \
       --subnet=default \
@@ -21,7 +21,7 @@ then
       --image-project=cos-cloud \
       --boot-disk-size=50GB \
       --boot-disk-type=pd-standard \
-      --boot-disk-device-name=s-4-$i \
+      --boot-disk-device-name=s-5-$i \
       --container-image=us.gcr.io/usc-research/selenium-scrapy-newssniff:latest \
       --container-restart-policy=always \
       --container-privileged \
@@ -74,7 +74,7 @@ then
   done
 fi
 
-if True
+if False
 then
   for i in 1 2 3 4 5 6 7 8
   do
