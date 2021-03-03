@@ -14,9 +14,7 @@ NEWSPIDER_MODULE = 'newssniffer_scrape.spiders'
 
 # for chrome driver
 from shutil import which
-
 SELENIUM_DRIVER_NAME = 'chrome'
-
 SELENIUM_DRIVER_EXECUTABLE_PATH = which('/usr/bin/chromedriver') or which('/Users/alex/chromedriver')
 SELENIUM_DRIVER_ARGUMENTS = [
     '--headless',
