@@ -11,7 +11,13 @@ nlp = None
 def get_nlp():
     global nlp
     if not nlp:
-        nlp = spacy.load("en_core_web_lg", disable=["tagger" "ner"])
+        try:
+            nlp = spacy.load("en_core_web_lg", disable=["tagger" "ner"])
+        except:
+            import subprocess
+            print('downloading spacy...')
+            subprocess.run("python3 -m spacy download en_core_web_lg", shell=True)
+            nlp = spacy.load("en_core_web_lg", disable=["tagger" "ner"])
     return nlp
 
 
@@ -214,8 +220,9 @@ def split_sents(a, perform_filter=True):
     output_sents = list(map(lambda x: x.strip(), output_sents))
 
     # merge dateline in with the first sentence
-    if is_dateline(output_sents[0]):
-        output_sents = ['—'.join(output_sents[:2])] + output_sents[2:]
+    if len(output_sents) > 0:
+        if is_dateline(output_sents[0]):
+            output_sents = ['—'.join(output_sents[:2])] + output_sents[2:]
     return output_sents
 
 
@@ -332,9 +339,9 @@ def get_changes(old_doc, new_doc):
     removed_sentences = []
 
     same_sentences = []
-    sentence_pairs = []
+    changed_sentence_pairs = []
 
-    for s_old, s_new in zip(old_doc, new_doc):
+    for s_idx, (s_old, s_new) in enumerate(zip(old_doc, new_doc)):
         ###
         if s_old['text'].strip() != '':
             old_document.append(s_old['text'])
@@ -343,7 +350,7 @@ def get_changes(old_doc, new_doc):
 
         ###
         if s_old['tag'] == '-' and s_new['tag'] == '+':
-            sentence_pairs.append((s_old['text'], s_new['text']))
+            changed_sentence_pairs.append((s_idx, (s_old['text'], s_new['text'])))
 
         ###
         if s_old['tag'] == ' ' and s_new['tag'] == '+':
@@ -362,7 +369,7 @@ def get_changes(old_doc, new_doc):
                  },
         'sentences': {'added_sents': new_sentences,
                       'removed_sents': removed_sentences,
-                      'changed_sent_pairs': sentence_pairs
+                      'changed_sent_pairs': changed_sentence_pairs
                       }
     }
 
@@ -387,15 +394,21 @@ def cluster_edits(vo, vn):
     return clustered_edits
 
 
-def check_subset(s1, s2, slack=.5):
+def lemmatize_sentence(s, cache):
+    if isinstance(s, str) and s in cache:
+        return cache[s], cache
+    if isinstance(s, list):
+        s = merge_sents_list(s)
+    s_lemmas = get_lemmas(s)
+    s_lemmas = filter_stopword_lemmas(s_lemmas)
+    s_lemmas = filter_punct(s_lemmas)
+    cache[s] = s_lemmas
+    return cache[s], cache
+
+
+def check_subset(s1_lemmas, s2_lemmas, slack=.5):
     """Checks if the second sentence is nearly a subset of the first, with up to `slack` words different."""
     ### get all text (might be a list).
-    s1 = merge_sents_list(s1) if isinstance(s1, list) else s1
-    s2 = merge_sents_list(s2) if isinstance(s2, list) else s2
-    # lemmatize and get stopwords
-    s1_lemmas, s2_lemmas = get_lemmas(s1), get_lemmas(s2)
-    s1_lemmas, s2_lemmas = filter_stopword_lemmas(s1_lemmas), filter_stopword_lemmas(s2_lemmas)
-    s1_lemmas, s2_lemmas = filter_punct(s1_lemmas), filter_punct(s2_lemmas)
     if len(s2_lemmas) > len(s1_lemmas):
         return False
     if len(s2_lemmas) > 50:
@@ -448,11 +461,13 @@ def swap_text_spots(c, old_spot_idx, new_spot_idx, version):
 
 import copy
 def merge_cluster(c, slack=.5):
-    r_c = range(len(c))
     c = list(filter(lambda x: x[0]['text'] != '' or x[1]['text'] != '', c))
     old_c = copy.deepcopy(c)
+    r_c = range(len(c))
     keep_going = True
     loop_idx = 0
+    cache = {}
+
     while keep_going:
         for active_version in [0, 1]:
             inactive_version = abs(active_version - 1)
@@ -465,8 +480,11 @@ def merge_cluster(c, slack=.5):
                         # and (c[idx_j][inactive_version]['text'] == '')
                         and (c[idx_i][inactive_version]['text'] != '')
                 ):
+
                     # print('active: %s, idx_i: %s, idx_j: %s' % (active_version, idx_i, idx_j))
-                    if check_subset(c[idx_i][inactive_version]['text'], c[idx_j][active_version]['text'], slack=slack):
+                    s1_lemmas, cache = lemmatize_sentence(c[idx_i][inactive_version]['text'], cache)
+                    s2_lemmas, cache = lemmatize_sentence(c[idx_j][active_version]['text'], cache)
+                    if check_subset(s1_lemmas, s2_lemmas, slack=slack):
                         # if there's a match, first check:
                         combined_text_active = merge_sents(idx_i, idx_j, active_version, c)
                         combined_text_inactive = merge_sents(idx_i, idx_j, inactive_version, c)
@@ -541,10 +559,23 @@ def merge_all_clusters(vo, vn, slack=.5):
             for c_i in c_new:
                 if not (c_i[0]['text'] == '' and c_i[1]['text'] == ''):
                     output_edits.append(c_i)
+
+    if len(output_edits) == 0:
+        return None, None
+
     return zip(*output_edits)
 
 
-def get_sentence_diff_stats(article_df, get_sentence_vars=False, get_word_diff=False):
+def get_sentence_diff_stats(article_df, get_sentence_vars=False, output_type='df'):
+    """
+
+    :param article_df:
+    :param get_sentence_vars:
+    :param get_word_diff:
+    :param output_type: `df` or `iter`
+    :return:
+    """
+
     import pandas as pd
     from tqdm.auto import tqdm
     sample_ids = article_df['entry_id'].unique()
@@ -553,48 +584,70 @@ def get_sentence_diff_stats(article_df, get_sentence_vars=False, get_word_diff=F
     ##
     for a_id in tqdm(sample_ids):
         a = article_df.loc[a_id]
+        if len(a) == 1:
+            if output_type == 'iter':
+                yield None, {'a_id': int(a_id), 'status': 'error, only one version'}
+            continue
+
         vs = a['version']
         a_by_v = a.set_index('version')
 
         for v_old, v_new in list(zip(vs[:-1], vs[1:])):
-            vars_old, vars_new = get_sentence_diff(a_by_v.loc[v_old]['summary'], a_by_v.loc[v_new]['summary'])
+            try:
+                vars_old, vars_new = get_sentence_diff(a_by_v.loc[v_old]['summary'], a_by_v.loc[v_new]['summary'])
+            except Exception as e:
+                print(e)
+                vars_old, vars_new = None, None
 
-            doc_changes = get_changes(vars_old, vars_new)
-            sentence_stat_output = {
-                'num_added_sents': len(doc_changes['sentences']['added_sents']),
-                'len_new_doc': len(doc_changes['docs']['new_doc']),
-                'num_removed_sents': len(doc_changes['sentences']['removed_sents']),
-                'len_old_doc': len(doc_changes['docs']['old_doc']),
-                'num_changed_sents': len(doc_changes['sentences']['changed_sent_pairs']),
-                'version_nums': (v_old, v_new),
-                'a_id': a_id,
-            }
-            if get_sentence_vars:
-                sentence_stat_output['vars_old'] = vars_old
-                sentence_stat_output['vars_new'] = vars_new
-            ##
-            sentence_stats.append(sentence_stat_output)
+            if (vars_old is None and vars_new is None):
+                if output_type == 'iter':
+                    yield None, {'a_id': int(a_id), 'version_old': int(v_old), 'version_new': int(v_new), 'status': 'error, no sentences.'}
+                continue
 
-            ## word diff
-            if get_word_diff:
-                for sent_pair in doc_changes['sentences']['changed_sent_pairs']:
+            else:
+                doc_changes = get_changes(vars_old, vars_new)
+                sentence_stat_output = {
+                    'num_added_sents': len(doc_changes['sentences']['added_sents']),
+                    'len_new_doc': len(doc_changes['docs']['new_doc']),
+                    'num_removed_sents': len(doc_changes['sentences']['removed_sents']),
+                    'len_old_doc': len(doc_changes['docs']['old_doc']),
+                    'num_changed_sents': len(doc_changes['sentences']['changed_sent_pairs']),
+                    'version_nums': (v_old, v_new),
+                    'a_id': a_id,
+                }
+                if get_sentence_vars:
+                    sentence_stat_output['vars_old'] = vars_old
+                    sentence_stat_output['vars_new'] = vars_new
+                ##
+                if output_type == 'df':
+                    sentence_stats.append(sentence_stat_output)
+
+                ## word diff
+                for s_idx, sent_pair in doc_changes['sentences']['changed_sent_pairs']:
                     s_old, s_new = get_word_diffs(*sent_pair)
-                    word_stats.append({
-                        'num_words_removed': sum(map(lambda x: x['tag'] == '-', s_old)),
-                        'num_words_added': sum(map(lambda x: x['tag'] == '+', s_new)),
+                    word_stat_output = {
+                        'num_removed_words': sum(map(lambda x: x['tag'] == '-', s_old)),
+                        'num_added_words': sum(map(lambda x: x['tag'] == '+', s_new)),
                         'len_old_sent': len(list(filter(lambda x: x['text'] != '', s_old))),
                         'len_new_sent': len(list(filter(lambda x: x['text'] != '', s_new))),
                         'version_nums': (v_old, v_new),
                         's_old': s_old,
                         's_new': s_new,
-                        'sent_par': sent_pair,
-                        'a_id': a_id
-                    })
+                        'a_id': a_id,
+                        's_idx': s_idx
+                    }
+                    if output_type == 'df':
+                        word_stats.append(word_stat_output)
+
+            if output_type == 'iter':
+                sentence_stat_output_df = pd.DataFrame([sentence_stat_output])
+                if len(doc_changes['sentences']['changed_sent_pairs']) > 0:
+                    yield (sentence_stat_output_df, pd.DataFrame([word_stat_output]))
+                else:
+                    yield (sentence_stat_output_df, None)
 
     ## output
-    output = pd.DataFrame(sentence_stats)
-    if get_word_diff:
-        output = (output, pd.DataFrame(word_stats))
+    output = (pd.DataFrame(sentence_stats), pd.DataFrame(word_stats))
     return output
 
 
@@ -603,7 +656,19 @@ def get_sentence_diff_stats(article_df, get_sentence_vars=False, get_word_diff=F
 # HTML Methods
 #
 #
-def html_compare_articles(vars_old, vars_new):
+def html_compare_articles(
+        vars_old=None, vars_new=None,
+        df=None,
+        text_old=None, tags_old=None, text_new=None, tags_new=None
+):
+    ## reformat variables...
+    if vars_old is None and vars_new is None:
+        if text_old is None and text_new is None and tags_old is None and tags_new is None:
+            df = df.sort_values('s_idx')
+            text_old, text_new, tags_old, tags_new = df['sent_old'], df['sent_new'], df['tag_old'], df['tag_new']
+        vars_old = list(map(lambda x: {'text': x[0], 'tag': x[1]}, zip(text_old, tags_old)))
+        vars_new = list(map(lambda x: {'text': x[0], 'tag': x[1]}, zip(text_new, tags_new)))
+
     html = [
         '<table>',
         '<tr><th>Old Version</th><th>New Version</th></tr>'
