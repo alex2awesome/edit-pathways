@@ -244,7 +244,7 @@ def filter_lines(a):
 ###
 # Get diffs.
 #
-def get_sentence_diff(a_old, a_new, filter_common_sents=True, merge_clusters=True, slack=.5):
+def get_sentence_diff(a_old, a_new, filter_common_get_sentence_disents=True, merge_clusters=True, slack=.5):
     ## split sentences
     a_old_sents = split_sents(a_old)
     a_new_sents = split_sents(a_new)
@@ -580,7 +580,7 @@ def get_sentence_diff_stats(article_df, get_sentence_vars=False, output_type='df
     from tqdm.auto import tqdm
     sample_ids = article_df['entry_id'].unique()
     article_df = article_df.set_index('entry_id')
-    sentence_stats, word_stats = [], []
+    all_sentence_stats, all_word_stats = [], []
     ##
     for a_id in tqdm(sample_ids):
         a = article_df.loc[a_id]
@@ -589,66 +589,83 @@ def get_sentence_diff_stats(article_df, get_sentence_vars=False, output_type='df
                 yield None, {'a_id': int(a_id), 'status': 'error, only one version'}
             continue
 
-        vs = a['version']
-        a_by_v = a.set_index('version')
-
-        for v_old, v_new in list(zip(vs[:-1], vs[1:])):
-            try:
-                vars_old, vars_new = get_sentence_diff(a_by_v.loc[v_old]['summary'], a_by_v.loc[v_new]['summary'])
-            except Exception as e:
-                print(e)
-                vars_old, vars_new = None, None
-
-            if (vars_old is None and vars_new is None):
-                if output_type == 'iter':
-                    yield None, {'a_id': int(a_id), 'version_old': int(v_old), 'version_new': int(v_new), 'status': 'error, no sentences.'}
-                continue
-
-            else:
-                doc_changes = get_changes(vars_old, vars_new)
-                sentence_stat_output = {
-                    'num_added_sents': len(doc_changes['sentences']['added_sents']),
-                    'len_new_doc': len(doc_changes['docs']['new_doc']),
-                    'num_removed_sents': len(doc_changes['sentences']['removed_sents']),
-                    'len_old_doc': len(doc_changes['docs']['old_doc']),
-                    'num_changed_sents': len(doc_changes['sentences']['changed_sent_pairs']),
-                    'version_nums': (v_old, v_new),
-                    'a_id': a_id,
-                }
-                if get_sentence_vars:
-                    sentence_stat_output['vars_old'] = vars_old
-                    sentence_stat_output['vars_new'] = vars_new
-                ##
-                if output_type == 'df':
-                    sentence_stats.append(sentence_stat_output)
-
-                ## word diff
-                for s_idx, sent_pair in doc_changes['sentences']['changed_sent_pairs']:
-                    s_old, s_new = get_word_diffs(*sent_pair)
-                    word_stat_output = {
-                        'num_removed_words': sum(map(lambda x: x['tag'] == '-', s_old)),
-                        'num_added_words': sum(map(lambda x: x['tag'] == '+', s_new)),
-                        'len_old_sent': len(list(filter(lambda x: x['text'] != '', s_old))),
-                        'len_new_sent': len(list(filter(lambda x: x['text'] != '', s_new))),
-                        'version_nums': (v_old, v_new),
-                        's_old': s_old,
-                        's_new': s_new,
-                        'a_id': a_id,
-                        's_idx': s_idx
-                    }
-                    if output_type == 'df':
-                        word_stats.append(word_stat_output)
-
-            if output_type == 'iter':
-                sentence_stat_output_df = pd.DataFrame([sentence_stat_output])
-                if len(doc_changes['sentences']['changed_sent_pairs']) > 0:
-                    yield (sentence_stat_output_df, pd.DataFrame([word_stat_output]))
-                else:
-                    yield (sentence_stat_output_df, None)
+        if output_type == 'iter':
+            yield from get_sentence_diff_stats_on_article(a, a_id, 'iter', get_sentence_vars)
+        else:
+            sentence_stats, word_stats = get_sentence_diff_stats_on_article(a, a_id, 'df', get_sentence_vars)
+            all_sentence_stats.append(sentence_stats)
+            all_word_stats.append(word_stats)
 
     ## output
-    output = (pd.DataFrame(sentence_stats), pd.DataFrame(word_stats))
+    output = pd.concat(all_sentence_stats), pd.concat(all_word_stats)
     return output
+
+
+def get_sentence_diff_stats_on_article(a, a_id, output_type, get_sentence_vars):
+    import pandas as pd
+
+    vs = a['version']
+    a_by_v = a.set_index('version')
+    sentence_stats = []
+    word_stats = []
+
+    for v_old, v_new in list(zip(vs[:-1], vs[1:])):
+        try:
+            vars_old, vars_new = get_sentence_diff(a_by_v.loc[v_old]['summary'], a_by_v.loc[v_new]['summary'])
+        except Exception as e:
+            print(e)
+            vars_old, vars_new = None, None
+
+        if (vars_old is None and vars_new is None):
+            if output_type == 'iter':
+                yield None, {'a_id': int(a_id), 'version_old': int(v_old), 'version_new': int(v_new),
+                             'status': 'error, no sentences.'}
+            continue
+
+        else:
+            doc_changes = get_changes(vars_old, vars_new)
+            sentence_stat_output = {
+                'num_added_sents': len(doc_changes['sentences']['added_sents']),
+                'len_new_doc': len(doc_changes['docs']['new_doc']),
+                'num_removed_sents': len(doc_changes['sentences']['removed_sents']),
+                'len_old_doc': len(doc_changes['docs']['old_doc']),
+                'num_changed_sents': len(doc_changes['sentences']['changed_sent_pairs']),
+                'version_nums': (v_old, v_new),
+                'a_id': a_id,
+            }
+            if get_sentence_vars:
+                sentence_stat_output['vars_old'] = vars_old
+                sentence_stat_output['vars_new'] = vars_new
+            ##
+            if output_type == 'df':
+                sentence_stats.append(sentence_stat_output)
+
+            ## word diff
+            for s_idx, sent_pair in doc_changes['sentences']['changed_sent_pairs']:
+                s_old, s_new = get_word_diffs(*sent_pair)
+                word_stat_output = {
+                    'num_removed_words': sum(map(lambda x: x['tag'] == '-', s_old)),
+                    'num_added_words': sum(map(lambda x: x['tag'] == '+', s_new)),
+                    'len_old_sent': len(list(filter(lambda x: x['text'] != '', s_old))),
+                    'len_new_sent': len(list(filter(lambda x: x['text'] != '', s_new))),
+                    'version_nums': (v_old, v_new),
+                    's_old': s_old,
+                    's_new': s_new,
+                    'a_id': a_id,
+                    's_idx': s_idx
+                }
+                if output_type == 'df':
+                    word_stats.append(word_stat_output)
+
+        if output_type == 'iter':
+            sentence_stat_output_df = pd.DataFrame([sentence_stat_output])
+            if len(doc_changes['sentences']['changed_sent_pairs']) > 0:
+                yield (sentence_stat_output_df, pd.DataFrame([word_stat_output]))
+            else:
+                yield (sentence_stat_output_df, None)
+
+    if output_type == 'df':
+        return pd.DataFrame(sentence_stat_output), pd.DataFrame(word_stat_output)
 
 
 #######################
