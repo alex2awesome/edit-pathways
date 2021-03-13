@@ -1,0 +1,113 @@
+##
+python3 parsing_script.py --source_db_name nyt --n_file 5000
+
+gcloud compute ssh --zone "us-central1-a" "edit-parser-1-1" --project "usc-research" --command "docker run -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser gsutil cp gs://usc-data/edit-pathways/* data/"
+
+
+## box 1
+gcloud compute ssh --zone "us-central1-a" "edit-parser-1-1" --project "usc-research" --command "docker run -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser python3 parsing_script.py --source_db_name guardian --add_to_datastore --n_file 1000000"
+gcloud compute ssh --zone "us-central1-a" "edit-parser-1-1" --project "usc-research" --command "docker run -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser python3 parsing_script.py --source_db_name bbc-1 --add_to_datastore --n_file 1000000"
+gcloud compute ssh --zone "us-central1-a" "edit-parser-1-1" --project "usc-research" --command "docker run -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser python3 parsing_script.py --source_db_name reuters --add_to_datastore --n_file 1000000"
+
+## box 2
+gcloud compute ssh --zone "us-central1-a" "edit-parser-1-2" --project "usc-research" --command "docker run -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser python3 parsing_script.py --source_db_name cnn --add_to_datastore --n_file 1000000"
+gcloud compute ssh --zone "us-central1-a" "edit-parser-1-2" --project "usc-research" --command "docker run -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser python3 parsing_script.py --source_db_name cbc --add_to_datastore --n_file 1000000"
+gcloud compute ssh --zone "us-central1-a" "edit-parser-1-2" --project "usc-research" --command "docker run -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser python3 parsing_script.py --source_db_name fox --add_to_datastore --n_file 1000000"
+gcloud compute ssh --zone "us-central1-a" "edit-parser-1-2" --project "usc-research" --command "docker run -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser python3 parsing_script.py --source_db_name independent --add_to_datastore --n_file 1000000"
+
+## box 3
+gcloud compute ssh --zone "us-central1-a" "edit-parser-1-3" --project "usc-research" --command "docker run -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser python3 parsing_script.py --source_db_name dailymail --add_to_datastore --n_file 1000000"
+gcloud compute ssh --zone "us-central1-a" "edit-parser-1-3" --project "usc-research" --command "docker run -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser python3 parsing_script.py --source_db_name therebel --add_to_datastore --n_file 1000000"
+gcloud compute ssh --zone "us-central1-a" "edit-parser-1-3" --project "usc-research" --command "docker run -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser python3 parsing_script.py --source_db_name torontostar --add_to_datastore --n_file 1000000"
+gcloud compute ssh --zone "us-central1-a" "edit-parser-1-3" --project "usc-research" --command "docker run -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser python3 parsing_script.py --source_db_name torontosun --add_to_datastore --n_file 1000000"
+
+
+## box 4
+gcloud compute ssh --zone "us-central1-a" "edit-parser-1-4" --project "usc-research" --command "docker run -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser python3 parsing_script.py --source_db_name calgaryherald --add_to_datastore --n_file 1000000"
+gcloud compute ssh --zone "us-central1-a" "edit-parser-1-4" --project "usc-research" --command "docker run -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser python3 parsing_script.py --source_db_name globemail --add_to_datastore --n_file 1000000"
+#small:  gcloud compute ssh --zone "us-central1-a" "edit-parser-1-4" --project "usc-research" --command "docker run -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser python3 parsing_script.py --source_db_name canadaland --add_to_datastore --n_file 1000000"
+#tocheck: gcloud compute ssh --zone "us-central1-a" "edit-parser-1-4" --project "usc-research" --command "docker run -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser python3 parsing_script.py --source_db_name whitehouse --add_to_datastore --n_file 1000000"
+gcloud compute ssh --zone "us-central1-a" "edit-parser-1-1" --project "usc-research" --command "docker run -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser python3 parsing_script.py --source_db_name bbc-2 --add_to_datastore --n_file 1000000"
+
+## box 5
+gcloud compute ssh --zone "us-central1-a" "edit-parser-1-5" --project "usc-research" --command "docker run -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser python3 parsing_script.py --source_db_name lapresse --add_to_datastore --n_file 1000000"
+gcloud compute ssh --zone "us-central1-a" "edit-parser-1-5" --project "usc-research" --command "docker run -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser python3 parsing_script.py --source_db_name nationalpost --add_to_datastore --n_file 1000000"
+gcloud compute ssh --zone "us-central1-a" "edit-parser-1-5" --project "usc-research" --command "docker run -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser python3 parsing_script.py --source_db_name telegraph --add_to_datastore --n_file 1000000"
+
+## box 6
+gcloud compute ssh --zone "us-central1-a" "edit-parser-1-5" --project "usc-research" --command "docker run -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser python3 parsing_script.py --source_db_name nyt --add_to_datastore --n_file 1000000"
+gcloud compute ssh --zone "us-central1-a" "edit-parser-1-5" --project "usc-research" --command "docker run -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser python3 parsing_script.py --source_db_name wp --add_to_datastore --n_file 1000000"
+gcloud compute ssh --zone "us-central1-a" "edit-parser-1-5" --project "usc-research" --command "docker run -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser python3 parsing_script.py --source_db_name ap --add_to_datastore --n_file 1000000"
+
+
+gcloud compute ssh --zone "us-central1-a" "edit-parser-1-1" --project "usc-research" --command "docker run -it -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser python3 parsing_script.py --source_db_name guardian --add_to_datastore --n_file 1000000"
+
+
+##
+python3 parsing_script.py --source_db_name wp --n_file 10
+
+##
+docker ps -f "ancestor=us.gcr.io/usc-research/wikihow-scraper:latest" --format "{{.ID}}" | xargs -I {} docker kill {}
+
+
+
+### notes:
+
+* edit-parser-1
+Docker version (version-checking, de-duplicating, handles empty files, caches):
+bbc-1 (25725)
+reuters (23777)
+guardian split 0/10 (231041) 230676 (currently running 10,000)
+bbc-2 (305060 articles) (currently running 50,000)
+
+
+* edit-parser-2
+Docker version (version-checking, deduplicating, dateline, handles empty files, caches)
+cbc
+cnn
+nyt split 1/5
+nyt split 2/5
+(nyt 86955)
+
+
+* edit-parser-3
+Docker version (version-checking, de-duplicating, handles empty files, caches):
+independent (51467) ## halted for now
+torontostar (21733)
+dailymail (17555)
+guardian split 1/10
+
+# docker run -it -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser python3 parsing_script.py --source_db_name guardian --add_to_datastore --n_splits 10 --split_num 1
+docker run -it -v /home/:/app/data/ us.gcr.io/usc-research/edit-parser python3 parsing_script.py --source_db_name bbc-2 --add_to_datastore --n_splits 10 --split_num 1
+
+* edit-parser-4
+bbc-2 1/10
+bbc-2 2/10
+bbc-2 3/10
+bbc-2 4/10
+
+* edit-parser-5
+Docker version (version-checking, de-duplicating, handles empty files, caches):
+ap 10841
+nyt split 0/5
+nyt split 3/5
+nyt split 4/5
+
+* edit-parser-6
+bbc-2 5/10
+bbc-2 6/10
+bbc-2 7/10
+bbc-2 8/10
+
+done:
+canadaland (32 articles)
+calagaryherald (7018 articles)
+whitehouse -- check: doesn't seem to have an entryversion?
+therebel
+torontosun
+fox (16702)
+telegraph 25704
+lapresse 20404
+nationalpost 16371
+wp 10174
+globemail (20179 articles)
