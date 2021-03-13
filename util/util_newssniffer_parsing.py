@@ -601,8 +601,11 @@ def get_sentence_diff_stats(article_df, get_sentence_vars=False, output_type='df
     return output
 
 
-def get_sentence_diff_stats_on_article(a, a_id, output_type, get_sentence_vars):
+def get_sentence_diff_stats_on_article(a, output_type, get_sentence_vars, a_id=None):
     import pandas as pd
+
+    if a_id is None:
+        a_id = a['entry_id'].unique()[0]
 
     vs = a['version']
     a_by_v = a.set_index('version')
