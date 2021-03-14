@@ -600,7 +600,7 @@ def get_sentence_diff_stats(article_df, get_sentence_vars=False, output_type='df
     return output
 
 
-def get_sentence_diff_stats_on_article(a, get_sentence_vars):
+def get_sentence_diff_stats_on_article(a, get_sentence_vars, ret_type='df'):
     sentence_stats = []
     word_stats = []
 
@@ -610,8 +610,10 @@ def get_sentence_diff_stats_on_article(a, get_sentence_vars):
             sentence_stats.append(sentence_stat_output)
             word_stats.append(word_stat_output)
 
-    return pd.DataFrame(sentence_stat_output), pd.DataFrame(word_stat_output)
-
+    if ret_type == 'df':
+        return pd.DataFrame(sentence_stats), pd.DataFrame(word_stats)
+    else:
+        return sentence_stats, word_stats
 
 def get_sentence_diff_stats_on_article_gen(a, get_sentence_vars, a_id=None):
     """
@@ -671,11 +673,11 @@ def get_sentence_diff_stats_on_article_gen(a, get_sentence_vars, a_id=None):
                     's_idx': s_idx
                 }
 
-        sentence_stat_output_df = pd.DataFrame([sentence_stat_output])
+
         if len(doc_changes['sentences']['changed_sent_pairs']) > 0:
-            yield (sentence_stat_output_df, pd.DataFrame([word_stat_output]))
+            yield (sentence_stat_output, word_stat_output)
         else:
-            yield (sentence_stat_output_df, None)
+            yield (sentence_stat_output, None)
 
 
 #######################
