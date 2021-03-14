@@ -5,7 +5,7 @@ import re
 import json
 import string
 import pycountry
-
+import pandas as pd
 
 nlp = None
 def get_nlp():
@@ -244,7 +244,7 @@ def filter_lines(a):
 ###
 # Get diffs.
 #
-def get_sentence_diff(a_old, a_new, filter_common_get_sentence_disents=True, merge_clusters=True, slack=.5):
+def get_sentence_diff(a_old, a_new, filter_common_sents=True, merge_clusters=True, slack=.5):
     ## split sentences
     a_old_sents = split_sents(a_old)
     a_new_sents = split_sents(a_new)
@@ -575,7 +575,6 @@ def get_sentence_diff_stats(article_df, get_sentence_vars=False, output_type='df
     :param output_type: `df` or `iter`
     :return:
     """
-
     import pandas as pd
     from tqdm.auto import tqdm
     sample_ids = article_df['entry_id'].unique()
@@ -590,7 +589,7 @@ def get_sentence_diff_stats(article_df, get_sentence_vars=False, output_type='df
             continue
 
         if output_type == 'iter':
-            yield from get_sentence_diff_stats_on_article(a, a_id, 'iter', get_sentence_vars)
+            yield from get_sentence_diff_stats_on_article_gen(a, a_id, get_sentence_vars)
         else:
             sentence_stats, word_stats = get_sentence_diff_stats_on_article(a, a_id, 'df', get_sentence_vars)
             all_sentence_stats.append(sentence_stats)
@@ -601,16 +600,33 @@ def get_sentence_diff_stats(article_df, get_sentence_vars=False, output_type='df
     return output
 
 
-def get_sentence_diff_stats_on_article(a, output_type, get_sentence_vars, a_id=None):
-    import pandas as pd
+def get_sentence_diff_stats_on_article(a, get_sentence_vars):
+    sentence_stats = []
+    word_stats = []
 
+    article_gen = get_sentence_diff_stats_on_article_gen(a, get_sentence_vars)
+    for sentence_stat_output, word_stat_output in article_gen:
+        if sentence_stat_output is not None:
+            sentence_stats.append(sentence_stat_output)
+            word_stats.append(word_stat_output)
+
+    return pd.DataFrame(sentence_stat_output), pd.DataFrame(word_stat_output)
+
+
+def get_sentence_diff_stats_on_article_gen(a, get_sentence_vars, a_id=None):
+    """
+
+    :param a: is a dataframe of a single article, with all it's versions as rows.
+    :param output_type:
+    :param get_sentence_vars:
+    :param a_id:
+    :return:
+    """
     if a_id is None:
         a_id = a['entry_id'].unique()[0]
 
     vs = a['version']
     a_by_v = a.set_index('version')
-    sentence_stats = []
-    word_stats = []
 
     for v_old, v_new in list(zip(vs[:-1], vs[1:])):
         try:
@@ -620,9 +636,8 @@ def get_sentence_diff_stats_on_article(a, output_type, get_sentence_vars, a_id=N
             vars_old, vars_new = None, None
 
         if (vars_old is None and vars_new is None):
-            if output_type == 'iter':
-                yield None, {'a_id': int(a_id), 'version_old': int(v_old), 'version_new': int(v_new),
-                             'status': 'error, no sentences.'}
+            yield None, {'a_id': int(a_id), 'version_old': int(v_old), 'version_new': int(v_new),
+                         'status': 'error, no sentences.'}
             continue
 
         else:
@@ -640,8 +655,6 @@ def get_sentence_diff_stats_on_article(a, output_type, get_sentence_vars, a_id=N
                 sentence_stat_output['vars_old'] = vars_old
                 sentence_stat_output['vars_new'] = vars_new
             ##
-            if output_type == 'df':
-                sentence_stats.append(sentence_stat_output)
 
             ## word diff
             for s_idx, sent_pair in doc_changes['sentences']['changed_sent_pairs']:
@@ -657,18 +670,12 @@ def get_sentence_diff_stats_on_article(a, output_type, get_sentence_vars, a_id=N
                     'a_id': a_id,
                     's_idx': s_idx
                 }
-                if output_type == 'df':
-                    word_stats.append(word_stat_output)
 
-        if output_type == 'iter':
-            sentence_stat_output_df = pd.DataFrame([sentence_stat_output])
-            if len(doc_changes['sentences']['changed_sent_pairs']) > 0:
-                yield (sentence_stat_output_df, pd.DataFrame([word_stat_output]))
-            else:
-                yield (sentence_stat_output_df, None)
-
-    if output_type == 'df':
-        return pd.DataFrame(sentence_stat_output), pd.DataFrame(word_stat_output)
+        sentence_stat_output_df = pd.DataFrame([sentence_stat_output])
+        if len(doc_changes['sentences']['changed_sent_pairs']) > 0:
+            yield (sentence_stat_output_df, pd.DataFrame([word_stat_output]))
+        else:
+            yield (sentence_stat_output_df, None)
 
 
 #######################
