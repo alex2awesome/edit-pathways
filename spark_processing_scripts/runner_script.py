@@ -1,11 +1,4 @@
 from pyspark.sql import SparkSession
-
-# from spark_processing_scripts.pipeline_steps import (
-#     get_sparknlp_pipeline,
-#     get_explode_pipeline,
-#     get_similarity_pipeline,
-#     get_sentence_pipelines
-# )
 import spark_processing_scripts.pipeline_steps as sps
 import spark_processing_scripts.util_general as sug
 import spark_processing_scripts.util_spark as sus
@@ -106,7 +99,7 @@ def main():
     )
 
     # read dataframe
-    df = sus.read_spark_df(args.num_files, args.start, args.db_name)
+    df = sug.read_spark_df(args.num_files, args.start, args.db_name)
 
     # process via spark_processing_scripts
     output_sdf = run_spark(df, spark)
