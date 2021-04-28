@@ -88,14 +88,14 @@ def main():
     # spark_processing_scripts
     spark = (
         SparkSession.builder
-          .config("spark.executor.instances", "30")
-          .config("spark.driver.memory", "20g")
-          .config("spark.executor.memory", "20g")
-          .config("spark.sql.shuffle.partitions", "2000")
-          .config("spark.executor.cores", "5")
-          .config("spark.kryoserializer.buffer.max", "2000M")
-          .config("spark.jars.packages", "com.johnsnowlabs.nlp:spark_processing_scripts-nlp_2.11:2.7.5")
-          .getOrCreate()
+            .config("spark.executor.instances", "30")
+            .config("spark.driver.memory", "20g")
+            .config("spark.executor.memory", "20g")
+            .config("spark.sql.shuffle.partitions", "2000")
+            .config("spark.executor.cores", "5")
+            .config("spark.kryoserializer.buffer.max", "2000M")
+            .config("spark.jars.packages", "com.johnsnowlabs.nlp:spark-nlp_2.11:2.7.5")
+            .getOrCreate()
     )
 
     # read dataframe
