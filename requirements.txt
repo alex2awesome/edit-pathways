@@ -1,0 +1,9 @@
+dask
+fsspec>=0.3.3
+pandas
+spacy==2.3.2
+seaborn
+koalas
+pyspark
+pycountry
+spark-nlp

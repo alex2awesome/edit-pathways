@@ -9,7 +9,7 @@ RUN apt-get update \
     && apt-get autoremove
 
 #
-ADD util /app/util
+ADD ../util /app/util
 ADD requirements.txt /app/
 ADD parsing_script.py /app/
 WORKDIR /app
