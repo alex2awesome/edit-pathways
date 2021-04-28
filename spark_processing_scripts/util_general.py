@@ -45,7 +45,7 @@ def download_data(conn_name):
 
 
 def read_spark_df(num_entries, start_idx, db_name):
-    with sqlite3.connect(db_name) as conn:
+    with sqlite3.connect(conn_mapper_dict[db_name]) as conn:
         df = pd.read_sql('''
              SELECT * from entryversion 
              WHERE entry_id IN (

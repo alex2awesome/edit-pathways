@@ -88,13 +88,13 @@ def main():
     # spark_processing_scripts
     spark = (
         SparkSession.builder
-          .config("spark_processing_scripts.executor.instances", "30")
-          .config("spark_processing_scripts.driver.memory", "20g")
-          .config("spark_processing_scripts.executor.memory", "20g")
-          .config("spark_processing_scripts.sql.shuffle.partitions", "2000")
-          .config("spark_processing_scripts.executor.cores", "5")
-          .config("spark_processing_scripts.kryoserializer.buffer.max", "2000M")
-          .config("spark_processing_scripts.jars.packages", "com.johnsnowlabs.nlp:spark_processing_scripts-nlp_2.11:2.7.5")
+          .config("spark.executor.instances", "30")
+          .config("spark.driver.memory", "20g")
+          .config("spark.executor.memory", "20g")
+          .config("spark.sql.shuffle.partitions", "2000")
+          .config("spark.executor.cores", "5")
+          .config("spark.kryoserializer.buffer.max", "2000M")
+          .config("spark.jars.packages", "com.johnsnowlabs.nlp:spark_processing_scripts-nlp_2.11:2.7.5")
           .getOrCreate()
     )
 
@@ -102,6 +102,7 @@ def main():
     df = sug.read_spark_df(args.num_files, args.start, args.db_name)
 
     # process via spark_processing_scripts
+    print('running spark...')
     output_sdf = run_spark(df, spark)
 
     # to disk
