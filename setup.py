@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='get_edit_diffs',
@@ -8,7 +8,7 @@ setup(
     author='Alex Spangher',
     author_email='aspangher@bloomberg.net',
     license='',
-    packages=['extract_newsarchive'],
+    packages=find_packages(),
     install_requires=open('requirements.txt').read().split('\n'),
     entry_points={
       'console_scripts': [
