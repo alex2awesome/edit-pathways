@@ -35,7 +35,7 @@ def get_sparknlp_pipeline():
 
     word_embeddings = (
         sa.BertEmbeddings
-            .load('s3://aspangher/spark_processing_scripts-nlp/small_bert_L4_128_en_2.6.0_2.4')
+            .load('s3://aspangher/spark-nlp/small_bert_L4_128_en_2.6.0_2.4')
             .setInputCols(["sentences", "token"])
             .setOutputCol("embeddings")
             .setMaxSentenceLength(512)
