@@ -32,10 +32,11 @@ conn_mapper_dict = {
 
 def download_data(conn_name):
     fname = conn_mapper_dict[conn_name]
-    zipped_fname = '%s.gz' % fname
-    remote_fname = os.path.join('edit-pathways', 'dbs', zipped_fname)
-    uda.download_file(zipped_fname, remote_fname)
+    if not os.path.exists(fname):
+        zipped_fname = '%s.gz' % fname
+        remote_fname = os.path.join('edit-pathways', 'dbs', zipped_fname)
+        uda.download_file(zipped_fname, remote_fname)
 
-    with gzip.open(zipped_fname, 'rb') as f_in:
-        with open(fname, 'wb') as f_out:
-            shutil.copyfileobj(f_in, f_out)
+        with gzip.open(zipped_fname, 'rb') as f_in:
+            with open(fname, 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)

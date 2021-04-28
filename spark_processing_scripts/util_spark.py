@@ -95,7 +95,7 @@ def get_word_matching_sql(side):
     return word_pair_min_distance_sql, sentence_pair_min_distance_sql, sentence_min_sql, threshold_sql
 
 
-def read_spark_df(num_entries, start_idx, db_name, spark):
+def read_spark_df(num_entries, start_idx, db_name):
     with sqlite3.connect(db_name) as conn:
         df = pd.read_sql('''
              SELECT * from entryversion 
