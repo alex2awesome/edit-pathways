@@ -1,30 +1,31 @@
 from pyspark.sql import SparkSession
 
-from spark.pipeline_steps import (
-    sparknlp_processing_pipeline,
-    explode_pipeline,
-    similarity_pipeline,
-    top_sentence_pipeline_x,
-    top_sentence_pipeline_y
-)
-import spark.util_general as sug
-from spark.util_spark import read_spark_df, APPROX_JOIN_CUTOFF
+# from spark_processing_scripts.pipeline_steps import (
+#     get_sparknlp_pipeline,
+#     get_explode_pipeline,
+#     get_similarity_pipeline,
+#     get_sentence_pipelines
+# )
+import spark_processing_scripts.pipeline_steps as sps
+import spark_processing_scripts.util_general as sug
+import spark_processing_scripts.util_spark as sus
 import pyspark.sql.functions as F
 import os
 
-def run_spark(sdf):
+def run_spark(df, spark):
+    sdf = spark.createDataFrame(df)
     sdf = sdf.repartition('entry_id', 'version').cache()
 
     # Process the input data to split sentences, tokenize and get BERT embeddings
-    spark_processed_df = sparknlp_processing_pipeline.fit(sdf).transform(sdf)
+    spark_processed_df = sps.get_sparknlp_pipeline().fit(sdf).transform(sdf)
     spark_processed_df = spark_processed_df.cache()
 
     # Explode the sentences
-    exploded_sdf = explode_pipeline.transform(spark_processed_df)
+    exploded_sdf = sps.get_explode_pipeline().transform(spark_processed_df)
     exploded_sdf = exploded_sdf.cache()
 
     # Hash the BERT embeddings for the Approximate Join
-    similarity_model = similarity_pipeline.fit(exploded_sdf)
+    similarity_model = sps.get_similarity_pipeline().fit(exploded_sdf)
     sim_sdf = similarity_model.transform(exploded_sdf)
     sim_sdf = sim_sdf.cache()
 
@@ -32,7 +33,7 @@ def run_spark(sdf):
     word_pair_matched_sdf = (
         similarity_model
         .stages[1]
-        .approxSimilarityJoin(sim_sdf, sim_sdf, APPROX_JOIN_CUTOFF, distCol="distance")
+        .approxSimilarityJoin(sim_sdf, sim_sdf, sus.APPROX_JOIN_CUTOFF, distCol="distance")
         .where(
             (F.col("datasetA.entry_id") == F.col("datasetB.entry_id")) &
             (F.col("datasetA.version") + 1 == F.col("datasetB.version"))
@@ -53,6 +54,8 @@ def run_spark(sdf):
     )
     key_cols = ['entry_id', 'version_x', 'version_y', 'sent_idx_x', 'sent_idx_y']
     word_pair_matched_sdf = word_pair_matched_sdf.repartition(key_cols).cache()
+
+    top_sentence_pipeline_x, top_sentence_pipeline_y = sps.get_sentence_pipelines()
 
     ## Get bipartite graph from both directions
     sent_pairs_x_sdf = (
@@ -88,28 +91,28 @@ def main():
 
     sug.download_data(args.db_name)
 
-    # spark
+    # spark_processing_scripts
     spark = (
         SparkSession.builder
-          .config("spark.executor.instances", "30")
-          .config("spark.driver.memory", "20g")
-          .config("spark.executor.memory", "20g")
-          .config("spark.sql.shuffle.partitions", "2000")
-          .config("spark.executor.cores", "5")
-          .config("spark.kryoserializer.buffer.max", "2000M")
-          .config("spark.jars.packages", "com.johnsnowlabs.nlp:spark-nlp_2.11:2.7.5")
+          .config("spark_processing_scripts.executor.instances", "30")
+          .config("spark_processing_scripts.driver.memory", "20g")
+          .config("spark_processing_scripts.executor.memory", "20g")
+          .config("spark_processing_scripts.sql.shuffle.partitions", "2000")
+          .config("spark_processing_scripts.executor.cores", "5")
+          .config("spark_processing_scripts.kryoserializer.buffer.max", "2000M")
+          .config("spark_processing_scripts.jars.packages", "com.johnsnowlabs.nlp:spark_processing_scripts-nlp_2.11:2.7.5")
           .getOrCreate()
     )
 
     # read dataframe
-    sdf = read_spark_df(args.num_files, args.start)
+    df = sus.read_spark_df(args.num_files, args.start, args.db_name)
 
-    # process via spark
-    output_sdf = run_spark(sdf)
+    # process via spark_processing_scripts
+    output_sdf = run_spark(df, spark)
 
     # to disk
     output_fname = 'db_%s__start_%s__end_%s' % (args.db_name, args.start, args.start + args.num_files)
-    outfile_s3_path = os.path.join('s3://aspangher', 'edit-pathways', 'spark-output', output_fname)
+    outfile_s3_path = os.path.join('s3://aspangher', 'edit-pathways', 'spark_processing_scripts-output', output_fname)
     output_sdf.write.mode("overwrite").parquet(outfile_s3_path)
 
 
