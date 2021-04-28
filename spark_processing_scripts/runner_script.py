@@ -89,6 +89,7 @@ def main():
     parser.add_argument('--num_files', type=int, help='Number of entry_ids to use.')
     args = parser.parse_args()
 
+    print('downloading data %s...' % args.db_name)
     sug.download_data(args.db_name)
 
     # spark_processing_scripts
