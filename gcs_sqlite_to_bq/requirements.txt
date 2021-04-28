@@ -1,0 +1,7 @@
+pycountry
+SQLAlchemy==1.3.22
+spacy
+pandas
+google-cloud-storage
+google-cloud-datastore
+google-cloud-bigquery

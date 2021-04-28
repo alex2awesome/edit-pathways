@@ -5,9 +5,9 @@ from util import util_newssniffer_parsing as unp
 import warnings
 warnings.filterwarnings("ignore")
 
-data_path = 'data/diffengine-diffs/db'
+data_path = '../data/diffengine-diffs/db'
 if not os.path.exists(data_path):
-    data_path = 'data'
+    data_path = '../data'
 
 output_path = "output"
 
