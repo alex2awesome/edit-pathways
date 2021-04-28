@@ -46,7 +46,7 @@ def run_spark(df, spark):
         )
     )
     key_cols = ['entry_id', 'version_x', 'version_y', 'sent_idx_x', 'sent_idx_y']
-    word_pair_matched_sdf = word_pair_matched_sdf.repartition(key_cols).cache()
+    word_pair_matched_sdf = word_pair_matched_sdf.repartition(*key_cols).cache()
 
     top_sentence_pipeline_x, top_sentence_pipeline_y = sps.get_sentence_pipelines()
 
