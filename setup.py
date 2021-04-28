@@ -9,7 +9,7 @@ setup(
     author_email='aspangher@bloomberg.net',
     license='',
     packages=['extract_newsarchive'],
-    install_requires=open('requirements.txt').split('\n'),
+    install_requires=open('requirements.txt').read().split('\n'),
     entry_points={
       'console_scripts': [
           'run_pyspark.py = spark.runner_script:main'
