@@ -4,6 +4,8 @@ import util.util_data_access as uda
 import gzip
 import os
 import shutil
+import pandas as pd
+import sqlite3
 
 conn_mapper_dict = {
     'nyt': 'newssniffer-nytimes.db',
@@ -40,3 +42,16 @@ def download_data(conn_name):
         with gzip.open(zipped_fname, 'rb') as f_in:
             with open(fname, 'wb') as f_out:
                 shutil.copyfileobj(f_in, f_out)
+
+
+def read_spark_df(num_entries, start_idx, db_name):
+    with sqlite3.connect(db_name) as conn:
+        df = pd.read_sql('''
+             SELECT * from entryversion 
+             WHERE entry_id IN (
+                SELECT distinct entry_id 
+                    FROM entryversion ORDER BY entry_id LIMIT %(num_entries)d OFFSET %(start_idx)d
+                )
+         ''' % {'num_entries': num_entries, 'start_idx': start_idx}, con=conn)
+        df = df.assign(summary=lambda df: df['summary'].str.replace('</p><p>', ' '))
+        return df

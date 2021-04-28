@@ -1,8 +1,3 @@
-import sqlite3
-
-import pandas as pd
-
-
 SENTENCE_SIM_THRESH = .44
 APPROX_JOIN_CUTOFF = .5
 
@@ -93,16 +88,3 @@ def get_word_matching_sql(side):
     })
 
     return word_pair_min_distance_sql, sentence_pair_min_distance_sql, sentence_min_sql, threshold_sql
-
-
-def read_spark_df(num_entries, start_idx, db_name):
-    with sqlite3.connect(db_name) as conn:
-        df = pd.read_sql('''
-             SELECT * from entryversion 
-             WHERE entry_id IN (
-                SELECT distinct entry_id 
-                    FROM entryversion ORDER BY entry_id LIMIT %(num_entries)d OFFSET %(start_idx)d
-                )
-         ''' % {'num_entries': num_entries, 'start_idx': start_idx}, con=conn)
-        df = df.assign(summary=lambda df: df['summary'].str.replace('</p><p>', ' '))
-        return df
