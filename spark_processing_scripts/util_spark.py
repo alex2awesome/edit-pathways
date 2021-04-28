@@ -77,7 +77,7 @@ def get_word_matching_sql(side):
                     ELSE NULL
                 END AS sent_idx_%(other_side)s,
                 CASE 
-                    WHEN (avg_sentence_distance < %(sentence_sim)f  THEN avg_sentence_distance
+                    WHEN (avg_sentence_distance < %(sentence_sim)f ) THEN avg_sentence_distance
                     ELSE NULL
                 END AS avg_sentence_distance
             FROM __THIS__
