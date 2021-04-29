@@ -119,32 +119,31 @@ def get_files_to_process_df(num_entries, start_idx, prefetched_entry_ids, db_nam
         return df
 
 
-def _upload_files_to_s3_pq(output_sdf, news_source, start, end):
-    num_files = len(get_pq_files(news_source))
+def _upload_files_to_s3_pq(output_sdf, news_source, start, num_records_per_file):
+    num_prefetched_files = len(get_pq_files(news_source))
     output_fname = fn_template_pq % {
         'news_source': news_source,
-        'start': start,
-        'end': end,
-        'num_files': num_files
+        'start': (start + num_prefetched_files) * num_records_per_file,
+        'end': (start + num_prefetched_files + 1) * num_records_per_file,
+        'num_files': num_prefetched_files
     }
     outfile_s3_path = os.path.join(s3_output_dir, output_fname)
     output_sdf.write.mode("overwrite").parquet(outfile_s3_path)
 
 
-def _upload_files_to_s3_csv(output_sdf, news_source, start, end):
-    fs = get_fs()
-    num_files = len(get_csv_files(news_source))
+def _upload_files_to_s3_csv(output_sdf, news_source, start, num_records_per_file):
+    num_prefetched_files = len(get_csv_files(news_source)) + 1
     output_fname = fn_template_csv % {
         'news_source': news_source,
-        'start': start,
-        'end': end,
-        'num_files': num_files
+        'start': (start + num_prefetched_files) * num_records_per_file,
+        'end': (start + num_prefetched_files + 1) * num_records_per_file,
+        'num_files': num_prefetched_files
     }
     ##
     outfile_s3_path = os.path.join(s3_output_dir, output_fname)
     output_df = output_sdf.toPandas()
     bytes_to_write = output_df.to_csv(None, compression='gzip').encode()
-    with fs.open(outfile_s3_path, 'wb') as f:
+    with get_fs().open(outfile_s3_path, 'wb') as f:
         f.write(bytes_to_write)
 
 
