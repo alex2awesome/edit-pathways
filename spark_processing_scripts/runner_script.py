@@ -113,7 +113,7 @@ def main():
     print('running spark...')
     output_sdf = run_spark(df, spark)
 
-    sug.upload_files_to_s3(output_sdf, args.output_format)
+    sug.upload_files_to_s3(output_sdf, args.output_format, args.db_name, args.start, args.start + args.num_files)
 
 
 
