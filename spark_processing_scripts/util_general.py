@@ -113,7 +113,7 @@ def get_files_to_process_df(num_entries, start_idx, prefetched_entry_ids, db_nam
          ''' % {
             'num_entries': num_entries,
             'start_idx': start_idx,
-            'prefetched_ids': ', '.join(prefetched_entry_ids),
+            'prefetched_ids': ', '.join(list(map(str, prefetched_entry_ids))),
         }, con=conn)
         df = df.assign(summary=lambda df: df['summary'].str.replace('</p><p>', ' '))
         return df
