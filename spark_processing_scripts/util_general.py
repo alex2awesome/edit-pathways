@@ -38,8 +38,8 @@ pq_pat= r'df_%(news_source)s__start_\d+__end_\d+__num_\d+/'
 csv_pat= r'df_%(news_source)s__start_\d+__end_\d+__num_\d+.csv.gz'
 get_pq_files = lambda x: list(filter(lambda y: re.search(pq_pat % {'news_source': x}, y), get_fs().ls(s3_output_dir) ))
 get_csv_files = lambda x:list(filter(lambda y: re.search(csv_pat % {'news_source': x}, y), get_fs().ls(s3_output_dir) ))
-fn_template_csv = 'db_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s.csv.gz'
-fn_template_pq = 'db_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s'
+fn_template_csv = '%(news_source)s/db_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s.csv.gz'
+fn_template_pq = '%(news_source)s/db_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s'
 
 _fs = None
 def get_fs():
@@ -132,7 +132,7 @@ def _upload_files_to_s3_pq(output_sdf, news_source, start, num_records_per_file)
 
 
 def _upload_files_to_s3_csv(output_sdf, news_source, start, num_records_per_file):
-    num_prefetched_files = len(get_csv_files(news_source)) + 1
+    num_prefetched_files = len(get_csv_files(news_source))
     output_fname = fn_template_csv % {
         'news_source': news_source,
         'start': (start + num_prefetched_files) * num_records_per_file,
