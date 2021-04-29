@@ -16,7 +16,7 @@ def main():
     args = parser.parse_args()
 
     print('downloading source data %s...' % args.db_name)
-    sug.download_data(args.db_name)
+    db_local_path = sug.download_sqlite_db(args.db_name)
 
     print('downloading prefetched data...')
     prefetched_df = sug.download_prefetched_data(args.db_name)
@@ -36,7 +36,7 @@ def main():
 
     # read dataframe
     df = sug.get_files_to_process_df(
-        args.num_files, args.start, prefetched_df['entry_id'].drop_duplicates(), args.db_name
+        args.num_files, args.start, prefetched_df['entry_id'].drop_duplicates(), db_local_path
     )
 
     # process via spark_processing_scripts
