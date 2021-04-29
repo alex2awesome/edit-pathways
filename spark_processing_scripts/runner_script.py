@@ -78,12 +78,17 @@ def main():
 
     parser = ArgumentParser()
     parser.add_argument('--db_name', type=str, help='Name of the source DB to use.')
-    parser.add_argument('--start', type=int, help='Start entry_id index.')
-    parser.add_argument('--num_files', type=int, help='Number of entry_ids to use.')
+    parser.add_argument('--start', type=int, default=0, help='Start entry_id index.')
+    parser.add_argument('--num_files', type=int, default=500, help='Number of entry_ids to use.')
+    parser.add_argument('--input_format', type=str, default='csv', help="Input format for the previously-stored runs.")
+    parser.add_argument('--output_format', type=str, default='csv', help="Output format.")
+
     args = parser.parse_args()
 
-    print('downloading data %s...' % args.db_name)
+    print('downloading source data %s...' % args.db_name)
     sug.download_data(args.db_name)
+
+    prefetched_df = sug.download_prefetched_data(args.db_name)
 
     # spark_processing_scripts
     spark = (
@@ -99,16 +104,16 @@ def main():
     )
 
     # read dataframe
-    df = sug.read_spark_df(args.num_files, args.start, args.db_name)
+    df = sug.get_files_to_process_df(
+        args.num_files, args.start, prefetched_df['entry_id'].drop_duplicates(), args.db_name
+    )
 
     # process via spark_processing_scripts
     print('running spark...')
     output_sdf = run_spark(df, spark)
 
-    # to disk
-    output_fname = 'db_%s__start_%s__end_%s' % (args.db_name, args.start, args.start + args.num_files)
-    outfile_s3_path = os.path.join('s3://aspangher', 'edit-pathways', 'spark_processing_scripts-output', output_fname)
-    output_sdf.write.mode("overwrite").parquet(outfile_s3_path)
+    sug.upload_files_to_s3(output_sdf, args.output_format)
+
 
 
 if __name__ == "__main__":
