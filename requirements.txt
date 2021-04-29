@@ -1,9 +1,10 @@
 dask
 fsspec>=0.3.3
 pandas
-spacy==2.3.2
-seaborn
-koalas
+# spacy==2.3.2
+# seaborn
+# koalas
 pyspark
-pycountry
+# pycountry
 spark-nlp
+s3fs
