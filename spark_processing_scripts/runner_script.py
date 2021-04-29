@@ -17,6 +17,9 @@ def main():
 
     print('downloading source data %s...' % args.db_name)
     db_local_path = sug.download_sqlite_db(args.db_name)
+    print(db_local_path)
+    import os
+    print(os.listdir(os.path.dirname(db_local_path)))
 
     print('downloading prefetched data...')
     prefetched_df = sug.download_prefetched_data(args.db_name)
