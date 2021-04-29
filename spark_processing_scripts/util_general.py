@@ -33,6 +33,7 @@ conn_mapper_dict = {
     'telegraph': 'telegraph.db',
 }
 
+s3_db_dir = 's3://aspangher/edit-pathways/dbs'
 s3_output_dir = 's3://aspangher/edit-pathways/spark_processing_scripts-output/'
 pq_pat= r'df_%(news_source)s__start_\d+__end_\d+__num_\d+/'
 csv_pat= r'df_%(news_source)s__start_\d+__end_\d+__num_\d+.csv.gz'
@@ -53,7 +54,7 @@ def _download_prefetched_data_pq(news_source):
     import pyarrow.parquet as pq
     fs = get_fs()
     files = get_pq_files(news_source)
-    df_list= []
+    df_list = []
     for f_path in files:
         df_list.append(
             pq.ParquetDataset('s3://' + f_path, filesystem=fs)
@@ -81,24 +82,29 @@ def download_prefetched_data(news_source, format='csv'):
         return _download_prefetched_data_pq(news_source)
 
 
-def download_data(conn_name):
+def download_sqlite_db(conn_name):
+    import tempfile
     fname = conn_mapper_dict[conn_name]
-    if not os.path.exists(fname):
-        zipped_fname = '%s.gz' % fname
-        remote_fname = os.path.join('edit-pathways', 'dbs', zipped_fname)
-        uda.download_file(zipped_fname, remote_fname)
+    remote_db_path = os.path.join(s3_db_dir, fname)
+    fs = get_fs()
 
-        with gzip.open(zipped_fname, 'rb') as f_in:
-            with open(fname, 'wb') as f_out:
-                shutil.copyfileobj(f_in, f_out)
+    with tempfile.NamedTemporaryFile() as fp:
+        fs.download(remote_db_path, fp.name)
+        return fp.name
+
+    #     conn = sqlite3.connect(fp.name)
+    # if not os.path.exists(fname):
+    #     zipped_fname = '%s.gz' % fname
+    #     remote_fname = os.path.join('edit-pathways', 'dbs', zipped_fname)
+    #     uda.download_file(zipped_fname, remote_fname)
+    #
+    #     with gzip.open(zipped_fname, 'rb') as f_in:
+    #         with open(fname, 'wb') as f_out:
+    #             shutil.copyfileobj(f_in, f_out)
 
 
-def upload_file(fname, remote_path):
-    uda.upload_file()
-
-
-def get_files_to_process_df(num_entries, start_idx, prefetched_entry_ids, db_name):
-    with sqlite3.connect(conn_mapper_dict[db_name]) as conn:
+def get_files_to_process_df(num_entries, start_idx, prefetched_entry_ids, db_fp):
+    with sqlite3.connect(db_fp) as conn:
         df = pd.read_sql('''
              SELECT * from entryversion 
              WHERE entry_id IN (
