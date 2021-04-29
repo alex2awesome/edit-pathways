@@ -120,7 +120,7 @@ def get_files_to_process_df(num_entries, start_idx, prefetched_entry_ids, db_nam
 
 
 def _upload_files_to_s3_pq(output_sdf, news_source, start, end):
-    num_files = get_pq_files(news_source)
+    num_files = len(get_pq_files(news_source))
     output_fname = fn_template_pq % {
         'news_source': news_source,
         'start': start,
@@ -133,7 +133,7 @@ def _upload_files_to_s3_pq(output_sdf, news_source, start, end):
 
 def _upload_files_to_s3_csv(output_sdf, news_source, start, end):
     fs = get_fs()
-    num_files = get_csv_files(news_source)
+    num_files = len(get_csv_files(news_source))
     output_fname = fn_template_csv % {
         'news_source': news_source,
         'start': start,
