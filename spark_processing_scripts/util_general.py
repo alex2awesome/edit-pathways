@@ -120,7 +120,6 @@ def get_files_to_process_df(num_entries, start_idx, prefetched_entry_ids, db_nam
 
 
 def _upload_files_to_s3_pq(output_sdf, news_source, start, end):
-    fs = get_fs()
     num_files = get_pq_files(news_source)
     output_fname = fn_template_pq % {
         'newws_source': news_source,
