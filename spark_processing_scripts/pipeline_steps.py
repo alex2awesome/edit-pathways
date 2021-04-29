@@ -2,7 +2,7 @@ from pyspark.ml.feature import Normalizer, SQLTransformer
 from pyspark.ml.feature import BucketedRandomProjectionLSH
 import sparknlp.base as sb
 import sparknlp.annotator as sa
-from spark_processing_scripts.util_spark import get_word_matching_sql
+import spark_processing_scripts.util_spark as sus
 
 
 #####
@@ -137,7 +137,7 @@ def get_similarity_pipeline():
 
 def get_sentence_pipelines():
     ## get top sentences, X, pipeline
-    s1x, s2x, s3x, s4x = get_word_matching_sql(side='x')
+    s1x, s2x, s3x, s4x = sus.get_word_matching_sql(side='x')
     #
     get_word_pair_min_distance_x = SQLTransformer().setStatement(s1x)
     get_sentence_min_distance_x = SQLTransformer().setStatement(s2x)
@@ -145,7 +145,7 @@ def get_sentence_pipelines():
     threshold_x = SQLTransformer().setStatement(s4x)
 
     ## get top sentences, Y, pipeline
-    s1y, s2y, s3y, s4y = get_word_matching_sql(side='y')
+    s1y, s2y, s3y, s4y = sus.get_word_matching_sql(side='y')
     #
     get_word_pair_min_distance_y = SQLTransformer().setStatement(s1y)
     get_sentence_min_distance_y = SQLTransformer().setStatement(s2y)

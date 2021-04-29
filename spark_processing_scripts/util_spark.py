@@ -27,7 +27,7 @@ def run_spark(df, spark):
     word_pair_matched_sdf = (
         similarity_model
         .stages[1]
-        .approxSimilarityJoin(sim_sdf, sim_sdf, sus.APPROX_JOIN_CUTOFF, distCol="distance")
+        .approxSimilarityJoin(sim_sdf, sim_sdf, APPROX_JOIN_CUTOFF, distCol="distance")
         .where(
             (F.col("datasetA.entry_id") == F.col("datasetB.entry_id")) &
             (F.col("datasetA.version") + 1 == F.col("datasetB.version"))
