@@ -36,8 +36,8 @@ conn_mapper_dict = {
 s3_output_dir = 's3://aspangher/edit-pathways/spark_processing_scripts-output/'
 pq_pat= r'df_%(news_source)s__start_\d+__end_\d+__num_\d+/'
 csv_pat= r'df_%(news_source)s__start_\d+__end_\d+__num_\d+.csv.gz'
-get_pq_files = lambda x: list(filter(lambda y: re.search(pq_pat % {'news_source': x}), get_fs().ls(s3_output_dir) ))
-get_csv_files = lambda x:list(filter(lambda y: re.search(csv_pat % {'news_source': x}), get_fs().ls(s3_output_dir) ))
+get_pq_files = lambda x: list(filter(lambda y: re.search(pq_pat % {'news_source': x}, y), get_fs().ls(s3_output_dir) ))
+get_csv_files = lambda x:list(filter(lambda y: re.search(csv_pat % {'news_source': x}, y), get_fs().ls(s3_output_dir) ))
 fn_template_csv = 'db_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s.csv.gz'
 fn_template_pq = 'db_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s'
 
