@@ -34,8 +34,8 @@ conn_mapper_dict = {
 }
 
 s3_output_dir = 's3://aspangher/edit-pathways/spark_processing_scripts-output'
-get_pq_path = lambda x: os.path.join(s3_output_dir, '/df_%(news_source)s__start_*__end_*__num_*/' % {'news_source': x})
-get_csv_path = lambda x: os.path.join(s3_output_dir, '/df_%(news_source)s__start_*__end_*__num_*.csv.gz')
+get_pq_path = lambda x: os.path.join(s3_output_dir, 'df_%(news_source)s__start_*__end_*__num_*/' % {'news_source': x})
+get_csv_path = lambda x: os.path.join(s3_output_dir, 'df_%(news_source)s__start_*__end_*__num_*.csv.gz')
 fn_template_csv = 'db_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s.csv.gz'
 fn_template_pq = 'db_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s'
 
@@ -62,7 +62,7 @@ def _download_prefetched_data_pq(news_source):
     return pd.concat(df_list)
 
 
-def download_prefetched_data_csv(news_source):
+def _download_prefetched_data_csv(news_source):
     fs = get_fs()
     csv_path = get_csv_path(news_source)
     files = fs.ls(csv_path)
@@ -75,8 +75,8 @@ def download_prefetched_data_csv(news_source):
 
 
 def download_prefetched_data(news_source, format='csv'):
-    if format=='csv':
-        return download_prefetched_data_csv(news_source)
+    if format == 'csv':
+        return _download_prefetched_data_csv(news_source)
     else:
         return _download_prefetched_data_pq(news_source)
 
@@ -119,7 +119,7 @@ def get_files_to_process_df(num_entries, start_idx, prefetched_entry_ids, db_nam
         return df
 
 
-def upload_files_to_s3_pq(output_sdf, news_source, start, end):
+def _upload_files_to_s3_pq(output_sdf, news_source, start, end):
     fs = get_fs()
     num_files = (fs.ls(get_pq_path(news_source)))
     output_fname = fn_template_pq % {
@@ -132,7 +132,7 @@ def upload_files_to_s3_pq(output_sdf, news_source, start, end):
     output_sdf.write.mode("overwrite").parquet(outfile_s3_path)
 
 
-def upload_files_to_s3_csv(output_sdf, news_source, start, end):
+def _upload_files_to_s3_csv(output_sdf, news_source, start, end):
     fs = get_fs()
     num_files = (fs.ls(get_csv_path(news_source)))
     output_fname = fn_template_csv % {
@@ -151,6 +151,6 @@ def upload_files_to_s3_csv(output_sdf, news_source, start, end):
 
 def upload_files_to_s3(output_sdf, output_format, news_source, start, end):
     if output_format == 'pq':
-        upload_files_to_s3_pq(output_sdf, news_source, start, end)
+        _upload_files_to_s3_pq(output_sdf, news_source, start, end)
     else:
-        upload_files_to_s3_csv(output_sdf, news_source, start, end)
+        _upload_files_to_s3_csv(output_sdf, news_source, start, end)

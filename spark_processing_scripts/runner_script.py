@@ -88,6 +88,7 @@ def main():
     print('downloading source data %s...' % args.db_name)
     sug.download_data(args.db_name)
 
+    print('downloading prefetched data...')
     prefetched_df = sug.download_prefetched_data(args.db_name)
 
     # spark_processing_scripts
