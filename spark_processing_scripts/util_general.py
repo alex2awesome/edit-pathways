@@ -3,7 +3,7 @@ sys.path.append('../')
 import util.util_data_access as uda
 import gzip
 import os
-import shutil
+import shutil, re
 import pandas as pd
 import sqlite3
 import s3fs
@@ -33,9 +33,11 @@ conn_mapper_dict = {
     'telegraph': 'telegraph.db',
 }
 
-s3_output_dir = 's3://aspangher/edit-pathways/spark_processing_scripts-output'
-get_pq_path = lambda x: os.path.join(s3_output_dir, 'df_%(news_source)s__start_*__end_*__num_*/' % {'news_source': x})
-get_csv_path = lambda x: os.path.join(s3_output_dir, 'df_%(news_source)s__start_*__end_*__num_*.csv.gz' % {'news_source': x})
+s3_output_dir = 's3://aspangher/edit-pathways/spark_processing_scripts-output/'
+pq_pat= r'df_%(news_source)s__start_\d+__end_\d+__num_\d+/'
+csv_pat= r'df_%(news_source)s__start_\d+__end_\d+__num_\d+.csv.gz'
+get_pq_files = lambda x: list(filter(lambda y: re.search(pq_pat % {'news_source': x}), get_fs().ls(s3_output_dir) ))
+get_csv_files = lambda x:list(filter(lambda y: re.search(csv_pat % {'news_source': x}), get_fs().ls(s3_output_dir) ))
 fn_template_csv = 'db_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s.csv.gz'
 fn_template_pq = 'db_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s'
 
@@ -50,12 +52,11 @@ def get_fs():
 def _download_prefetched_data_pq(news_source):
     import pyarrow.parquet as pq
     fs = get_fs()
-    pq_path = get_pq_path(news_source)
-    files = fs.ls(pq_path)
+    files = get_pq_files(news_source)
     df_list= []
     for f_path in files:
         df_list.append(
-            pq.ParquetDataset(f_path, filesystem=fs)
+            pq.ParquetDataset('s3://' + f_path, filesystem=fs)
                 .read_pandas()
                 .to_pandas()
         )
@@ -64,11 +65,10 @@ def _download_prefetched_data_pq(news_source):
 
 def _download_prefetched_data_csv(news_source):
     fs = get_fs()
-    csv_path = get_csv_path(news_source)
-    files = fs.ls(csv_path)
+    files = get_csv_files(news_source)
     df_list = []
     for f_path in files:
-        with fs.open(f_path) as f:
+        with fs.open('s3://' + f_path) as f:
             df = pd.read_csv(f, index_col=0)
         df_list.append(df)
     return pd.concat(df_list)
