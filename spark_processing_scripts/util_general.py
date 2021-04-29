@@ -35,7 +35,7 @@ conn_mapper_dict = {
 
 s3_output_dir = 's3://aspangher/edit-pathways/spark_processing_scripts-output'
 get_pq_path = lambda x: os.path.join(s3_output_dir, 'df_%(news_source)s__start_*__end_*__num_*/' % {'news_source': x})
-get_csv_path = lambda x: os.path.join(s3_output_dir, 'df_%(news_source)s__start_*__end_*__num_*.csv.gz')
+get_csv_path = lambda x: os.path.join(s3_output_dir, 'df_%(news_source)s__start_*__end_*__num_*.csv.gz' % {'news_source': x})
 fn_template_csv = 'db_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s.csv.gz'
 fn_template_pq = 'db_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s'
 
