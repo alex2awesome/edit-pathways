@@ -66,6 +66,7 @@ def get_sparknlp_pipeline():
     )
     return sparknlp_processing_pipeline
 
+
 def get_explode_pipeline():
     ###
     #
