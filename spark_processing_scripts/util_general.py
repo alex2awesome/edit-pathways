@@ -9,31 +9,32 @@ import sqlite3
 import s3fs
 
 conn_mapper_dict = {
-    'nyt': 'newssniffer-nytimes.db',
-    'wp': 'newssniffer-washpo.db',
-    'ap': 'ap.db',
-    'guardian': 'newssniffer-guardian.db',
-    'bbc-1': 'bbc.db',
-    'bbc-2': 'newssniffer-bbc.db',
-    'reuters': 'reuters.db',
-    'cnn': 'cnn.db',
-    'cbc': 'cbc.db',
-    'fox': 'fox.db',
-    'independent': 'newssniffer-independent.db',
-    'dailymail': 'dailymail.db',
-    'therebel': 'therebel.db',
-    'torontostar': 'torontostar.db',
-    'torontosun': 'torontosun.db',
-    'calgaryherald': 'calgaryherald.db',
-    'globemail': 'globemail.db',
-    'canadaland': 'canadaland.db',
-    'whitehouse': 'whitehouse.db',
-    'lapresse': 'lapresse.db',
-    'nationalpost': 'nationalpost.db',
-    'telegraph': 'telegraph.db',
+    'nyt': 'newssniffer-nytimes',
+    'wp': 'newssniffer-washpo',
+    'ap': 'ap',
+    'guardian': 'newssniffer-guardian',
+    'bbc-1': 'bbc',
+    'bbc-2': 'newssniffer-bbc',
+    'reuters': 'reuters',
+    'cnn': 'cnn',
+    'cbc': 'cbc',
+    'fox': 'fox',
+    'independent': 'newssniffer-independent',
+    'dailymail': 'dailymail',
+    'therebel': 'therebel',
+    'torontostar': 'torontostar',
+    'torontosun': 'torontosun',
+    'calgaryherald': 'calgaryherald',
+    'globemail': 'globemail',
+    'canadaland': 'canadaland',
+    'whitehouse': 'whitehouse',
+    'lapresse': 'lapresse',
+    'nationalpost': 'nationalpost',
+    'telegraph': 'telegraph',
 }
 
 s3_db_dir = 's3://aspangher/edit-pathways/dbs'
+s3_csv_dir = 's3://aspangher/edit-pathways/csvs'
 s3_output_dir = 's3://aspangher/edit-pathways/spark_processing_scripts-output/'
 pq_pat= r'df_%(news_source)s__start_\d+__end_\d+__num_\d+/'
 csv_pat= r'df_%(news_source)s__start_\d+__end_\d+__num_\d+.csv.gz'
@@ -82,10 +83,17 @@ def download_prefetched_data(news_source, format='csv'):
         return _download_prefetched_data_pq(news_source)
 
 
+def download_csv_to_df(conn_name):
+    fname = conn_mapper_dict[conn_name]
+    fpath = os.path.join(s3_csv_dir, fname + '.csv.gz')
+    with get_fs().open(fpath) as f:
+        return pd.read_csv(f, index_col=0, compression='gzip')
+
+
 def download_sqlite_db(conn_name):
     import tempfile
     fname = conn_mapper_dict[conn_name]
-    remote_db_path = os.path.join(s3_db_dir, fname)
+    remote_db_path = os.path.join(s3_db_dir, fname+'.db')
     fs = get_fs()
 
     with tempfile.NamedTemporaryFile() as fp:
@@ -102,8 +110,23 @@ def download_sqlite_db(conn_name):
     #         with open(fname, 'wb') as f_out:
     #             shutil.copyfileobj(f_in, f_out)
 
+def get_rows_to_process_df(num_entries, start_idx, prefetched_entry_ids, full_df):
+    return (
+        full_df
+            .loc[lambda df: df['num_versions'] > 1]
+            .loc[lambda df: df['num_versions'] < 40]
+            .loc[lambda df: df['entry_id'].isin(
+                df['entry_id']
+                    .drop_duplicates()
+                    .loc[lambda s: ~s.isin(prefetched_entry_ids)]
+                    .sort_values()
+                    .loc[start_idx:start_idx + num_entries]
+            )]
+            .assign(summary=lambda df: df['summary'].str.replace('</p><p>', ' '))
+    )
 
-def get_files_to_process_df(num_entries, start_idx, prefetched_entry_ids, db_fp):
+
+def get_rows_to_process_sql(num_entries, start_idx, prefetched_entry_ids, db_fp):
     with sqlite3.connect(db_fp) as conn:
         df = pd.read_sql('''
              SELECT * from entryversion 
@@ -158,3 +181,29 @@ def upload_files_to_s3(output_sdf, output_format, news_source, start, end):
         _upload_files_to_s3_pq(output_sdf, news_source, start, end)
     else:
         _upload_files_to_s3_csv(output_sdf, news_source, start, end)
+
+
+def dump_db_to_s3():
+    """Doesn't work..."""
+    conn = sqlite3.connect('newssniffer-nytimes.db')
+    dump_lines = '\n'.join(list(conn.iterdump())).encode()
+    with get_fs().open('s3://aspangher/edit-pathways/db-dumps/newssniffer-nytimes-sqlite-dump.txt', 'wb') as f:
+        f.write(dump_lines)
+
+def dump_csv_to_s3():
+    with sqlite3.connect('newssniffer-nytimes.db') as conn:
+        df = pd.read_sql('''
+             SELECT * from entryversion
+         ''', con=conn)
+    df.to_csv('newssniffer-nytimes.csv.gz', compression='gzip')
+    util_data_access.upload_file('newssniffer-nytimes.csv.gz', 'edit-pathways/csvs/newssniffer-nytimes.csv.gz')
+
+def load_sqlite_to_spark():
+    from pyspark.sql import SQLContext
+    sqlContext = SQLContext(spark)
+    sdf = (
+        sqlContext.read.format('jdbc')
+            #       .options(url='jdbc:sqlite:s3://aspangher/edit-pathways/dbs/newssniffer-nytimes.db', dbtable='entryversion', driver='org.sqlite.JDBC')
+            .options(url='jdbc:sqlite:%s' % db_local_path, dbtable='entryversion', driver='org.sqlite.JDBC')
+            .load()
+    )
