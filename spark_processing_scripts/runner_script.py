@@ -1,3 +1,4 @@
+from pyspark import SparkConf, SparkContext
 from pyspark.sql import SparkSession
 import spark_processing_scripts.util_spark as sus
 import spark_processing_scripts.util_general as sug
@@ -16,40 +17,31 @@ def main():
     args = parser.parse_args()
 
     # spark
+    conf = SparkConf()
+    sc = SparkContext(appName='edit-parser', conf=conf)
     spark = (
         SparkSession.builder
+            .config(conf=conf)
             .config("spark.executor.instances", "30")
             .config("spark.driver.memory", "20g")
             .config("spark.executor.memory", "20g")
             .config("spark.sql.shuffle.partitions", "2000")
             .config("spark.executor.cores", "5")
             .config("spark.kryoserializer.buffer.max", "2000M")
-            .config("spark.jars.packages", "com.johnsnowlabs.nlp:spark-nlp_2.11:2.7.5,org.xerial:sqlite-jdbc:3.34.0")
-            # .config("spark.jars.packages", "com.johnsnowlabs.nlp:spark-nlp_2.11:2.7.5")
+            # .config("spark.jars.packages", "com.johnsnowlabs.nlp:spark-nlp_2.11:2.7.5,org.xerial:sqlite-jdbc:3.34.0")
+            .config("spark.jars.packages", "com.johnsnowlabs.nlp:spark-nlp_2.11:2.7.5")
             .getOrCreate()
     )
 
     print('downloading source data %s...' % args.db_name)
-    db_local_path = sug.download_sqlite_db(args.db_name)
-    print(db_local_path)
-    import os
-    print(os.path.exists(db_local_path))
-    print(os.listdir(os.path.dirname(db_local_path)))
-    from pyspark.sql import SQLContext
-    sqlContext = SQLContext(spark)
-    sdf = (
-        sqlContext.read.format('jdbc')
-            #       .options(url='jdbc:sqlite:s3://aspangher/edit-pathways/dbs/newssniffer-nytimes.db', dbtable='entryversion', driver='org.sqlite.JDBC')
-            .options(url='jdbc:sqlite:%s' % db_local_path, dbtable='entryversion', driver='org.sqlite.JDBC')
-            .load()
-    )
+    full_db = sug.download_csv_to_df(args.db_name)
 
     print('downloading prefetched data...')
     prefetched_df = sug.download_prefetched_data(args.db_name)
 
     # read dataframe
-    df = sug.get_files_to_process_df(
-        args.num_files, args.start, prefetched_df['entry_id'].drop_duplicates(), db_local_path
+    df = sug.get_rows_to_process_df(
+        args.num_files, args.start, prefetched_df['entry_id'].drop_duplicates(), full_db
     )
 
     # process via spark_processing_scripts
