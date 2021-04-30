@@ -157,7 +157,7 @@ def _upload_files_to_s3_pq(output_sdf, news_source, start, num_records_per_file)
         'news_source': news_source,
         'start': (start + num_prefetched_files) * num_records_per_file,
         'end': (start + num_prefetched_files + 1) * num_records_per_file,
-        'num_files': num_prefetched_files
+        'num_files': num_prefetched_files + 1
     }
     outfile_s3_path = os.path.join(s3_output_dir, output_fname)
     output_sdf.write.mode("overwrite").parquet(outfile_s3_path)
@@ -169,7 +169,7 @@ def _upload_files_to_s3_csv(output_sdf, news_source, start, num_records_per_file
         'news_source': news_source,
         'start': (start + num_prefetched_files) * num_records_per_file,
         'end': (start + num_prefetched_files + 1) * num_records_per_file,
-        'num_files': num_prefetched_files
+        'num_files': num_prefetched_files + 1
     }
     ##
     outfile_s3_path = os.path.join(s3_output_dir, output_fname)
