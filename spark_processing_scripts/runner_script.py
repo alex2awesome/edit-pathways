@@ -1,4 +1,3 @@
-from pyspark import SparkConf, SparkContext
 from pyspark.sql import SparkSession
 import spark_processing_scripts.util_spark as sus
 import spark_processing_scripts.util_general as sug
@@ -16,20 +15,15 @@ def main():
 
     args = parser.parse_args()
 
-    # spark
-    # conf = SparkConf()
-    # sc = SparkContext(appName='edit-parser', conf=conf)
     spark = (
         SparkSession.builder
-            # .config(conf=conf)
-            .config("spark.executor.instances", "30")
+            .config("spark.executor.instances", "40")
             .config("spark.driver.memory", "20g")
             .config("spark.executor.memory", "20g")
             .config("spark.sql.shuffle.partitions", "2000")
             .config("spark.executor.cores", "5")
             .config("spark.kryoserializer.buffer.max", "2000M")
-            # .config("spark.jars.packages", "com.johnsnowlabs.nlp:spark-nlp_2.11:2.7.5,org.xerial:sqlite-jdbc:3.34.0")
-            .config("spark.jars.packages", "com.johnsnowlabs.nlp:spark-nlp_2.11:2.7.5")
+            .config("spark.jars.packages", "com.johnsnowlabs.nlp:spark-nlp_2.11:2.7.5,org.xerial:sqlite-jdbc:3.34.0")
             .getOrCreate()
     )
 
