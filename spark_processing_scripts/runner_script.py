@@ -17,8 +17,8 @@ def main():
     args = parser.parse_args()
 
     # spark
-    conf = SparkConf()
-    sc = SparkContext(appName='edit-parser', conf=conf)
+    # conf = SparkConf()
+    # sc = SparkContext(appName='edit-parser', conf=conf)
     spark = (
         SparkSession.builder
             # .config(conf=conf)
