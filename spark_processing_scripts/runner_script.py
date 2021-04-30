@@ -49,7 +49,8 @@ def main():
         output_sdf = sus.run_spark(df, spark)
 
         sug.upload_files_to_s3(output_sdf, args.output_format, args.db_name, args.start, args.start + args.num_files)
-        sqlContext.clearCache()
+        if args.continuous:
+            sqlContext.clearCache()
         ##
         if not args.continuous:
             break
