@@ -118,9 +118,9 @@ def get_rows_to_process_df(num_entries, start_idx, prefetched_entry_ids, full_df
             .loc[lambda df: df['entry_id'].isin(
                 df['entry_id']
                     .drop_duplicates()
-                    .loc[lambda s: ~s.isin(prefetched_entry_ids)]
+                    .loc[lambda s: ~s.isin(prefetched_entry_ids.values)]
                     .sort_values()
-                    .loc[start_idx:start_idx + num_entries]
+                    .iloc[start_idx : start_idx + num_entries]
             )]
             .assign(summary=lambda df: df['summary'].str.replace('</p><p>', ' '))
     )
