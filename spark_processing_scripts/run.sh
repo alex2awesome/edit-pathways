@@ -14,6 +14,7 @@ katie spark run \
     --spark-framework spark-2.4-python-3.7 \
     --python-package-uris git+https://bbgithub.dev.bloomberg.com/aspangher/edit-project \
     --py-uri /job/.local/bin/run_pyspark.py \
+    --packages com.johnsnowlabs.nlp:spark-nlp_2.11:2.7.5 \
     --cluster-size Custom \
     --worker-count 50 \
     --worker-cores 5 \

@@ -1,7 +1,8 @@
 from pyspark.sql import SparkSession
 import spark_processing_scripts.util_spark as sus
 import spark_processing_scripts.util_general as sug
-
+from pyspark import SparkConf, SparkContext
+from pyspark.sql import Row, SparkSession, SQLContext
 
 def main():
     from argparse import ArgumentParser
@@ -12,38 +13,46 @@ def main():
     parser.add_argument('--num_files', type=int, default=500, help='Number of entry_ids to use.')
     parser.add_argument('--input_format', type=str, default='csv', help="Input format for the previously-stored runs.")
     parser.add_argument('--output_format', type=str, default='csv', help="Output format.")
+    parser.add_argument('--continuous', action='store_true', help='Whether to keep iterating or not...')
 
     args = parser.parse_args()
 
     spark = (
         SparkSession.builder
+            .config("spark.jars.packages", "com.johnsnowlabs.nlp:spark-nlp_2.11:2.7.5")
             .config("spark.executor.instances", "40")
             .config("spark.driver.memory", "20g")
             .config("spark.executor.memory", "20g")
             .config("spark.sql.shuffle.partitions", "2000")
             .config("spark.executor.cores", "5")
             .config("spark.kryoserializer.buffer.max", "2000M")
-            .config("spark.jars.packages", "com.johnsnowlabs.nlp:spark-nlp_2.11:2.7.5,org.xerial:sqlite-jdbc:3.34.0")
             .getOrCreate()
     )
+
+    sqlContext = SQLContext(spark)
 
     print('downloading source data %s...' % args.db_name)
     full_db = sug.download_csv_to_df(args.db_name)
 
-    print('downloading prefetched data...')
-    prefetched_df = sug.download_prefetched_data(args.db_name)
+    df = full_db
+    while len(df) > 0:
+        if not args.continuous:
+            break
 
-    # read dataframe
-    df = sug.get_rows_to_process_df(
-        args.num_files, args.start, prefetched_df['entry_id'].drop_duplicates(), full_db
-    )
+        print('downloading prefetched data...')
+        prefetched_df = sug.download_prefetched_data(args.db_name)
 
-    # process via spark_processing_scripts
-    print('running spark...')
-    output_sdf = sus.run_spark(df, spark)
+        # read dataframe
+        df = sug.get_rows_to_process_df(
+            args.num_files, args.start, prefetched_df['entry_id'].drop_duplicates(), full_db
+        )
 
-    sug.upload_files_to_s3(output_sdf, args.output_format, args.db_name, args.start, args.start + args.num_files)
+        # process via spark_processing_scripts
+        print('running spark...')
+        output_sdf = sus.run_spark(df, spark)
 
+        sug.upload_files_to_s3(output_sdf, args.output_format, args.db_name, args.start, args.start + args.num_files)
+        sqlContext.clearCache()
 
 
 if __name__ == "__main__":
