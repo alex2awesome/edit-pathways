@@ -24,4 +24,5 @@ katie spark run \
     --sync-launch tail \
     -- \
       --db_name nyt \
-      --num_files 500
+      --num_files 500 \
+#      --continuous
