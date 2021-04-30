@@ -11,7 +11,8 @@ def run_spark(df, spark):
     sdf = sdf.repartition('entry_id', 'version').cache()
 
     # Process the input data to split sentences, tokenize and get BERT embeddings
-    spark_processed_df = sps.get_sparknlp_pipeline().fit(sdf).transform(sdf)
+    sparknlp_pipeline = sps.get_sparknlp_pipeline()
+    spark_processed_df = sparknlp_pipeline.fit(sdf).transform(sdf)
     spark_processed_df = spark_processed_df.cache()
 
     # Explode the sentences
