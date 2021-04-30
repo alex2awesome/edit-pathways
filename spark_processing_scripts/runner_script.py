@@ -36,9 +36,6 @@ def main():
 
     df = full_db
     while len(df) > 0:
-        if not args.continuous:
-            break
-
         print('downloading prefetched data...')
         prefetched_df = sug.download_prefetched_data(args.db_name)
 
@@ -53,7 +50,9 @@ def main():
 
         sug.upload_files_to_s3(output_sdf, args.output_format, args.db_name, args.start, args.start + args.num_files)
         sqlContext.clearCache()
-
+        ##
+        if not args.continuous:
+            break
 
 if __name__ == "__main__":
     main()
