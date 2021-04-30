@@ -21,7 +21,7 @@ def main():
     sc = SparkContext(appName='edit-parser', conf=conf)
     spark = (
         SparkSession.builder
-            .config(conf=conf)
+            # .config(conf=conf)
             .config("spark.executor.instances", "30")
             .config("spark.driver.memory", "20g")
             .config("spark.executor.memory", "20g")
