@@ -35,11 +35,11 @@ conn_mapper_dict = {
 
 s3_db_dir = 's3://aspangher/edit-pathways/dbs'
 s3_csv_dir = 's3://aspangher/edit-pathways/csvs'
-s3_output_dir = 's3://aspangher/edit-pathways/spark_processing_scripts-output/'
+s3_output_dir = 's3://aspangher/edit-pathways/spark_processing_scripts-output'
 pq_pat= r'df_%(news_source)s__start_\d+__end_\d+__num_\d+/'
 csv_pat= r'df_%(news_source)s__start_\d+__end_\d+__num_\d+.csv.gz'
-get_pq_files = lambda x: list(filter(lambda y: re.search(pq_pat % {'news_source': x}, y), get_fs().ls(s3_output_dir) ))
-get_csv_files = lambda x:list(filter(lambda y: re.search(csv_pat % {'news_source': x}, y), get_fs().ls(s3_output_dir) ))
+get_pq_files = lambda x: list(filter(lambda y: re.search(pq_pat % {'news_source': x}, y), get_fs().ls(os.path.join(s3_output_dir, x)) ))
+get_csv_files = lambda x:list(filter(lambda y: re.search(csv_pat % {'news_source': x}, y), get_fs().ls(os.path.join(s3_output_dir, x)) ))
 fn_template_csv = '%(news_source)s/db_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s.csv.gz'
 fn_template_pq = '%(news_source)s/db_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s'
 
@@ -181,6 +181,10 @@ def upload_files_to_s3(output_sdf, output_format, news_source, start, end):
         _upload_files_to_s3_pq(output_sdf, news_source, start, end)
     else:
         _upload_files_to_s3_csv(output_sdf, news_source, start, end)
+
+
+
+############################################
 
 
 def dump_db_to_s3():
