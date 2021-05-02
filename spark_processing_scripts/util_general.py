@@ -35,6 +35,7 @@ conn_mapper_dict = {
 
 s3_db_dir = 's3://aspangher/edit-pathways/dbs'
 s3_csv_dir = 's3://aspangher/edit-pathways/csvs'
+s3_pq_dir = 's3://aspangher/edit-pathways/pqs'
 s3_output_dir = 's3://aspangher/edit-pathways/spark_processing_scripts-output'
 pq_pat= r'df_%(news_source)s__start_\d+__end_\d+__num_\d+/'
 csv_pat= r'df_%(news_source)s__start_\d+__end_\d+__num_\d+.csv.gz'
@@ -84,6 +85,13 @@ def download_prefetched_data(news_source, format='csv'):
         return _download_prefetched_data_csv(news_source)
     else:
         return _download_prefetched_data_pq(news_source)
+
+
+def download_pq_to_df(conn_name):
+    fname = conn_mapper_dict[conn_name]
+    fpath = os.path.join(s3_pq_dir, fname + '.pq')
+    with get_fs().open(fpath) as f:
+        return pd.read_parquet(f)
 
 
 def download_csv_to_df(conn_name):

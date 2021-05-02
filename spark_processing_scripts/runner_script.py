@@ -32,7 +32,7 @@ def main():
     sqlContext = SQLContext(spark)
 
     print('downloading source data %s...' % args.db_name)
-    full_db = sug.download_csv_to_df(args.db_name)
+    full_db = sug.download_pq_to_df(args.db_name)
 
     df = full_db
     pipelines = sus.get_pipelines()
