@@ -6,21 +6,28 @@ SENTENCE_SIM_THRESH = .44
 APPROX_JOIN_CUTOFF = .5
 
 
-def run_spark(df, spark):
+def get_pipelines():
+    top_sentence_pipeline_x, top_sentence_pipeline_y = sps.get_sentence_pipelines()
+    return (
+        sps.get_sparknlp_pipeline(), sps.get_explode_pipeline(), sps.get_similarity_pipeline(),
+        top_sentence_pipeline_x, top_sentence_pipeline_y
+    )
+
+
+def run_spark(df, spark, sparknlp_pipeline, explode_pipeline, similarity_pipeline, top_sentence_pipeline_x, top_sentence_pipeline_y):
     sdf = spark.createDataFrame(df)
     sdf = sdf.repartition('entry_id', 'version').cache()
 
     # Process the input data to split sentences, tokenize and get BERT embeddings
-    sparknlp_pipeline = sps.get_sparknlp_pipeline()
     spark_processed_df = sparknlp_pipeline.fit(sdf).transform(sdf)
     spark_processed_df = spark_processed_df.cache()
 
     # Explode the sentences
-    exploded_sdf = sps.get_explode_pipeline().transform(spark_processed_df)
+    exploded_sdf = explode_pipeline.transform(spark_processed_df).na.drop(subset='word_embedding')
     exploded_sdf = exploded_sdf.cache()
 
     # Hash the BERT embeddings for the Approximate Join
-    similarity_model = sps.get_similarity_pipeline().fit(exploded_sdf)
+    similarity_model = similarity_pipeline.fit(exploded_sdf)
     sim_sdf = similarity_model.transform(exploded_sdf)
     sim_sdf = sim_sdf.cache()
 
@@ -50,7 +57,6 @@ def run_spark(df, spark):
     key_cols = ['entry_id', 'version_x', 'version_y', 'sent_idx_x', 'sent_idx_y']
     word_pair_matched_sdf = word_pair_matched_sdf.repartition(*key_cols).cache()
 
-    top_sentence_pipeline_x, top_sentence_pipeline_y = sps.get_sentence_pipelines()
 
     ## Get bipartite graph from both directions
     sent_pairs_x_sdf = (

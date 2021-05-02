@@ -35,6 +35,7 @@ def main():
     full_db = sug.download_csv_to_df(args.db_name)
 
     df = full_db
+    pipelines = sus.get_pipelines()
     while len(df) > 0:
         print('downloading prefetched data...')
         prefetched_df = sug.download_prefetched_data(args.db_name)
@@ -46,7 +47,7 @@ def main():
 
         # process via spark_processing_scripts
         print('running spark...')
-        output_sdf = sus.run_spark(df, spark)
+        output_sdf = sus.run_spark(df, spark, *pipelines)
 
         sug.upload_files_to_s3(output_sdf, args.output_format, args.db_name, args.start, args.start + args.num_files)
         if args.continuous:
