@@ -26,7 +26,7 @@ def run_spark_sentences(df, spark, sentence_pipeline):
 
     # Process the input data to split sentences, tokenize and get BERT embeddings
     sentence_processed_df = sentence_pipeline.fit(sdf).transform(sdf)
-    return sentence_processed_df
+    return sentence_processed_df.select('entry_id', 'version', 'finished_sentences')
 
 
 def run_spark(df, spark, sparknlp_pipeline, explode_pipeline, similarity_pipeline, top_sentence_pipeline_x, top_sentence_pipeline_y):
