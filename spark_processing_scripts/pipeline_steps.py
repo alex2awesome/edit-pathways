@@ -9,6 +9,25 @@ import spark_processing_scripts.util_spark as sus
 #
 # Pipelines
 #
+def get_split_sentence_pipeline():
+    documenter = (
+        sb.DocumentAssembler()
+            .setInputCol("summary")
+            .setOutputCol("document")
+    )
+
+    sentencer = (
+        sa.SentenceDetector()
+            .setInputCols(["document"])
+            .setOutputCol("sentences")
+    )
+    return sb.RecursivePipeline(stages=[
+        documenter,
+        sentencer,
+      ]
+    )
+
+
 def get_sparknlp_pipeline():
     ####
     #

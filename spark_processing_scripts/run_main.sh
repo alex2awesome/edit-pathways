@@ -25,4 +25,4 @@ katie spark run \
     -- \
       --db_name nyt \
       --num_files 500 \
-#      --continuous
+      --continuous
