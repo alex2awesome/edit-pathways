@@ -12,7 +12,7 @@ setup(
     install_requires=open('requirements.txt').read().split('\n'),
     entry_points={
       'console_scripts': [
-          'run_pyspark.py = spark_processing_scripts.runner_script:main'
+          'run_pyspark.py = spark_processing_scripts.runner:main'
       ]
     },
     zip_safe=False
