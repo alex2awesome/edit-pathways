@@ -35,13 +35,14 @@ def get_split_sentence_pipeline():
         """)
     )
 
-    return sb.RecursivePipeline(stages=[
+    sentence_splitter_pipeline = sb.RecursivePipeline(stages=[
         documenter,
         sentencer,
         sent_finisher,
         explode_sent
-      ]
-    )
+    ])
+
+    return sentence_splitter_pipeline
 
 
 def get_sparknlp_pipeline():
