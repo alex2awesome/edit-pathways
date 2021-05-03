@@ -130,7 +130,7 @@ def get_rows_to_process_df(num_entries, start_idx, prefetched_df, full_df):
     if prefetched_df is not None:
         prefetched_entry_ids = prefetched_df['entry_id'].drop_duplicates().values
     else:
-        prefetched_entry_ids = None
+        prefetched_entry_ids = []
 
     return (
         full_df
