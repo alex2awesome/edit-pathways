@@ -43,7 +43,7 @@ def main():
 
         # read dataframe
         df = sug.get_rows_to_process_df(
-            args.num_files, args.start, prefetched_df['entry_id'].drop_duplicates(), full_db
+            args.num_files, args.start, prefetched_df, full_db
         )
 
         # process via spark_processing_scripts
