@@ -193,6 +193,7 @@ def _upload_files_to_s3_csv(output_sdf, news_source, start, num_records_per_file
     }
     ##
     outfile_s3_path = os.path.join(s3_path, output_fname)
+    print('OUTFILE: %s' % outfile_s3_path)
     output_df = output_sdf.toPandas()
     bytes_to_write = output_df.to_csv(None, compression='gzip').encode()
     with get_fs().open(outfile_s3_path, 'wb') as f:
