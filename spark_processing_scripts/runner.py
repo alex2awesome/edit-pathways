@@ -39,7 +39,10 @@ def main():
     pipelines = sus.get_pipelines(sentence=args.split_sentences)
     while len(df) > 0:
         print('downloading prefetched data...')
-        prefetched_df = sug.download_prefetched_data(args.db_name, split_sentences=args.split_sentences)
+        if not args.split_sentences:
+            prefetched_df = sug.download_prefetched_data(args.db_name, split_sentences=args.split_sentences)
+        else:
+            prefetched_df = None
 
         # read dataframe
         df = sug.get_rows_to_process_df(

@@ -26,4 +26,5 @@ katie spark run \
       --db_name nyt \
       --num_files 20000 \
       --continuous \
-      --split_sentences
+      --split_sentences \
+      --output_format pkl \
