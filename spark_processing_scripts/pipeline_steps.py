@@ -27,10 +27,19 @@ def get_split_sentence_pipeline():
             .setInputCols(["sentences"])
     )
 
+    explode_sent = (
+        SQLTransformer()
+            .setStatement("""
+             SELECT entry_id, version, POSEXPLODE(finished_sentences) AS (sent_idx, sentence)
+             FROM __THIS__
+        """)
+    )
+
     return sb.RecursivePipeline(stages=[
         documenter,
         sentencer,
-        sent_finisher
+        sent_finisher,
+        explode_sent
       ]
     )
 
