@@ -72,7 +72,10 @@ def _download_prefetched_data_pq(news_source):
                 .read_pandas()
                 .to_pandas()
         )
-    return pd.concat(df_list)
+    if len(df_list) > 0:
+        return pd.concat(df_list)
+    else:
+        return
 
 
 def _download_prefetched_data_csv(news_source, split_sentences, show_progress):
@@ -85,7 +88,10 @@ def _download_prefetched_data_csv(news_source, split_sentences, show_progress):
         with fs.open('s3://' + f_path) as f:
             df = pd.read_csv(f, index_col=0)
         df_list.append(df)
-    return pd.concat(df_list)
+    if len(df_list) > 0:
+        return pd.concat(df_list)
+    else:
+        return
 
 
 def download_prefetched_data(news_source, split_sentences=False, format='csv', show_progress=False):
@@ -120,7 +126,12 @@ def download_sqlite_db(conn_name):
         return fp.name
 
 
-def get_rows_to_process_df(num_entries, start_idx, prefetched_entry_ids, full_df):
+def get_rows_to_process_df(num_entries, start_idx, prefetched_df, full_df):
+    if prefetched_df is not None:
+        prefetched_entry_ids = prefetched_df['entry_id'].drop_duplicates().values
+    else:
+        prefetched_entry_ids = None
+
     return (
         full_df
             .loc[lambda df: df['num_versions'] > 1]
@@ -128,7 +139,7 @@ def get_rows_to_process_df(num_entries, start_idx, prefetched_entry_ids, full_df
             .loc[lambda df: df['entry_id'].isin(
                 df['entry_id']
                     .drop_duplicates()
-                    .loc[lambda s: ~s.isin(prefetched_entry_ids.values)]
+                    .loc[lambda s: ~s.isin(prefetched_entry_ids)]
                     .sort_values()
                     .iloc[start_idx : start_idx + num_entries]
             )]
