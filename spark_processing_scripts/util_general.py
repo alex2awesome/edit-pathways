@@ -198,7 +198,7 @@ def _upload_files_to_s3_pkl(output_sdf, news_source, start, num_records_per_file
     print('OUTFILE: %s' % outfile_s3_path)
     output_df = output_sdf.toPandas()
     with get_fs().open(outfile_s3_path, 'wb') as f:
-        output_df.to_pickle(f)
+        output_df.to_pickle(f, compression='gzip')
 
 
 def _upload_files_to_s3_csv(output_sdf, news_source, start, num_records_per_file, split_sentences):
