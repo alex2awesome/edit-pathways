@@ -51,7 +51,7 @@ get_csv_files = lambda s3_path, news_source: list(filter(lambda y:
                                                     get_fs().ls(os.path.join(s3_path, news_source))
                                       ))
 fn_template_csv = '%(news_source)s/df_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s.csv.gz'
-fn_template_csv = '%(news_source)s/df_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s.pkl'
+fn_template_pkl = '%(news_source)s/df_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s.pkl'
 fn_template_pq = '%(news_source)s/df_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s'
 
 _fs = None
@@ -226,6 +226,23 @@ def upload_files_to_s3(output_sdf, output_format, news_source, start, end, split
         _upload_files_to_s3_csv(output_sdf, news_source, start, end, split_sentences)
     elif output_format == 'pkl':
         _upload_files_to_s3_pkl(output_sdf, news_source, start, end, split_sentences)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
