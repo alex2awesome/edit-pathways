@@ -8,7 +8,7 @@ APPROX_JOIN_CUTOFF = .5
 
 def get_pipelines(sentence=False):
     if sentence:
-        return sps.get_split_sentence_pipeline()
+        return (sps.get_split_sentence_pipeline(),)
     else:
         top_sentence_pipeline_x, top_sentence_pipeline_y = sps.get_sentence_pipelines()
         return (
