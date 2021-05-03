@@ -6,12 +6,27 @@ SENTENCE_SIM_THRESH = .44
 APPROX_JOIN_CUTOFF = .5
 
 
-def get_pipelines():
-    top_sentence_pipeline_x, top_sentence_pipeline_y = sps.get_sentence_pipelines()
-    return (
-        sps.get_sparknlp_pipeline(), sps.get_explode_pipeline(), sps.get_similarity_pipeline(),
-        top_sentence_pipeline_x, top_sentence_pipeline_y
-    )
+def get_pipelines(sentence=False):
+    if sentence:
+        return sps.get_split_sentence_pipeline()
+    else:
+        top_sentence_pipeline_x, top_sentence_pipeline_y = sps.get_sentence_pipelines()
+        return (
+            sps.get_sparknlp_pipeline(),
+            sps.get_explode_pipeline(),
+            sps.get_similarity_pipeline(),
+            top_sentence_pipeline_x,
+            top_sentence_pipeline_y
+        )
+
+
+def run_spark_sentences(df, spark, sentence_pipeline):
+    sdf = spark.createDataFrame(df)
+    sdf = sdf.repartition('entry_id', 'version').cache()
+
+    # Process the input data to split sentences, tokenize and get BERT embeddings
+    sentence_processed_df = sentence_pipeline.fit(sdf).transform(sdf)
+    return sentence_processed_df
 
 
 def run_spark(df, spark, sparknlp_pipeline, explode_pipeline, similarity_pipeline, top_sentence_pipeline_x, top_sentence_pipeline_y):

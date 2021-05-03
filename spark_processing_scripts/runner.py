@@ -14,6 +14,7 @@ def main():
     parser.add_argument('--input_format', type=str, default='csv', help="Input format for the previously-stored runs.")
     parser.add_argument('--output_format', type=str, default='csv', help="Output format.")
     parser.add_argument('--continuous', action='store_true', help='Whether to keep iterating or not...')
+    parser.add_argument('--split_sentences', action='store_true', help="Whether to just perform sentence-splitting.")
 
     args = parser.parse_args()
 
@@ -35,10 +36,10 @@ def main():
     full_db = sug.download_pq_to_df(args.db_name)
 
     df = full_db
-    pipelines = sus.get_pipelines()
+    pipelines = sus.get_pipelines(sentence=args.split_sentences)
     while len(df) > 0:
         print('downloading prefetched data...')
-        prefetched_df = sug.download_prefetched_data(args.db_name)
+        prefetched_df = sug.download_prefetched_data(args.db_name, split_sentences=args.split_sentences)
 
         # read dataframe
         df = sug.get_rows_to_process_df(
@@ -47,9 +48,17 @@ def main():
 
         # process via spark_processing_scripts
         print('running spark...')
-        output_sdf = sus.run_spark(df, spark, *pipelines)
+        if args.split_sentences:
+            output_sdf = sus.run_spark_sentences(df, spark, *pipelines)
+        else:
+            output_sdf = sus.run_spark(df, spark, *pipelines)
 
-        sug.upload_files_to_s3(output_sdf, args.output_format, args.db_name, args.start, args.start + args.num_files)
+        sug.upload_files_to_s3(
+            output_sdf, args.output_format,
+            args.db_name, args.start, args.start + args.num_files,
+            args.split_sentences
+        )
+        #
         if args.continuous:
             sqlContext.clearCache()
         ##

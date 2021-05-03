@@ -7,6 +7,7 @@ import shutil, re
 import pandas as pd
 import sqlite3
 import s3fs
+from tqdm.auto import tqdm
 
 conn_mapper_dict = {
     'nyt': 'newssniffer-nytimes',
@@ -36,13 +37,18 @@ conn_mapper_dict = {
 s3_db_dir = 's3://aspangher/edit-pathways/dbs'
 s3_csv_dir = 's3://aspangher/edit-pathways/csvs'
 s3_pq_dir = 's3://aspangher/edit-pathways/pqs'
-s3_output_dir = 's3://aspangher/edit-pathways/spark_processing_scripts-output'
+s3_output_dir_main = 's3://aspangher/edit-pathways/spark_processing_scripts-output'
+s3_output_dir_sentences = 's3://aspangher/edit-pathways/spark_processing_scripts-output_sentences'
 pq_pat= r'df_%(news_source)s__start_\d+__end_\d+__num_\d+/'
 csv_pat= r'df_%(news_source)s__start_\d+__end_\d+__num_\d+.csv.gz'
-get_pq_files = lambda x: list(filter(lambda y: re.search(pq_pat % {'news_source': x}, y), get_fs().ls(os.path.join(s3_output_dir, x)) ))
-get_csv_files = lambda x: list(filter(lambda y:
-                                                    re.search(csv_pat % {'news_source': x}, y),
-                                                    get_fs().ls(os.path.join(s3_output_dir, x))
+get_pq_files = lambda s3_path, news_source: list(filter(lambda y:
+                                                        re.search(pq_pat % {'news_source': news_source}, y),
+                                                        get_fs().ls(os.path.join(s3_path, news_source))
+                                                        ))
+
+get_csv_files = lambda s3_path, news_source: list(filter(lambda y:
+                                                    re.search(csv_pat % {'news_source': news_source}, y),
+                                                    get_fs().ls(os.path.join(s3_path, news_source))
                                       ))
 fn_template_csv = '%(news_source)s/df_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s.csv.gz'
 fn_template_pq = '%(news_source)s/df_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s'
@@ -69,20 +75,22 @@ def _download_prefetched_data_pq(news_source):
     return pd.concat(df_list)
 
 
-def _download_prefetched_data_csv(news_source):
+def _download_prefetched_data_csv(news_source, split_sentences, show_progress):
+    s3_path = s3_output_dir_main if not split_sentences else s3_output_dir_sentences
     fs = get_fs()
-    files = get_csv_files(news_source)
+    files = get_csv_files(s3_path, news_source)
     df_list = []
-    for f_path in files:
+    f_iter = files if not show_progress else tqdm(files)
+    for f_path in f_iter:
         with fs.open('s3://' + f_path) as f:
             df = pd.read_csv(f, index_col=0)
         df_list.append(df)
     return pd.concat(df_list)
 
 
-def download_prefetched_data(news_source, format='csv'):
+def download_prefetched_data(news_source, split_sentences=False, format='csv', show_progress=False):
     if format == 'csv':
-        return _download_prefetched_data_csv(news_source)
+        return _download_prefetched_data_csv(news_source, split_sentences, show_progress)
     else:
         return _download_prefetched_data_pq(news_source)
 
@@ -111,15 +119,6 @@ def download_sqlite_db(conn_name):
         fs.download(remote_db_path, fp.name)
         return fp.name
 
-    #     conn = sqlite3.connect(fp.name)
-    # if not os.path.exists(fname):
-    #     zipped_fname = '%s.gz' % fname
-    #     remote_fname = os.path.join('edit-pathways', 'dbs', zipped_fname)
-    #     uda.download_file(zipped_fname, remote_fname)
-    #
-    #     with gzip.open(zipped_fname, 'rb') as f_in:
-    #         with open(fname, 'wb') as f_out:
-    #             shutil.copyfileobj(f_in, f_out)
 
 def get_rows_to_process_df(num_entries, start_idx, prefetched_entry_ids, full_df):
     return (
@@ -159,20 +158,22 @@ def get_rows_to_process_sql(num_entries, start_idx, prefetched_entry_ids, db_fp)
         return df
 
 
-def _upload_files_to_s3_pq(output_sdf, news_source, start, num_records_per_file):
-    num_prefetched_files = len(get_pq_files(news_source))
+def _upload_files_to_s3_pq(output_sdf, news_source, start, num_records_per_file, split_sentences):
+    s3_path = s3_output_dir_main if not split_sentences else s3_output_dir_sentences
+    num_prefetched_files = len(get_pq_files(s3_path, news_source))
     output_fname = fn_template_pq % {
         'news_source': news_source,
         'start': (start + num_prefetched_files) * num_records_per_file,
         'end': (start + num_prefetched_files + 1) * num_records_per_file,
         'num_files': num_prefetched_files + 1
     }
-    outfile_s3_path = os.path.join(s3_output_dir, output_fname)
+    outfile_s3_path = os.path.join(s3_path, output_fname)
     output_sdf.write.mode("overwrite").parquet(outfile_s3_path)
 
 
-def _upload_files_to_s3_csv(output_sdf, news_source, start, num_records_per_file):
-    num_prefetched_files = len(get_csv_files(news_source))
+def _upload_files_to_s3_csv(output_sdf, news_source, start, num_records_per_file, split_sentences):
+    s3_path = s3_output_dir_main if not split_sentences else s3_output_dir_sentences
+    num_prefetched_files = len(get_csv_files(s3_path, news_source))
     output_fname = fn_template_csv % {
         'news_source': news_source,
         'start': (start + num_prefetched_files) * num_records_per_file,
@@ -180,18 +181,18 @@ def _upload_files_to_s3_csv(output_sdf, news_source, start, num_records_per_file
         'num_files': num_prefetched_files + 1
     }
     ##
-    outfile_s3_path = os.path.join(s3_output_dir, output_fname)
+    outfile_s3_path = os.path.join(s3_path, output_fname)
     output_df = output_sdf.toPandas()
     bytes_to_write = output_df.to_csv(None, compression='gzip').encode()
     with get_fs().open(outfile_s3_path, 'wb') as f:
         f.write(bytes_to_write)
 
 
-def upload_files_to_s3(output_sdf, output_format, news_source, start, end):
+def upload_files_to_s3(output_sdf, output_format, news_source, start, end, split_sentences):
     if output_format == 'pq':
-        _upload_files_to_s3_pq(output_sdf, news_source, start, end)
+        _upload_files_to_s3_pq(output_sdf, news_source, start, end, split_sentences)
     else:
-        _upload_files_to_s3_csv(output_sdf, news_source, start, end)
+        _upload_files_to_s3_csv(output_sdf, news_source, start, end, split_sentences)
 
 
 
