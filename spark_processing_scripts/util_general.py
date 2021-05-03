@@ -51,6 +51,7 @@ get_csv_files = lambda s3_path, news_source: list(filter(lambda y:
                                                     get_fs().ls(os.path.join(s3_path, news_source))
                                       ))
 fn_template_csv = '%(news_source)s/df_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s.csv.gz'
+fn_template_csv = '%(news_source)s/df_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s.pkl'
 fn_template_pq = '%(news_source)s/df_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s'
 
 _fs = None
@@ -61,7 +62,8 @@ def get_fs():
     return _fs
 
 
-def _download_prefetched_data_pq(news_source):
+def _download_prefetched_data_pq(news_source, split_sentences):
+    s3_path = s3_output_dir_main if not split_sentences else s3_output_dir_sentences
     import pyarrow.parquet as pq
     fs = get_fs()
     files = get_pq_files(news_source)
@@ -98,7 +100,7 @@ def download_prefetched_data(news_source, split_sentences=False, format='csv', s
     if format == 'csv':
         return _download_prefetched_data_csv(news_source, split_sentences, show_progress)
     else:
-        return _download_prefetched_data_pq(news_source)
+        return _download_prefetched_data_pq(news_source, split_sentences)
 
 
 def download_pq_to_df(conn_name):
@@ -182,6 +184,23 @@ def _upload_files_to_s3_pq(output_sdf, news_source, start, num_records_per_file,
     output_sdf.write.mode("overwrite").parquet(outfile_s3_path)
 
 
+def _upload_files_to_s3_pkl(output_sdf, news_source, start, num_records_per_file, split_sentences):
+    s3_path = s3_output_dir_main if not split_sentences else s3_output_dir_sentences
+    num_prefetched_files = len(get_csv_files(s3_path, news_source))
+    output_fname = fn_template_pkl % {
+        'news_source': news_source,
+        'start': (start + num_prefetched_files) * num_records_per_file,
+        'end': (start + num_prefetched_files + 1) * num_records_per_file,
+        'num_files': num_prefetched_files + 1
+    }
+    ##
+    outfile_s3_path = os.path.join(s3_path, output_fname)
+    print('OUTFILE: %s' % outfile_s3_path)
+    output_df = output_sdf.toPandas()
+    with get_fs().open(outfile_s3_path, 'wb') as f:
+        output_df.to_pickle(output_df)
+
+
 def _upload_files_to_s3_csv(output_sdf, news_source, start, num_records_per_file, split_sentences):
     s3_path = s3_output_dir_main if not split_sentences else s3_output_dir_sentences
     num_prefetched_files = len(get_csv_files(s3_path, news_source))
@@ -203,8 +222,10 @@ def _upload_files_to_s3_csv(output_sdf, news_source, start, num_records_per_file
 def upload_files_to_s3(output_sdf, output_format, news_source, start, end, split_sentences):
     if output_format == 'pq':
         _upload_files_to_s3_pq(output_sdf, news_source, start, end, split_sentences)
-    else:
+    elif output_format == 'csv':
         _upload_files_to_s3_csv(output_sdf, news_source, start, end, split_sentences)
+    elif output_format == 'pkl':
+        _upload_files_to_s3_pkl(output_sdf, news_source, start, end, split_sentences)
 
 
 
