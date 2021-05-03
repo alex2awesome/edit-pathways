@@ -21,9 +21,16 @@ def get_split_sentence_pipeline():
             .setInputCols(["document"])
             .setOutputCol("sentences")
     )
+
+    sent_finisher = (
+        sb.Finisher()
+            .setInputCols(["sentences"])
+    )
+
     return sb.RecursivePipeline(stages=[
         documenter,
         sentencer,
+        sent_finisher
       ]
     )
 
