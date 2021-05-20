@@ -3,6 +3,7 @@ import spark_processing_scripts.util_spark as sus
 import spark_processing_scripts.util_general as sug
 from pyspark import SparkConf, SparkContext
 from pyspark.sql import Row, SparkSession, SQLContext
+import pandas as pd
 
 def main():
     from argparse import ArgumentParser
@@ -59,24 +60,29 @@ def main():
     pipelines = sus.get_pipelines(sentence=args.split_sentences, env=args.env)
     num_tries = 5
     file_count = -1
-    while len(df) > 0:
-        ## keep an internal counter so we don't have to keep hitting S3 to count output files
-        file_count += 1
 
-        print('downloading prefetched data...')
-        if not args.split_sentences:
-            if args.env == 'bb':
-                prefetched_df = sug.download_prefetched_data(args.db_name, split_sentences=args.split_sentences)
-            else:
-                prefetched_df = sug.read_prefetched_data(args.db_name, split_sentences=args.split_sentences)
+    # see what data we already have
+    print('downloading prefetched data...')
+    if not args.split_sentences:
+        if args.env == 'bb':
+            prefetched_df = sug.download_prefetched_data(args.db_name, split_sentences=args.split_sentences)
         else:
-            prefetched_df = None
+            prefetched_df = sug.read_prefetched_data(args.db_name, split_sentences=args.split_sentences)
+    else:
+        prefetched_df = None
+
+    # loop spark job
+    while len(df) > 0:
+        # keep an internal counter so we don't have to keep hitting S3 to count output files
+        file_count += 1
 
         # read dataframe
         df = sug.get_rows_to_process_df(
             args.num_files, args.start, prefetched_df, full_db
         )
         print('FETCHING IDs: %s' % ', '.join(list(map(str, df['entry_id'].drop_duplicates().tolist()))))
+        print('LEN(DF): %s' % str(len(df)))
+        print('START: %s' % args.start)
 
         # process via spark_processing_scripts
         print('running spark...')
@@ -94,6 +100,11 @@ def main():
             else:
                 print('ZERO-LEN DF, TOO MANY RETRIES, breaking....')
                 break
+
+        print('VALID DATA, UPLOADING...')
+        ## cache prefetched_df, instead of pulling it each time.
+        if prefetched_df is not None:
+            prefetched_df = pd.concat([prefetched_df, output_df])
 
         ### upload data
         if args.env == 'bb':
