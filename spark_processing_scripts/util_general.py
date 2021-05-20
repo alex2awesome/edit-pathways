@@ -2,7 +2,7 @@ import sys
 sys.path.append('../')
 import util.util_data_access as uda
 import gzip
-import os
+import os, glob
 import shutil, re
 import pandas as pd
 import sqlite3
@@ -54,6 +54,9 @@ fn_template_csv = '%(news_source)s/df_%(news_source)s__start_%(start)s__end_%(en
 fn_template_pkl = '%(news_source)s/df_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s.pkl'
 fn_template_pq = '%(news_source)s/df_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s'
 
+pluslab_output_dir = 'data_output'
+get_pluslab_output_dir = lambda db_name: os.path.join(pluslab_output_dir, db_name)
+
 _fs = None
 def get_fs():
     global _fs
@@ -87,14 +90,18 @@ def _download_prefetched_data_csv(news_source, split_sentences, show_progress):
     s3_path = s3_output_dir_main if not split_sentences else s3_output_dir_sentences
     fs = get_fs()
     files = get_csv_files(s3_path, news_source)
-    df_list = []
+    entry_id_list = []
     f_iter = files if not show_progress else tqdm(files)
     for f_path in f_iter:
         with fs.open('s3://' + f_path) as f:
             df = pd.read_csv(f, index_col=0)
-        df_list.append(df)
-    if len(df_list) > 0:
-        return pd.concat(df_list)
+            if 'entry_id' in df:
+                entry_ids = df['entry_id'].drop_duplicates()
+            else:
+                entry_ids = pd.Series()
+        entry_id_list.append(entry_ids)
+    if len(entry_id_list) > 0:
+        return pd.concat(entry_id_list)
     else:
         return
 
@@ -106,9 +113,31 @@ def download_prefetched_data(news_source, split_sentences=False, format='csv', s
         return _download_prefetched_data_pq(news_source, split_sentences)
 
 
-def download_pq_to_df(conn_name):
+def read_prefetched_data(news_source, split_sentences=False, format='csv', show_progress=False):
+    """
+    For running on Nanyun's pluslab
+
+    :param news_source:
+    :param split_sentences:
+    :param format:
+    :param show_progress:
+    :return:
+    """
+    if format == 'csv':
+        data_dir = get_pluslab_output_dir(news_source)
+        prefetched_data = []
+        for file in glob.glob(os.path.join(data_dir, '*')):
+            df = pd.read_csv(file)
+            prefetched_data.append(df)
+        if len(prefetched_data) > 0:
+            return pd.concat(prefetched_data)
+        else:
+            return None
+
+
+def download_pq_to_df(conn_name, file_num=1):
     fname = conn_mapper_dict[conn_name]
-    fpath = os.path.join(s3_pq_dir, fname + '.pq')
+    fpath = os.path.join(s3_pq_dir, '%s-%s.pq' % (fname, file_num))
     with get_fs().open(fpath) as f:
         return pd.read_parquet(f)
 
@@ -131,9 +160,9 @@ def download_sqlite_db(conn_name):
         return fp.name
 
 
-def get_rows_to_process_df(num_entries, start_idx, prefetched_df, full_df):
-    if prefetched_df is not None:
-        prefetched_entry_ids = prefetched_df['entry_id'].drop_duplicates().values
+def get_rows_to_process_df(num_entries, start_idx, prefetched_entry_ids, full_df):
+    if prefetched_entry_ids is not None:
+        prefetched_entry_ids = prefetched_entry_ids.drop_duplicates().values
     else:
         prefetched_entry_ids = []
 
@@ -152,9 +181,10 @@ def get_rows_to_process_df(num_entries, start_idx, prefetched_df, full_df):
     )
 
 
-def get_rows_to_process_sql(num_entries, start_idx, prefetched_entry_ids, db_fp):
-    with sqlite3.connect(db_fp) as conn:
-        df = pd.read_sql('''
+def get_rows_to_process_sql(db_name, num_entries=None, start_idx=None, prefetched_entry_ids=[]):
+    db_fp = conn_mapper_dict[db_name] + '.db'
+
+    sql = '''
              SELECT * from entryversion 
              WHERE entry_id IN (
                 SELECT distinct entry_id 
@@ -163,13 +193,17 @@ def get_rows_to_process_sql(num_entries, start_idx, prefetched_entry_ids, db_fp)
                     AND num_versions > 1 
                     AND num_versions < 40
                     ORDER BY entry_id 
-                    LIMIT %(num_entries)d OFFSET %(start_idx)d
                 )
-         ''' % {
+         ''' % {'prefetched_ids': ', '.join(list(map(str, prefetched_entry_ids)))}
+
+    if num_entries is not None and start_idx is not None:
+        sql += 'LIMIT %(num_entries)d OFFSET %(start_idx)d' % {
             'num_entries': num_entries,
             'start_idx': start_idx,
-            'prefetched_ids': ', '.join(list(map(str, prefetched_entry_ids))),
-        }, con=conn)
+        }
+
+    with sqlite3.connect(db_fp) as conn:
+        df = pd.read_sql(sql, con=conn)
         df = df.assign(summary=lambda df: df['summary'].str.replace('</p><p>', ' '))
         return df
 
@@ -231,6 +265,25 @@ def upload_files_to_s3(output_df, output_format, news_source, start, end, split_
         return _upload_files_to_s3_csv(output_df, news_source, start, end, split_sentences, file_count)
     elif output_format == 'pkl':
         return _upload_files_to_s3_pkl(output_df, news_source, start, end, split_sentences, file_count)
+
+
+def dump_files_locally(output_df, output_format, news_source, start, end, split_sentences, file_count):
+    if output_format == 'csv':
+        out_dir = get_pluslab_output_dir(news_source)
+        if not os.path.exists(out_dir):
+            os.makedirs(out_dir)
+
+        if file_count == 0:
+            file_count = len(os.listdir(out_dir))
+
+        output_fname = fn_template_csv % {
+            'news_source': news_source,
+            'start': (start + file_count) * end,
+            'end': (start + file_count + 1) * end,
+            'num_files': file_count + 1
+        }
+        out_path = os.path.join(out_dir, output_fname)
+        output_df.to_csv(out_path, compression='gzip')
 
 
 
