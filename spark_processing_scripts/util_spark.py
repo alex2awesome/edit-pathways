@@ -6,13 +6,13 @@ SENTENCE_SIM_THRESH = .44
 APPROX_JOIN_CUTOFF = .5
 
 
-def get_pipelines(sentence=False):
+def get_pipelines(sentence=False, env='bb'):
     if sentence:
         return (sps.get_split_sentence_pipeline(),)
     else:
         top_sentence_pipeline_x, top_sentence_pipeline_y = sps.get_sentence_pipelines()
         return (
-            sps.get_sparknlp_pipeline(),
+            sps.get_sparknlp_pipeline(env=env),
             sps.get_explode_pipeline(),
             sps.get_similarity_pipeline(),
             top_sentence_pipeline_x,

@@ -15,6 +15,7 @@ def main():
     parser.add_argument('--output_format', type=str, default='csv', help="Output format.")
     parser.add_argument('--continuous', action='store_true', help='Whether to keep iterating or not...')
     parser.add_argument('--split_sentences', action='store_true', help="Whether to just perform sentence-splitting.")
+    parser.add_argument('--env', type=str, default='bb', help="Whether we're running on Bloomberg or somewhere else.")
 
     args = parser.parse_args()
 
@@ -36,8 +37,13 @@ def main():
     full_db = sug.download_pq_to_df(args.db_name)
 
     df = full_db
-    pipelines = sus.get_pipelines(sentence=args.split_sentences)
+    pipelines = sus.get_pipelines(sentence=args.split_sentences, env=args.env)
+    num_tries = 5
+    file_count = -1
     while len(df) > 0:
+        ## keep an internal counter so we don't have to keep hitting S3 to count output files
+        file_count += 1
+
         print('downloading prefetched data...')
         if not args.split_sentences:
             prefetched_df = sug.download_prefetched_data(args.db_name, split_sentences=args.split_sentences)
@@ -48,6 +54,7 @@ def main():
         df = sug.get_rows_to_process_df(
             args.num_files, args.start, prefetched_df, full_db
         )
+        print('FETCHING IDs: %s' % ', '.join(df['entry_id'].drop_duplicates().tolist()))
 
         # process via spark_processing_scripts
         print('running spark...')
@@ -56,8 +63,18 @@ def main():
         else:
             output_sdf = sus.run_spark(df, spark, *pipelines)
 
-        sug.upload_files_to_s3(
-            output_sdf, args.output_format,
+        output_df = output_sdf.toPandas()
+        if len(output_df) == 0:
+            if num_tries > 0:
+                print('ZERO-LEN DF, retrying...')
+                num_tries -= 1
+                continue
+            else:
+                print('ZERO-LEN DF, TOO MANY RETRIES, breaking....')
+                break
+
+        file_count = sug.upload_files_to_s3(
+            output_df, args.output_format,
             args.db_name, args.start, args.start + args.num_files,
             args.split_sentences
         )
