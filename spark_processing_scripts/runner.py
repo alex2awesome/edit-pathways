@@ -33,6 +33,8 @@ def main():
         )
 
     else:
+        import findspark
+        findspark.init()
         spark = (
             SparkSession.builder
                 .config("spark.jars.packages", "com.johnsnowlabs.nlp:spark-nlp_2.11:2.7.5")
