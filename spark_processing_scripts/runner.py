@@ -76,7 +76,8 @@ def main():
         file_count = sug.upload_files_to_s3(
             output_df, args.output_format,
             args.db_name, args.start, args.start + args.num_files,
-            args.split_sentences
+            args.split_sentences,
+            file_count=file_count
         )
         #
         if args.continuous:
