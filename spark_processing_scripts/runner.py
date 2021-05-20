@@ -54,7 +54,7 @@ def main():
         df = sug.get_rows_to_process_df(
             args.num_files, args.start, prefetched_df, full_db
         )
-        print('FETCHING IDs: %s' % ', '.join(df['entry_id'].drop_duplicates().tolist()))
+        print('FETCHING IDs: %s' % ', '.join(list(map(str, df['entry_id'].drop_duplicates().tolist()))))
 
         # process via spark_processing_scripts
         print('running spark...')
