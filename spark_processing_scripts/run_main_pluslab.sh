@@ -6,4 +6,5 @@ DB_NAME="guardian"
 python3 runner.py \
       --db_name $DB_NAME \
       --num_files 500 \
-      --continuous
+      --continuous \
+      --env pluslab
