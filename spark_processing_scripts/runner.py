@@ -3,6 +3,7 @@ import spark_processing_scripts.util_spark as sus
 import spark_processing_scripts.util_general as sug
 from pyspark import SparkConf, SparkContext
 from pyspark.sql import Row, SparkSession, SQLContext
+import pandas as pd
 
 def main():
     from argparse import ArgumentParser
@@ -19,42 +20,69 @@ def main():
 
     args = parser.parse_args()
 
-    spark = (
-        SparkSession.builder
-            .config("spark.jars.packages", "com.johnsnowlabs.nlp:spark-nlp_2.11:2.7.5")
-            .config("spark.executor.instances", "40")
-            .config("spark.driver.memory", "20g")
-            .config("spark.executor.memory", "20g")
-            .config("spark.sql.shuffle.partitions", "2000")
-            .config("spark.executor.cores", "5")
-            .config("spark.kryoserializer.buffer.max", "2000M")
-            .getOrCreate()
-    )
+    if args.env == 'bb':
+        spark = (
+            SparkSession.builder
+                .config("spark.jars.packages", "com.johnsnowlabs.nlp:spark-nlp_2.11:2.7.5")
+                .config("spark.executor.instances", "40")
+                .config("spark.driver.memory", "20g")
+                .config("spark.executor.memory", "20g")
+                .config("spark.sql.shuffle.partitions", "2000")
+                .config("spark.executor.cores", "5")
+                .config("spark.kryoserializer.buffer.max", "2000M")
+                .getOrCreate()
+        )
+
+    else:
+        import findspark
+        findspark.init()
+        spark = (
+            SparkSession.builder
+                .config("spark.jars.packages", "com.johnsnowlabs.nlp:spark-nlp_2.11:2.7.5")
+                .config("spark.executor.instances", "40")
+                .config("spark.driver.memory", "20g")
+                .config("spark.executor.memory", "20g")
+                .config("spark.sql.shuffle.partitions", "2000")
+                .config("spark.executor.cores", "5")
+                .config("spark.kryoserializer.buffer.max", "2000M")
+                .getOrCreate()
+        )
 
     sqlContext = SQLContext(spark)
 
     print('downloading source data %s...' % args.db_name)
-    full_db = sug.download_pq_to_df(args.db_name)
+    if args.env == 'bb':
+        full_db = sug.download_pq_to_df(args.db_name)
+    else:
+        full_db = sug.get_rows_to_process_sql(args.db_name)
 
     df = full_db
     pipelines = sus.get_pipelines(sentence=args.split_sentences, env=args.env)
     num_tries = 5
     file_count = -1
-    while len(df) > 0:
-        ## keep an internal counter so we don't have to keep hitting S3 to count output files
-        file_count += 1
 
-        print('downloading prefetched data...')
-        if not args.split_sentences:
-            prefetched_df = sug.download_prefetched_data(args.db_name, split_sentences=args.split_sentences)
+    # see what data we already have
+    print('downloading prefetched data...')
+    if not args.split_sentences:
+        if args.env == 'bb':
+            prefetched_entry_ids = sug.download_prefetched_data(args.db_name, split_sentences=args.split_sentences)
         else:
-            prefetched_df = None
+            prefetched_entry_ids = sug.read_prefetched_data(args.db_name, split_sentences=args.split_sentences)
+    else:
+        prefetched_entry_ids = None
+
+    # loop spark job
+    while len(df) > 0:
+        # keep an internal counter so we don't have to keep hitting S3 to count output files
+        file_count += 1
 
         # read dataframe
         df = sug.get_rows_to_process_df(
-            args.num_files, args.start, prefetched_df, full_db
+            args.num_files, args.start, prefetched_entry_ids, full_db
         )
-        print('FETCHING IDs: %s' % ', '.join(df['entry_id'].drop_duplicates().tolist()))
+        print('FETCHING IDs: %s' % ', '.join(list(map(str, df['entry_id'].drop_duplicates().tolist()))))
+        print('LEN(DF): %s' % str(len(df)))
+        print('START: %s' % args.start)
 
         # process via spark_processing_scripts
         print('running spark...')
@@ -73,12 +101,33 @@ def main():
                 print('ZERO-LEN DF, TOO MANY RETRIES, breaking....')
                 break
 
-        file_count = sug.upload_files_to_s3(
-            output_df, args.output_format,
-            args.db_name, args.start, args.start + args.num_files,
-            args.split_sentences
-        )
-        #
+        print('VALID DATA, UPLOADING...')
+        ## cache prefetched_df, instead of pulling it each time.
+        if prefetched_df is not None:
+            prefetched_df = pd.concat([
+                prefetched_df,
+                output_df['entry_id'].drop_duplicates()
+            ])
+
+        ### upload data
+        if args.env == 'bb':
+            file_count = sug.upload_files_to_s3(
+                output_df, args.output_format,
+                args.db_name, args.start, args.start + args.num_files,
+                args.split_sentences,
+                file_count=file_count
+            )
+        else:
+            file_count = sug.dump_files_locally(
+                output_df,
+                args.output_format,
+                args.db_name,
+                args.start, args.start + args.num_files,
+                args.split_sentences,
+                file_count=file_count
+            )
+
+        # clean up
         if args.continuous:
             sqlContext.clearCache()
         ##
