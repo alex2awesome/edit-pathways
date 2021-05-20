@@ -65,11 +65,11 @@ def main():
     print('downloading prefetched data...')
     if not args.split_sentences:
         if args.env == 'bb':
-            prefetched_df = sug.download_prefetched_data(args.db_name, split_sentences=args.split_sentences)
+            prefetched_entry_ids = sug.download_prefetched_data(args.db_name, split_sentences=args.split_sentences)
         else:
-            prefetched_df = sug.read_prefetched_data(args.db_name, split_sentences=args.split_sentences)
+            prefetched_entry_ids = sug.read_prefetched_data(args.db_name, split_sentences=args.split_sentences)
     else:
-        prefetched_df = None
+        prefetched_entry_ids = None
 
     # loop spark job
     while len(df) > 0:
@@ -78,7 +78,7 @@ def main():
 
         # read dataframe
         df = sug.get_rows_to_process_df(
-            args.num_files, args.start, prefetched_df, full_db
+            args.num_files, args.start, prefetched_entry_ids, full_db
         )
         print('FETCHING IDs: %s' % ', '.join(list(map(str, df['entry_id'].drop_duplicates().tolist()))))
         print('LEN(DF): %s' % str(len(df)))
@@ -104,7 +104,10 @@ def main():
         print('VALID DATA, UPLOADING...')
         ## cache prefetched_df, instead of pulling it each time.
         if prefetched_df is not None:
-            prefetched_df = pd.concat([prefetched_df, output_df])
+            prefetched_df = pd.concat([
+                prefetched_df,
+                output_df['entry_id'].drop_duplicates()
+            ])
 
         ### upload data
         if args.env == 'bb':
