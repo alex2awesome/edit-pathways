@@ -45,7 +45,7 @@ def get_split_sentence_pipeline():
     return sentence_splitter_pipeline
 
 
-def get_sparknlp_pipeline():
+def get_sparknlp_pipeline(env='bb'):
     ####
     #
     # Spark NLP
@@ -69,14 +69,28 @@ def get_sparknlp_pipeline():
             .setOutputCol("token")
     )
 
-    word_embeddings = (
-        sa.BertEmbeddings
-            .load('s3://aspangher/spark-nlp/small_bert_L4_128_en_2.6.0_2.4')
-            .setInputCols(["sentences", "token"])
-            .setOutputCol("embeddings")
-            .setMaxSentenceLength(512)
-            .setBatchSize(100)
-    )
+    if env=='bb':
+        word_embeddings = (
+            sa.BertEmbeddings
+                .load('s3://aspangher/spark-nlp/small_bert_L4_128_en_2.6.0_2.4')
+                .setInputCols(["sentences", "token"])
+                .setOutputCol("embeddings")
+                .setMaxSentenceLength(512)
+                .setBatchSize(100)
+        )
+    else:
+        import os
+        local_model_file = 'small_bert_L4_128_en_2.6.0_2.4'
+        if not os.path.exists(local_model_file):
+            raise FileNotFoundError('Upload model file to this directory!')
+        word_embeddings = (
+            sa.BertEmbeddings
+                .load(local_model_file)
+                .setInputCols(["sentences", "token"])
+                .setOutputCol("embeddings")
+                .setMaxSentenceLength(512)
+                .setBatchSize(100)
+        )
 
     tok_finisher = (
         sb.Finisher()
