@@ -58,7 +58,10 @@ _fs = None
 def get_fs():
     global _fs
     if _fs is None:
-        _fs = s3fs.S3FileSystem(client_kwargs={'endpoint_url': 'http://s3.dev.obdc.bcs.bloomberg.com'})
+        _fs = s3fs.S3FileSystem(
+            default_fill_cache=False,
+            client_kwargs={'endpoint_url': 'http://s3.dev.obdc.bcs.bloomberg.com'}
+        )
     return _fs
 
 
@@ -171,61 +174,63 @@ def get_rows_to_process_sql(num_entries, start_idx, prefetched_entry_ids, db_fp)
         return df
 
 
-def _upload_files_to_s3_pq(output_sdf, news_source, start, num_records_per_file, split_sentences):
+def _upload_files_to_s3_pq(output_sdf, news_source, start, num_records_per_file, split_sentences, file_count=0):
     s3_path = s3_output_dir_main if not split_sentences else s3_output_dir_sentences
-    num_prefetched_files = len(get_pq_files(s3_path, news_source))
+    if file_count == 0:
+        file_count = len(get_pq_files(s3_path, news_source))
     output_fname = fn_template_pq % {
         'news_source': news_source,
-        'start': (start + num_prefetched_files) * num_records_per_file,
-        'end': (start + num_prefetched_files + 1) * num_records_per_file,
-        'num_files': num_prefetched_files + 1
+        'start': (start + file_count) * num_records_per_file,
+        'end': (start + file_count + 1) * num_records_per_file,
+        'num_files': file_count + 1
     }
     outfile_s3_path = os.path.join(s3_path, output_fname)
     output_sdf.write.mode("overwrite").parquet(outfile_s3_path)
+    return file_count
 
-
-def _upload_files_to_s3_pkl(output_sdf, news_source, start, num_records_per_file, split_sentences):
+def _upload_files_to_s3_pkl(output_df, news_source, start, num_records_per_file, split_sentences, file_count=0):
     s3_path = s3_output_dir_main if not split_sentences else s3_output_dir_sentences
-    num_prefetched_files = len(get_csv_files(s3_path, news_source))
+    if file_count == 0:
+        file_count = len(get_csv_files(s3_path, news_source))
     output_fname = fn_template_pkl % {
         'news_source': news_source,
-        'start': (start + num_prefetched_files) * num_records_per_file,
-        'end': (start + num_prefetched_files + 1) * num_records_per_file,
-        'num_files': num_prefetched_files + 1
+        'start': (start + file_count) * num_records_per_file,
+        'end': (start + file_count + 1) * num_records_per_file,
+        'num_files': file_count + 1
     }
     ##
     outfile_s3_path = os.path.join(s3_path, output_fname)
     print('OUTFILE: %s' % outfile_s3_path)
-    output_df = output_sdf.toPandas()
     with get_fs().open(outfile_s3_path, 'wb') as f:
         output_df.to_pickle(f, compression='gzip')
+    return file_count
 
-
-def _upload_files_to_s3_csv(output_sdf, news_source, start, num_records_per_file, split_sentences):
+def _upload_files_to_s3_csv(output_df, news_source, start, num_records_per_file, split_sentences, file_count=0):
     s3_path = s3_output_dir_main if not split_sentences else s3_output_dir_sentences
-    num_prefetched_files = len(get_csv_files(s3_path, news_source))
+    if file_count == 0:
+        file_count = len(get_csv_files(s3_path, news_source))
     output_fname = fn_template_csv % {
         'news_source': news_source,
-        'start': (start + num_prefetched_files) * num_records_per_file,
-        'end': (start + num_prefetched_files + 1) * num_records_per_file,
-        'num_files': num_prefetched_files + 1
+        'start': (start + file_count) * num_records_per_file,
+        'end': (start + file_count + 1) * num_records_per_file,
+        'num_files': file_count + 1
     }
     ##
     outfile_s3_path = os.path.join(s3_path, output_fname)
     print('OUTFILE: %s' % outfile_s3_path)
-    output_df = output_sdf.toPandas()
     bytes_to_write = output_df.to_csv(None, compression='gzip').encode()
     with get_fs().open(outfile_s3_path, 'wb') as f:
         f.write(bytes_to_write)
+    return file_count
 
 
-def upload_files_to_s3(output_sdf, output_format, news_source, start, end, split_sentences):
+def upload_files_to_s3(output_df, output_format, news_source, start, end, split_sentences, file_count):
     if output_format == 'pq':
-        _upload_files_to_s3_pq(output_sdf, news_source, start, end, split_sentences)
+        return _upload_files_to_s3_pq(output_df, news_source, start, end, split_sentences, file_count)
     elif output_format == 'csv':
-        _upload_files_to_s3_csv(output_sdf, news_source, start, end, split_sentences)
+        return _upload_files_to_s3_csv(output_df, news_source, start, end, split_sentences, file_count)
     elif output_format == 'pkl':
-        _upload_files_to_s3_pkl(output_sdf, news_source, start, end, split_sentences)
+        return _upload_files_to_s3_pkl(output_df, news_source, start, end, split_sentences, file_count)
 
 
 
