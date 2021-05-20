@@ -4,6 +4,9 @@ import sparknlp.base as sb
 import sparknlp.annotator as sa
 
 
+SENTENCE_SIM_THRESH = .44
+APPROX_JOIN_CUTOFF = .5
+
 def get_word_matching_sql(side):
     """Generate the SQL necessary to transform each side. Side \in {'x', 'y'}"""
 
