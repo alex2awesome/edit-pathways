@@ -90,14 +90,18 @@ def _download_prefetched_data_csv(news_source, split_sentences, show_progress):
     s3_path = s3_output_dir_main if not split_sentences else s3_output_dir_sentences
     fs = get_fs()
     files = get_csv_files(s3_path, news_source)
-    df_list = []
+    entry_id_list = []
     f_iter = files if not show_progress else tqdm(files)
     for f_path in f_iter:
         with fs.open('s3://' + f_path) as f:
             df = pd.read_csv(f, index_col=0)
-        df_list.append(df)
-    if len(df_list) > 0:
-        return pd.concat(df_list)
+            if 'entry_id' in df:
+                entry_ids = df['entry_id'].drop_duplicates()
+            else:
+                entry_ids = pd.Series()
+        entry_id_list.append(entry_ids)
+    if len(entry_id_list) > 0:
+        return pd.concat(entry_id_list)
     else:
         return
 
@@ -131,9 +135,9 @@ def read_prefetched_data(news_source, split_sentences=False, format='csv', show_
             return None
 
 
-def download_pq_to_df(conn_name):
+def download_pq_to_df(conn_name, file_num=1):
     fname = conn_mapper_dict[conn_name]
-    fpath = os.path.join(s3_pq_dir, fname + '.pq')
+    fpath = os.path.join(s3_pq_dir, '%s-%s.pq' % (fname, file_num))
     with get_fs().open(fpath) as f:
         return pd.read_parquet(f)
 
@@ -156,9 +160,9 @@ def download_sqlite_db(conn_name):
         return fp.name
 
 
-def get_rows_to_process_df(num_entries, start_idx, prefetched_df, full_df):
-    if prefetched_df is not None:
-        prefetched_entry_ids = prefetched_df['entry_id'].drop_duplicates().values
+def get_rows_to_process_df(num_entries, start_idx, prefetched_entry_ids, full_df):
+    if prefetched_entry_ids is not None:
+        prefetched_entry_ids = prefetched_entry_ids.drop_duplicates().values
     else:
         prefetched_entry_ids = []
 
