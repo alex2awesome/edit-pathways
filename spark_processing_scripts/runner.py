@@ -19,22 +19,39 @@ def main():
 
     args = parser.parse_args()
 
-    spark = (
-        SparkSession.builder
-            .config("spark.jars.packages", "com.johnsnowlabs.nlp:spark-nlp_2.11:2.7.5")
-            .config("spark.executor.instances", "40")
-            .config("spark.driver.memory", "20g")
-            .config("spark.executor.memory", "20g")
-            .config("spark.sql.shuffle.partitions", "2000")
-            .config("spark.executor.cores", "5")
-            .config("spark.kryoserializer.buffer.max", "2000M")
-            .getOrCreate()
-    )
+    if args.env == 'bb':
+        spark = (
+            SparkSession.builder
+                .config("spark.jars.packages", "com.johnsnowlabs.nlp:spark-nlp_2.11:2.7.5")
+                .config("spark.executor.instances", "40")
+                .config("spark.driver.memory", "20g")
+                .config("spark.executor.memory", "20g")
+                .config("spark.sql.shuffle.partitions", "2000")
+                .config("spark.executor.cores", "5")
+                .config("spark.kryoserializer.buffer.max", "2000M")
+                .getOrCreate()
+        )
+
+    else:
+        spark = (
+            SparkSession.builder
+                .config("spark.jars.packages", "com.johnsnowlabs.nlp:spark-nlp_2.11:2.7.5")
+                .config("spark.executor.instances", "40")
+                .config("spark.driver.memory", "20g")
+                .config("spark.executor.memory", "20g")
+                .config("spark.sql.shuffle.partitions", "2000")
+                .config("spark.executor.cores", "5")
+                .config("spark.kryoserializer.buffer.max", "2000M")
+                .getOrCreate()
+        )
 
     sqlContext = SQLContext(spark)
 
     print('downloading source data %s...' % args.db_name)
-    full_db = sug.download_pq_to_df(args.db_name)
+    if args.env == 'bb':
+        full_db = sug.download_pq_to_df(args.db_name)
+    else:
+        full_db = sug.get_rows_to_process_sql(args.db_name)
 
     df = full_db
     pipelines = sus.get_pipelines(sentence=args.split_sentences, env=args.env)
@@ -46,7 +63,10 @@ def main():
 
         print('downloading prefetched data...')
         if not args.split_sentences:
-            prefetched_df = sug.download_prefetched_data(args.db_name, split_sentences=args.split_sentences)
+            if args.env == 'bb':
+                prefetched_df = sug.download_prefetched_data(args.db_name, split_sentences=args.split_sentences)
+            else:
+                prefetched_df = sug.read_prefetched_data(args.db_name, split_sentences=args.split_sentences)
         else:
             prefetched_df = None
 
@@ -73,13 +93,25 @@ def main():
                 print('ZERO-LEN DF, TOO MANY RETRIES, breaking....')
                 break
 
-        file_count = sug.upload_files_to_s3(
-            output_df, args.output_format,
-            args.db_name, args.start, args.start + args.num_files,
-            args.split_sentences,
-            file_count=file_count
-        )
-        #
+        ### upload data
+        if args.env == 'bb':
+            file_count = sug.upload_files_to_s3(
+                output_df, args.output_format,
+                args.db_name, args.start, args.start + args.num_files,
+                args.split_sentences,
+                file_count=file_count
+            )
+        else:
+            file_count = sug.dump_files_locally(
+                output_df,
+                args.output_format,
+                args.db_name,
+                args.start, args.start + args.num_files,
+                args.split_sentences,
+                file_count=file_count
+            )
+
+        # clean up
         if args.continuous:
             sqlContext.clearCache()
         ##
