@@ -70,7 +70,7 @@ def main():
     sqlContext = SQLContext(spark)
 
     pipelines = sus.get_pipelines(sentence=args.split_sentences, env=args.env)
-    num_tries = 5
+    num_tries = 3
     file_count = -1
 
     # loop spark job
@@ -100,14 +100,22 @@ def main():
                 num_tries -= 1
                 continue
             else:
-                print('ZERO-LEN DF, TOO MANY RETRIES, breaking....')
-                break
+                if len(to_fetch_df['entry_id'].drop_duplicates()) < 5:
+                    if args.env == 'bb':
+                        to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids)
+                    else:
+                        to_fetch_df = sug.get_rows_to_process_sql(args.db_name,
+                                                                  prefetched_entry_ids=prefetched_entry_ids)
+                    continue
+                else:
+                    print('ZERO-LEN DF, TOO MANY RETRIES, breaking....')
+                    break
 
         print('VALID DATA, UPLOADING...')
         ## cache prefetched_df, instead of pulling it each time.
-        if prefetched_df is not None:
-            prefetched_df = pd.concat([
-                prefetched_df,
+        if prefetched_entry_ids is not None:
+            prefetched_entry_ids = pd.concat([
+                prefetched_entry_ids,
                 output_df['entry_id'].drop_duplicates()
             ])
 
