@@ -135,11 +135,18 @@ def read_prefetched_data(news_source, split_sentences=False, format='csv', show_
             return None
 
 
-def download_pq_to_df(conn_name, file_num=1):
+def download_pq_to_df(conn_name, prefetched_entry_ids):
     fname = conn_mapper_dict[conn_name]
-    fpath = os.path.join(s3_pq_dir, '%s-%s.pq' % (fname, file_num))
-    with get_fs().open(fpath) as f:
-        return pd.read_parquet(f)
+    file_list = get_fs().ls(s3_pq_dir)
+    file_pattern = re.compile(r'%s-\d.pq' % fname)
+    file_list = list(filter(lambda x: re.search(file_pattern, x), file_list))
+    for f_idx, fname in enumerate(file_list):
+        with get_fs().open(fname) as f:
+            full_df = pd.read_parquet(f)
+        full_df = full_df.loc[lambda df: ~df['entry_id'].isin(prefetched_entry_ids.values)]
+        if len(full_df['entry_id'].drop_duplicates() > 50):
+            return full_df
+    return None
 
 
 def download_csv_to_df(conn_name):
@@ -166,10 +173,13 @@ def get_rows_to_process_df(num_entries, start_idx, prefetched_entry_ids, full_df
     else:
         prefetched_entry_ids = []
 
-    return (
-        full_df
+    output_df = (full_df
             .loc[lambda df: df['num_versions'] > 1]
             .loc[lambda df: df['num_versions'] < 40]
+    )
+
+    to_get_df = (
+        output_df
             .loc[lambda df: df['entry_id'].isin(
                 df['entry_id']
                     .drop_duplicates()
@@ -179,6 +189,8 @@ def get_rows_to_process_df(num_entries, start_idx, prefetched_entry_ids, full_df
             )]
             .assign(summary=lambda df: df['summary'].str.replace('</p><p>', ' '))
     )
+    left_to_process_df = output_df.loc[lambda df: ~df['entry_id'].isin(to_get_df['entry_id'])]
+    return to_get_df, left_to_process_df
 
 
 def get_rows_to_process_sql(db_name, num_entries=None, start_idx=None, prefetched_entry_ids=[]):
@@ -204,6 +216,8 @@ def get_rows_to_process_sql(db_name, num_entries=None, start_idx=None, prefetche
 
     with sqlite3.connect(db_fp) as conn:
         df = pd.read_sql(sql, con=conn)
+        if len(df['entry_id'].drop_duplicates() < 10):
+            return
         df = df.assign(summary=lambda df: df['summary'].str.replace('</p><p>', ' '))
         return df
 
