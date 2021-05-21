@@ -125,7 +125,7 @@ def get_split_sentence_pipeline():
         """)
     )
 
-    sentence_splitter_pipeline = sb.RecursivePipeline(stages=[
+    sentence_splitter_pipeline = sb.Pipeline(stages=[
         documenter,
         sentencer,
         sent_finisher,
@@ -195,7 +195,7 @@ def get_sparknlp_pipeline(env='bb'):
             .setOutputAsVector(True)
     )
 
-    sparknlp_processing_pipeline = sb.RecursivePipeline(stages=[
+    sparknlp_processing_pipeline = sb.Pipeline(stages=[
         documenter,
         sentencer,
         tokenizer,
