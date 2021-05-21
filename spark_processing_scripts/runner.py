@@ -1,8 +1,6 @@
-from pyspark.sql import SparkSession
 import spark_processing_scripts.util_spark as sus
 import spark_processing_scripts.util_general as sug
-from pyspark import SparkConf, SparkContext
-from pyspark.sql import Row, SparkSession, SQLContext
+from pyspark.sql import SparkSession, SQLContext
 import pandas as pd
 
 def main():
