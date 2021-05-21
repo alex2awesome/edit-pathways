@@ -197,7 +197,7 @@ def get_rows_to_process_sql(db_name, num_entries=None, start_idx=None, prefetche
     db_fp = conn_mapper_dict[db_name] + '.db'
     if prefetched_entry_ids is None:
         prefetched_entry_ids = []
-        
+
     sql = '''
              SELECT * from entryversion 
              WHERE entry_id IN (
@@ -218,7 +218,7 @@ def get_rows_to_process_sql(db_name, num_entries=None, start_idx=None, prefetche
 
     with sqlite3.connect(db_fp) as conn:
         df = pd.read_sql(sql, con=conn)
-        if len(df['entry_id'].drop_duplicates() < 10):
+        if len(df['entry_id'].drop_duplicates()) < 10:
             return
         df = df.assign(summary=lambda df: df['summary'].str.replace('</p><p>', ' '))
         return df
