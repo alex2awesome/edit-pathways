@@ -144,7 +144,7 @@ def download_pq_to_df(conn_name, prefetched_entry_ids):
         with get_fs().open(fname) as f:
             full_df = pd.read_parquet(f)
         full_df = full_df.loc[lambda df: ~df['entry_id'].isin(prefetched_entry_ids.values)]
-        if len(full_df['entry_id'].drop_duplicates() > 50):
+        if len(full_df['entry_id'].drop_duplicates()) > 50:
             return full_df
     return None
 
