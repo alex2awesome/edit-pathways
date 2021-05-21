@@ -195,7 +195,9 @@ def get_rows_to_process_df(num_entries, start_idx, prefetched_entry_ids, full_df
 
 def get_rows_to_process_sql(db_name, num_entries=None, start_idx=None, prefetched_entry_ids=[]):
     db_fp = conn_mapper_dict[db_name] + '.db'
-
+    if prefetched_entry_ids is None:
+        prefetched_entry_ids = []
+        
     sql = '''
              SELECT * from entryversion 
              WHERE entry_id IN (
