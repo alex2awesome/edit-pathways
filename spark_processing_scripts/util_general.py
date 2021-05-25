@@ -128,7 +128,7 @@ def read_prefetched_data(news_source, split_sentences=False, format='csv', show_
         prefetched_data = []
         for file in glob.glob(os.path.join(data_dir, '*')):
             df = pd.read_csv(file)
-            prefetched_data.append(df)
+            prefetched_data.append(df['entry_id'].drop_duplicates())
         if len(prefetched_data) > 0:
             return pd.concat(prefetched_data)
         else:
