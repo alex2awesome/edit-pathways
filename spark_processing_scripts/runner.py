@@ -1,8 +1,6 @@
-from pyspark.sql import SparkSession
 import spark_processing_scripts.util_spark as sus
 import spark_processing_scripts.util_general as sug
-from pyspark import SparkConf, SparkContext
-from pyspark.sql import Row, SparkSession, SQLContext
+from pyspark.sql import SparkSession, SQLContext
 import pandas as pd
 
 def main():
@@ -58,12 +56,14 @@ def main():
         spark = (
             SparkSession.builder
                 .config("spark.jars.packages", "com.johnsnowlabs.nlp:spark-nlp_2.11:2.7.5")
+                # .config("spark.jars.packages", "com.johnsnowlabs.nlp:spark-nlp-gpu_2.12:3.0.0")
                 .config("spark.executor.instances", "40")
                 .config("spark.driver.memory", "20g")
                 .config("spark.executor.memory", "20g")
                 .config("spark.sql.shuffle.partitions", "2000")
                 .config("spark.executor.cores", "5")
                 .config("spark.kryoserializer.buffer.max", "2000M")
+                .config('spark.driver.maxResultSize', '5g')
                 .getOrCreate()
         )
 
@@ -104,8 +104,9 @@ def main():
                     if args.env == 'bb':
                         to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids)
                     else:
-                        to_fetch_df = sug.get_rows_to_process_sql(args.db_name,
-                                                                  prefetched_entry_ids=prefetched_entry_ids)
+                        to_fetch_df = sug.get_rows_to_process_sql(
+                            args.db_name, prefetched_entry_ids=prefetched_entry_ids
+                        )
                     continue
                 else:
                     print('ZERO-LEN DF, TOO MANY RETRIES, breaking....')
@@ -118,6 +119,8 @@ def main():
                 prefetched_entry_ids,
                 output_df['entry_id'].drop_duplicates()
             ])
+        else:
+            prefetched_entry_ids = output_df['entry_id'].drop_duplicates()
 
         ### upload data
         if args.env == 'bb':

@@ -136,6 +136,7 @@ def read_prefetched_data(news_source, split_sentences=False, format='csv', show_
 
 
 def download_pq_to_df(conn_name, prefetched_entry_ids):
+    prefetched_entry_id_list = prefetched_entry_ids.values if (prefetched_entry_ids is not None) else []
     fname = conn_mapper_dict[conn_name]
     file_list = get_fs().ls(s3_pq_dir)
     file_pattern = re.compile(r'%s-\d.pq' % fname)
@@ -143,10 +144,10 @@ def download_pq_to_df(conn_name, prefetched_entry_ids):
     for f_idx, fname in enumerate(file_list):
         with get_fs().open(fname) as f:
             full_df = pd.read_parquet(f)
-        full_df = full_df.loc[lambda df: ~df['entry_id'].isin(prefetched_entry_ids.values)]
+        full_df = full_df.loc[lambda df: ~df['entry_id'].isin(prefetched_entry_id_list)]
         if len(full_df['entry_id'].drop_duplicates()) > 50:
             return full_df
-    return None
+    return []
 
 
 def download_csv_to_df(conn_name):
@@ -195,6 +196,8 @@ def get_rows_to_process_df(num_entries, start_idx, prefetched_entry_ids, full_df
 
 def get_rows_to_process_sql(db_name, num_entries=None, start_idx=None, prefetched_entry_ids=[]):
     db_fp = conn_mapper_dict[db_name] + '.db'
+    if prefetched_entry_ids is None:
+        prefetched_entry_ids = []
 
     sql = '''
              SELECT * from entryversion 
@@ -216,7 +219,7 @@ def get_rows_to_process_sql(db_name, num_entries=None, start_idx=None, prefetche
 
     with sqlite3.connect(db_fp) as conn:
         df = pd.read_sql(sql, con=conn)
-        if len(df['entry_id'].drop_duplicates() < 10):
+        if len(df['entry_id'].drop_duplicates()) < 10:
             return
         df = df.assign(summary=lambda df: df['summary'].str.replace('</p><p>', ' '))
         return df
@@ -296,7 +299,7 @@ def dump_files_locally(output_df, output_format, news_source, start, end, split_
             'end': (start + file_count + 1) * end,
             'num_files': file_count + 1
         }
-        out_path = os.path.join(out_dir, output_fname)
+        out_path = os.path.join(pluslab_output_dir, output_fname)
         output_df.to_csv(out_path, compression='gzip')
 
 
