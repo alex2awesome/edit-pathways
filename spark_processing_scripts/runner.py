@@ -104,8 +104,9 @@ def main():
                     if args.env == 'bb':
                         to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids)
                     else:
-                        to_fetch_df = sug.get_rows_to_process_sql(args.db_name,
-                                                                  prefetched_entry_ids=prefetched_entry_ids)
+                        to_fetch_df = sug.get_rows_to_process_sql(
+                            args.db_name, prefetched_entry_ids=prefetched_entry_ids
+                        )
                     continue
                 else:
                     print('ZERO-LEN DF, TOO MANY RETRIES, breaking....')
@@ -118,6 +119,8 @@ def main():
                 prefetched_entry_ids,
                 output_df['entry_id'].drop_duplicates()
             ])
+        else:
+            prefetched_entry_ids = output_df['entry_id'].drop_duplicates()
 
         ### upload data
         if args.env == 'bb':
