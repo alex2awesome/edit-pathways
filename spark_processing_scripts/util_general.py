@@ -128,7 +128,7 @@ def read_prefetched_data(news_source, split_sentences=False, format='csv', show_
         prefetched_data = []
         for file in glob.glob(os.path.join(data_dir, '*')):
             df = pd.read_csv(file)
-            prefetched_data.append(df)
+            prefetched_data.append(df['entry_id'].drop_duplicates())
         if len(prefetched_data) > 0:
             return pd.concat(prefetched_data)
         else:
@@ -139,7 +139,7 @@ def download_pq_to_df(conn_name, prefetched_entry_ids):
     prefetched_entry_id_list = prefetched_entry_ids.values if (prefetched_entry_ids is not None) else []
     fname = conn_mapper_dict[conn_name]
     file_list = get_fs().ls(s3_pq_dir)
-    file_pattern = re.compile(r'%s-\d.pq' % fname)
+    file_pattern = re.compile(r'%s-\d+.pq' % fname)
     file_list = list(filter(lambda x: re.search(file_pattern, x), file_list))
     for f_idx, fname in enumerate(file_list):
         with get_fs().open(fname) as f:
@@ -301,6 +301,8 @@ def dump_files_locally(output_df, output_format, news_source, start, end, split_
         }
         out_path = os.path.join(pluslab_output_dir, output_fname)
         output_df.to_csv(out_path, compression='gzip')
+        return file_count
+
 
 
 
