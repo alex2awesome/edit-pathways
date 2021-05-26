@@ -301,6 +301,8 @@ def dump_files_locally(output_df, output_format, news_source, start, end, split_
         }
         out_path = os.path.join(pluslab_output_dir, output_fname)
         output_df.to_csv(out_path, compression='gzip')
+        return file_count
+
 
 
 
