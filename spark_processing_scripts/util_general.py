@@ -148,8 +148,9 @@ def download_pq_to_df(conn_name, prefetched_entry_ids, show_progress=False):
             full_df = pd.read_parquet(f)
         full_df = full_df.loc[lambda df: ~df['entry_id'].isin(prefetched_entry_id_list)]
         if len(full_df['entry_id'].drop_duplicates()) > 50:
-            return full_df
-    return []
+            last_one = f_idx < (len(file_list) - 1)
+            return last_one, full_df
+    return f_idx < (len(file_list) - 1), []
 
 
 def download_csv_to_df(conn_name):

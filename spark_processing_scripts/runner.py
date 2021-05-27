@@ -30,9 +30,9 @@ def main():
 
     print('downloading source data %s...' % args.db_name)
     if args.env == 'bb':
-        to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids)
+        last_one, to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids)
     else:
-        to_fetch_df = sug.get_rows_to_process_sql(args.db_name, prefetched_entry_ids=prefetched_entry_ids)
+        last_one, to_fetch_df = sug.get_rows_to_process_sql(args.db_name, prefetched_entry_ids=prefetched_entry_ids)
     if to_fetch_df is None:
         print('Done!!!')
         return
@@ -74,7 +74,7 @@ def main():
     file_count = -1
 
     # loop spark job
-    while (len(to_fetch_df) > 0) and (to_fetch_df is not None):
+    while (len(to_fetch_df) > 0) or (not last_one):
         # keep an internal counter so we don't have to keep hitting S3 to count output files
         file_count += 1
 
@@ -102,9 +102,9 @@ def main():
             else:
                 if len(to_fetch_df['entry_id'].drop_duplicates()) < 5:
                     if args.env == 'bb':
-                        to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids)
+                        last_one, to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids)
                     else:
-                        to_fetch_df = sug.get_rows_to_process_sql(
+                        last_one, to_fetch_df = sug.get_rows_to_process_sql(
                             args.db_name, prefetched_entry_ids=prefetched_entry_ids
                         )
                     continue
@@ -112,39 +112,40 @@ def main():
                     print('ZERO-LEN DF, TOO MANY RETRIES, breaking....')
                     break
 
-        print('VALID DATA, UPLOADING...')
-        ## cache prefetched_df, instead of pulling it each time.
-        if prefetched_entry_ids is not None:
-            prefetched_entry_ids = pd.concat([
-                prefetched_entry_ids,
-                output_df['entry_id'].drop_duplicates()
-            ])
         else:
-            prefetched_entry_ids = output_df['entry_id'].drop_duplicates()
-
-        ### upload data
-        if args.env == 'bb':
-            file_count = sug.upload_files_to_s3(
-                output_df, args.output_format,
-                args.db_name, args.start, args.start + args.num_files,
-                args.split_sentences,
-                file_count=file_count
-            )
-        else:
-            file_count = sug.dump_files_locally(
-                output_df,
-                args.output_format,
-                args.db_name,
-                args.start, args.start + args.num_files,
-                args.split_sentences,
-                file_count=file_count
-            )
-
-        if len(to_fetch_df['entry_id'].drop_duplicates()) < 5:
-            if args.env == 'bb':
-                to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids)
+            print('VALID DATA, UPLOADING...')
+            ## cache prefetched_df, instead of pulling it each time.
+            if prefetched_entry_ids is not None:
+                prefetched_entry_ids = pd.concat([
+                    prefetched_entry_ids,
+                    output_df['entry_id'].drop_duplicates()
+                ])
             else:
-                to_fetch_df = sug.get_rows_to_process_sql(args.db_name, prefetched_entry_ids=prefetched_entry_ids)
+                prefetched_entry_ids = output_df['entry_id'].drop_duplicates()
+
+            ### upload data
+            if args.env == 'bb':
+                file_count = sug.upload_files_to_s3(
+                    output_df, args.output_format,
+                    args.db_name, args.start, args.start + args.num_files,
+                    args.split_sentences,
+                    file_count=file_count
+                )
+            else:
+                file_count = sug.dump_files_locally(
+                    output_df,
+                    args.output_format,
+                    args.db_name,
+                    args.start, args.start + args.num_files,
+                    args.split_sentences,
+                    file_count=file_count
+                )
+
+            if len(to_fetch_df['entry_id'].drop_duplicates()) < 5:
+                if args.env == 'bb':
+                    last_one, to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids)
+                else:
+                    last_one, to_fetch_df = sug.get_rows_to_process_sql(args.db_name, prefetched_entry_ids=prefetched_entry_ids)
 
         # clean up
         if args.continuous:
