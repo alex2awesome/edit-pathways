@@ -251,6 +251,7 @@ def get_explode_pipeline():
 
     return explode_pipeline
 
+
 def get_similarity_pipeline():
     vector_normalizer = (
         Normalizer(
@@ -259,7 +260,7 @@ def get_similarity_pipeline():
             p=2.0
         )
     )
-    similarty_checker = (
+    similarity_checker = (
         BucketedRandomProjectionLSH(
             inputCol="norm_word_embedding",
             outputCol="hashes",
@@ -270,7 +271,7 @@ def get_similarity_pipeline():
 
     similarity_pipeline = sb.Pipeline(stages=[
         vector_normalizer,
-        similarty_checker
+        similarity_checker
     ])
 
     return similarity_pipeline

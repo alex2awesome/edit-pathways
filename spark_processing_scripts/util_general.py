@@ -135,13 +135,15 @@ def read_prefetched_data(news_source, split_sentences=False, format='csv', show_
             return None
 
 
-def download_pq_to_df(conn_name, prefetched_entry_ids):
+def download_pq_to_df(conn_name, prefetched_entry_ids, show_progress=False):
     prefetched_entry_id_list = prefetched_entry_ids.values if (prefetched_entry_ids is not None) else []
     fname = conn_mapper_dict[conn_name]
     file_list = get_fs().ls(s3_pq_dir)
     file_pattern = re.compile(r'%s-\d+.pq' % fname)
-    file_list = list(filter(lambda x: re.search(file_pattern, x), file_list))
-    for f_idx, fname in enumerate(file_list):
+    file_list = list(enumerate(filter(lambda x: re.search(file_pattern, x), file_list)))
+    if show_progress:
+        file_list = tqdm(file_list)
+    for f_idx, fname in file_list:
         with get_fs().open(fname) as f:
             full_df = pd.read_parquet(f)
         full_df = full_df.loc[lambda df: ~df['entry_id'].isin(prefetched_entry_id_list)]
