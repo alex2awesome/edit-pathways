@@ -146,7 +146,7 @@ def main():
             else:
                 to_fetch_df = sug.get_rows_to_process_sql(args.db_name, prefetched_entry_ids=prefetched_entry_ids)
 
-            # clean up
+        # clean up
         if args.continuous:
             sqlContext.clearCache()
         ##
