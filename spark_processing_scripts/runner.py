@@ -103,7 +103,7 @@ def main():
             # if len(to_fetch_df['entry_id'].drop_duplicates()) < 5:
             #     to_fetch_df_old = to_fetch_df.copy()
             if args.env == 'bb':
-                prefetched_file_idx, last_one, to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids, prefetched_file_idx)
+                prefetched_file_idx, last_one, to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids, prefetched_file_idx+1)
             else:
                 prefetched_file_idx, last_one, to_fetch_df = sug.get_rows_to_process_sql(
                     args.db_name, prefetched_entry_ids=prefetched_entry_ids
