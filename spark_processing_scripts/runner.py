@@ -68,10 +68,10 @@ def main():
         )
 
     sqlContext = SQLContext(spark)
-
     pipelines = sus.get_pipelines(sentence=args.split_sentences, env=args.env)
     num_tries = 3
-    file_count = -1
+    s3_path = sug.s3_output_dir_main if not args.split_sentences else sug.s3_output_dir_sentences
+    file_count = len(sug.get_csv_files(s3_path, args.db_name))
 
     # loop spark job
     while (len(to_fetch_df) > 0) or (not last_one):
