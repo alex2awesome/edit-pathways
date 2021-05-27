@@ -30,9 +30,9 @@ def main():
 
     print('downloading source data %s...' % args.db_name)
     if args.env == 'bb':
-        last_one, to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids)
+        prefetched_file_idx, last_one, to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids)
     else:
-        last_one, to_fetch_df = sug.get_rows_to_process_sql(args.db_name, prefetched_entry_ids=prefetched_entry_ids)
+        prefetched_file_idx, last_one, to_fetch_df = sug.get_rows_to_process_sql(args.db_name, prefetched_entry_ids=prefetched_entry_ids)
     if to_fetch_df is None:
         print('Done!!!')
         return
@@ -95,22 +95,24 @@ def main():
 
         output_df = output_sdf.toPandas()
         if len(output_df) == 0:
-            if num_tries > 0:
-                print('ZERO-LEN DF, retrying...')
-                num_tries -= 1
-                continue
+            # if num_tries > 0:
+            print('ZERO-LEN DF, getting next pretrained_file (pretrained_idx: %s)...' % prefetched_file_idx)
+            #     num_tries -= 1
+            #     continue
+            # else:
+            # if len(to_fetch_df['entry_id'].drop_duplicates()) < 5:
+            #     to_fetch_df_old = to_fetch_df.copy()
+            if args.env == 'bb':
+                prefetched_file_idx, last_one, to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids, prefetched_file_idx)
             else:
-                if len(to_fetch_df['entry_id'].drop_duplicates()) < 5:
-                    if args.env == 'bb':
-                        last_one, to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids)
-                    else:
-                        last_one, to_fetch_df = sug.get_rows_to_process_sql(
-                            args.db_name, prefetched_entry_ids=prefetched_entry_ids
-                        )
-                    continue
-                else:
-                    print('ZERO-LEN DF, TOO MANY RETRIES, breaking....')
-                    break
+                prefetched_file_idx, last_one, to_fetch_df = sug.get_rows_to_process_sql(
+                    args.db_name, prefetched_entry_ids=prefetched_entry_ids
+                )
+            print('New pretrained_idx: %s...' % prefetched_file_idx)
+            # continue
+        # else:
+        #     print('ZERO-LEN DF, TOO MANY RETRIES, breaking....')
+        #     break
 
         else:
             print('VALID DATA, UPLOADING...')
@@ -143,16 +145,16 @@ def main():
 
             if len(to_fetch_df['entry_id'].drop_duplicates()) < 5:
                 if args.env == 'bb':
-                    last_one, to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids)
+                    prefetched_file_idx, last_one, to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids, prefetched_file_idx)
                 else:
-                    last_one, to_fetch_df = sug.get_rows_to_process_sql(args.db_name, prefetched_entry_ids=prefetched_entry_ids)
+                    prefetched_file_idx, last_one, to_fetch_df = sug.get_rows_to_process_sql(args.db_name, prefetched_entry_ids, prefetched_file_idx)
 
-        # clean up
-        if args.continuous:
-            sqlContext.clearCache()
-        ##
-        if not args.continuous:
-            break
+            # clean up
+            if args.continuous:
+                sqlContext.clearCache()
+            ##
+            if not args.continuous:
+                break
 
 if __name__ == "__main__":
     main()
