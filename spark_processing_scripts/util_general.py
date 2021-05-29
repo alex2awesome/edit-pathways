@@ -175,7 +175,7 @@ def download_sqlite_db(conn_name):
         return fp.name
 
 
-def get_rows_to_process_df(num_entries, start_idx, prefetched_entry_ids, full_df):
+def get_rows_to_process_df(num_entries, start_idx, full_df, prefetched_entry_ids=None):
     if prefetched_entry_ids is not None:
         prefetched_entry_ids = prefetched_entry_ids.drop_duplicates().values
     else:
