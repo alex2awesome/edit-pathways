@@ -80,7 +80,7 @@ def main():
 
         # read dataframe
         df, to_fetch_df = sug.get_rows_to_process_df(
-            args.num_files, args.start, prefetched_entry_ids, to_fetch_df
+            args.num_files, args.start, to_fetch_df, prefetched_entry_ids
         )
         print('FETCHING IDs: %s' % ', '.join(list(map(str, df['entry_id'].drop_duplicates().tolist()))))
         print('LEN(DF): %s' % str(len(df)))
