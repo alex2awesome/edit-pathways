@@ -208,6 +208,9 @@ def get_rows_to_process_df(num_entries, start_idx, full_df, prefetched_entry_ids
     else:
         prefetched_entry_ids = []
 
+    if len(full_df) == 0:
+        return [], []
+
     output_df = (full_df
             .loc[lambda df: df['num_versions'] > 1]
             .loc[lambda df: df['num_versions'] < 40]
