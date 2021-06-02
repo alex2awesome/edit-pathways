@@ -180,7 +180,7 @@ def download_pq_to_df(conn_name, prefetched_entry_ids, prefetched_file_idx=0, sh
         if len(full_df['entry_id'].drop_duplicates()) > 5:
             last_one = f_idx == (len(file_list) - 1)
             return f_idx, last_one, full_df
-    # if we don't find a file >
+    # if we don't find a data file with unfetched entry_ids > 5
     last_one = prefetched_file_idx == (len(file_list) - 1)
     return prefetched_file_idx + 1, last_one, []
 
