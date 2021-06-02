@@ -74,7 +74,7 @@ def main():
     file_count = len(sug.get_files(s3_path, args.db_name, sug.csv_pat)) if not args.split_sentences else len(sug.get_files(s3_path, args.db_name, sug.pkl_pat))
 
     print('FILES FOUND: %s' % file_count)
-    print('NUM IDs FOUND: %s' % len(prefetched_entry_ids))
+    print('NUM IDs FOUND: %s' % len(prefetched_entry_ids) if prefetched_entry_ids is not None else 0)
 
     # loop spark job
     while (len(to_fetch_df) > 0) or (not last_one):
