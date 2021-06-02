@@ -86,6 +86,7 @@ def main():
             args.num_files, args.start, to_fetch_df, prefetched_entry_ids
         )
         if len(to_fetch_df) == 0:
+            print('ZERO LEN DF at beginning, continuing...')
             prefetched_file_idx, last_one, to_fetch_df = sug.download_pq_to_df(
                 args.db_name,
                 prefetched_entry_ids,
