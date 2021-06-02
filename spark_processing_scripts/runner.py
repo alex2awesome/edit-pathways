@@ -73,6 +73,9 @@ def main():
     s3_path = sug.s3_output_dir_main if not args.split_sentences else sug.s3_output_dir_sentences
     file_count = len(sug.get_files(s3_path, args.db_name, sug.csv_pat)) if not args.split_sentences else len(sug.get_files(s3_path, args.db_name, sug.pkl_pat))
 
+    print('FILES FOUND: %s' % len(file_count))
+    print('NUM IDs FOUND: %s' % len(prefetched_entry_ids))
+
     # loop spark job
     while (len(to_fetch_df) > 0) or (not last_one):
         # keep an internal counter so we don't have to keep hitting S3 to count output files
