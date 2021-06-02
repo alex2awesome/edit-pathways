@@ -169,19 +169,20 @@ def download_pq_to_df(conn_name, prefetched_entry_ids, prefetched_file_idx=0, sh
     file_pattern = re.compile(r'%s-\d+.pq' % fname)
     file_list = list(enumerate(filter(lambda x: re.search(file_pattern, x), file_list)))
     file_list = file_list[prefetched_file_idx:]
+    # visualize
     if show_progress:
         file_list = tqdm(file_list)
+    # iterate through any files there might be
     for f_idx, fname in file_list:
         with get_fs().open(fname) as f:
             full_df = pd.read_parquet(f)
         full_df = full_df.loc[lambda df: ~df['entry_id'].isin(prefetched_entry_id_list)]
-        if len(full_df['entry_id'].drop_duplicates()) > 50:
-            last_one = f_idx < (len(file_list) - 1)
+        if len(full_df['entry_id'].drop_duplicates()) > 5:
+            last_one = f_idx == (len(file_list) - 1)
             return f_idx, last_one, full_df
-    if len(file_list) == 0:
-        f_idx = 0
-    last_one = f_idx < (len(file_list) - 1)
-    return f_idx, last_one, []
+    # if we don't find a file >
+    last_one = prefetched_file_idx == (len(file_list) - 1)
+    return prefetched_file_idx + 1, last_one, []
 
 
 def download_csv_to_df(conn_name):
