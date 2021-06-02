@@ -41,13 +41,14 @@ s3_output_dir_main = 's3://aspangher/edit-pathways/spark_processing_scripts-outp
 s3_output_dir_sentences = 's3://aspangher/edit-pathways/spark_processing_scripts-output_sentences'
 pq_pat= r'df_%(news_source)s__start_\d+__end_\d+__num_\d+/'
 csv_pat= r'df_%(news_source)s__start_\d+__end_\d+__num_\d+.csv.gz'
+pkl_pat= r'df_%(news_source)s__start_\d+__end_\d+__num_\d+.pkl'
 get_pq_files = lambda s3_path, news_source: list(filter(lambda y:
                                                         re.search(pq_pat % {'news_source': news_source}, y),
                                                         get_fs().ls(os.path.join(s3_path, news_source))
                                                         ))
 
-get_csv_files = lambda s3_path, news_source: list(filter(lambda y:
-                                                    re.search(csv_pat % {'news_source': news_source}, y),
+get_files = lambda s3_path, news_source, file_pat: list(filter(lambda y:
+                                                    re.search(file_pat % {'news_source': news_source}, y),
                                                     get_fs().ls(os.path.join(s3_path, news_source))
                                       ))
 fn_template_csv = '%(news_source)s/df_%(news_source)s__start_%(start)s__end_%(end)s__num_%(num_files)s.csv.gz'
@@ -89,7 +90,7 @@ def _download_prefetched_data_pq(news_source, split_sentences):
 def _download_prefetched_data_csv(news_source, split_sentences, show_progress):
     s3_path = s3_output_dir_main if not split_sentences else s3_output_dir_sentences
     fs = get_fs()
-    files = get_csv_files(s3_path, news_source)
+    files = get_files(s3_path, news_source, csv_pat)
     entry_id_list = []
     f_iter = files if not show_progress else tqdm(files)
     for f_path in f_iter:
@@ -101,12 +102,34 @@ def _download_prefetched_data_csv(news_source, split_sentences, show_progress):
                 entry_ids = pd.Series()
         entry_id_list.append(entry_ids)
     if len(entry_id_list) > 0:
-        return pd.concat(entry_id_list)
+        return pd.concat(entry_id_list).drop_duplicates()
     else:
         return
 
 
+def _download_prefetched_data_pkl(news_source, split_sentences, show_progress):
+    s3_path = s3_output_dir_main if not split_sentences else s3_output_dir_sentences
+    fs = get_fs()
+    files = get_files(s3_path, news_source, pkl_pat)
+    entry_id_list = []
+    f_iter = files if not show_progress else tqdm(files)
+    for f_path in f_iter:
+        with fs.open('s3://' + f_path) as f:
+            df = pd.read_pickle(f, compression='gzip')
+            if 'entry_id' in df:
+                entry_ids = df['entry_id'].drop_duplicates()
+            else:
+                entry_ids = pd.Series()
+        entry_id_list.append(entry_ids)
+    if len(entry_id_list) > 0:
+        return pd.concat(entry_id_list).drop_duplicates()
+    else:
+        return
+
 def download_prefetched_data(news_source, split_sentences=False, format='csv', show_progress=False):
+    if split_sentences:
+        return _download_prefetched_data_pkl(news_source, split_sentences, show_progress)
+
     if format == 'csv':
         return _download_prefetched_data_csv(news_source, split_sentences, show_progress)
     else:
@@ -249,7 +272,7 @@ def _upload_files_to_s3_pq(output_sdf, news_source, start, num_records_per_file,
 def _upload_files_to_s3_pkl(output_df, news_source, start, num_records_per_file, split_sentences, file_count=0):
     s3_path = s3_output_dir_main if not split_sentences else s3_output_dir_sentences
     if file_count == 0:
-        file_count = len(get_csv_files(s3_path, news_source))
+        file_count = len(get_files(s3_path, news_source, csv_pat))
     output_fname = fn_template_pkl % {
         'news_source': news_source,
         'start': (start + file_count) * num_records_per_file,
@@ -266,7 +289,7 @@ def _upload_files_to_s3_pkl(output_df, news_source, start, num_records_per_file,
 def _upload_files_to_s3_csv(output_df, news_source, start, num_records_per_file, split_sentences, file_count=0):
     s3_path = s3_output_dir_main if not split_sentences else s3_output_dir_sentences
     if file_count == 0:
-        file_count = len(get_csv_files(s3_path, news_source))
+        file_count = len(get_files(s3_path, news_source, csv_pat))
     output_fname = fn_template_csv % {
         'news_source': news_source,
         'start': (start + file_count) * num_records_per_file,

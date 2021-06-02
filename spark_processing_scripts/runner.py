@@ -20,13 +20,13 @@ def main():
 
     # see what data we already have
     print('downloading prefetched data...')
-    if not args.split_sentences:
-        if args.env == 'bb':
-            prefetched_entry_ids = sug.download_prefetched_data(args.db_name, split_sentences=args.split_sentences)
-        else:
-            prefetched_entry_ids = sug.read_prefetched_data(args.db_name, split_sentences=args.split_sentences)
+    # if not args.split_sentences:
+    if args.env == 'bb':
+        prefetched_entry_ids = sug.download_prefetched_data(args.db_name, split_sentences=args.split_sentences)
     else:
-        prefetched_entry_ids = None
+        prefetched_entry_ids = sug.read_prefetched_data(args.db_name, split_sentences=args.split_sentences)
+    # else:
+    #     prefetched_entry_ids = None
 
     print('downloading source data %s...' % args.db_name)
     if args.env == 'bb':
@@ -71,7 +71,7 @@ def main():
     pipelines = sus.get_pipelines(sentence=args.split_sentences, env=args.env)
     num_tries = 3
     s3_path = sug.s3_output_dir_main if not args.split_sentences else sug.s3_output_dir_sentences
-    file_count = len(sug.get_csv_files(s3_path, args.db_name))
+    file_count = len(sug.get_files(s3_path, args.db_name, sug.csv_pat)) if not args.split_sentences else len(sug.get_files(s3_path, args.db_name, sug.pkl_pat))
 
     # loop spark job
     while (len(to_fetch_df) > 0) or (not last_one):

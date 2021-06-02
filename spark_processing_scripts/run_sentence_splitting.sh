@@ -24,7 +24,7 @@ katie spark run \
     --sync-launch tail \
     -- \
       --db_name guardian \
-      --num_files 20000 \
+      --num_files 5000 \
       --continuous \
       --split_sentences \
       --output_format pkl \
