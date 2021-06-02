@@ -69,8 +69,7 @@ def get_fs():
     return _fs
 
 
-def _download_prefetched_data_pq(news_source, split_sentences):
-    s3_path = s3_output_dir_main if not split_sentences else s3_output_dir_sentences
+def _download_prefetched_data_pq(news_source):
     import pyarrow.parquet as pq
     fs = get_fs()
     files = get_pq_files(news_source)
@@ -87,12 +86,7 @@ def _download_prefetched_data_pq(news_source, split_sentences):
         return
 
 
-def _download_prefetched_data_csv(news_source, split_sentences, show_progress):
-    s3_path = s3_output_dir_main if not split_sentences else s3_output_dir_sentences
-    fs = get_fs()
-    files = get_files(s3_path, news_source, csv_pat)
-    entry_id_list = []
-    f_iter = files if not show_progress else tqdm(files)
+def _download_prefetched_data_csv(f_iter, fs, entry_id_list):
     for f_path in f_iter:
         with fs.open('s3://' + f_path) as f:
             df = pd.read_csv(f, index_col=0)
@@ -101,18 +95,10 @@ def _download_prefetched_data_csv(news_source, split_sentences, show_progress):
             else:
                 entry_ids = pd.Series()
         entry_id_list.append(entry_ids)
-    if len(entry_id_list) > 0:
-        return pd.concat(entry_id_list).drop_duplicates()
-    else:
-        return
+    return entry_id_list
 
 
-def _download_prefetched_data_pkl(news_source, split_sentences, show_progress):
-    s3_path = s3_output_dir_main if not split_sentences else s3_output_dir_sentences
-    fs = get_fs()
-    files = get_files(s3_path, news_source, pkl_pat)
-    entry_id_list = []
-    f_iter = files if not show_progress else tqdm(files)
+def _download_prefetched_data_pkl(f_iter, fs, entry_id_list):
     for f_path in f_iter:
         with fs.open('s3://' + f_path) as f:
             df = pd.read_pickle(f, compression='gzip')
@@ -121,19 +107,37 @@ def _download_prefetched_data_pkl(news_source, split_sentences, show_progress):
             else:
                 entry_ids = pd.Series()
         entry_id_list.append(entry_ids)
+    return entry_id_list
+
+
+def download_prefetched_data(news_source, split_sentences=False, format='csv', show_progress=False):
+    # prep
+    s3_path = s3_output_dir_main if not split_sentences else s3_output_dir_sentences
+    fs = get_fs()
+    # check if news source is even in the s3_path
+    if len(list(filter(lambda x: x.endswith(news_source), fs.ls(s3_path)))) == 0:
+        return
+    #
+    pat = csv_pat if (format == 'csv') and (not split_sentences) else pkl_pat
+    files = get_files(s3_path, news_source, pat)
+    entry_id_list = []
+    f_iter = files if not show_progress else tqdm(files)
+
+    # fetch data
+    if split_sentences:
+        entry_id_list = _download_prefetched_data_pkl(f_iter, fs, entry_id_list)
+    else:
+        if format == 'csv':
+            entry_id_list = _download_prefetched_data_csv(f_iter, fs, entry_id_list)
+        else:
+            entry_id_list = _download_prefetched_data_pq(f_iter, fs, entry_id_list)
+
+    # return
     if len(entry_id_list) > 0:
         return pd.concat(entry_id_list).drop_duplicates()
     else:
         return
 
-def download_prefetched_data(news_source, split_sentences=False, format='csv', show_progress=False):
-    if split_sentences:
-        return _download_prefetched_data_pkl(news_source, split_sentences, show_progress)
-
-    if format == 'csv':
-        return _download_prefetched_data_csv(news_source, split_sentences, show_progress)
-    else:
-        return _download_prefetched_data_pq(news_source, split_sentences)
 
 
 def read_prefetched_data(news_source, split_sentences=False, format='csv', show_progress=False):
