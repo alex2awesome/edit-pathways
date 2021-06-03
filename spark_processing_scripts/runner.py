@@ -78,9 +78,6 @@ def main():
 
     # loop spark job
     while (len(left_to_fetch_df) > 0) or (not last_one):
-        # keep an internal counter so we don't have to keep hitting S3 to count output files
-
-
         # read dataframe
         to_fetch_this_round_df, left_to_fetch_df = sug.get_rows_to_process_df(
             args.num_files, args.start, left_to_fetch_df, prefetched_entry_ids
@@ -130,8 +127,9 @@ def main():
 
         else:
             print('VALID DATA, UPLOADING...')
+            # keep an internal counter so we don't have to keep hitting S3 to count output files
             file_count += 1
-            ## cache prefetched_df, instead of pulling it each time.
+            # cache prefetched_df, instead of pulling it each time.
             if prefetched_entry_ids is not None:
                 prefetched_entry_ids = pd.concat([
                     prefetched_entry_ids,
