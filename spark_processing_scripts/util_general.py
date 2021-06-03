@@ -221,7 +221,7 @@ def get_rows_to_process_df(num_entries, start_idx, full_df, prefetched_entry_ids
             .loc[lambda df: df['num_versions'] > 1]
             .loc[lambda df: df['num_versions'] < 40]
     )
-
+    print('len(output_df): %s' % len(output_df['entry_id'].drop_duplicates()))
     to_get_df = (
         output_df
             .loc[lambda df: df['entry_id'].isin(
@@ -233,7 +233,9 @@ def get_rows_to_process_df(num_entries, start_idx, full_df, prefetched_entry_ids
             )]
             .assign(summary=lambda df: df['summary'].str.replace('</p><p>', ' '))
     )
+    print('len(to_get_df): %s' % len(to_get_df['entry_id'].drop_duplicates()))
     left_to_process_df = output_df.loc[lambda df: ~df['entry_id'].isin(to_get_df['entry_id'])]
+    print('len(left_to_process_df): %s' % len(left_to_process_df['entry_id'].drop_duplicates()))
     return to_get_df, left_to_process_df
 
 
