@@ -167,12 +167,13 @@ def download_pq_to_df(conn_name, prefetched_entry_ids, prefetched_file_idx=0, sh
     fname = conn_mapper_dict[conn_name]
     file_list = get_fs().ls(s3_pq_dir)
     file_pattern = re.compile(r'%s-\d+.pq' % fname)
-    file_list = list(enumerate(filter(lambda x: re.search(file_pattern, x), file_list)))
-    file_list = file_list[prefetched_file_idx:]
+    full_file_list = list(enumerate(filter(lambda x: re.search(file_pattern, x), file_list)))
+    file_list = full_file_list[prefetched_file_idx:]
     # visualize
     if show_progress:
         file_list = tqdm(file_list)
     # iterate through any files there might be
+    full_dfs = []
     for f_idx, fname in file_list:
         with get_fs().open(fname) as f:
             full_df = pd.read_parquet(f)
@@ -180,9 +181,13 @@ def download_pq_to_df(conn_name, prefetched_entry_ids, prefetched_file_idx=0, sh
         if len(full_df['entry_id'].drop_duplicates()) > 5:
             last_one = f_idx == (len(file_list) - 1)
             return f_idx + 1, last_one, full_df
+        else:
+            print('FOUND UNFECTCHED IDS: %s' % str(full_df['entry_id'].drop_duplicates().values.tolist()))
+            full_dfs.append(full_df)
     # if we don't find a data file with unfetched entry_ids > 5
-    last_one = prefetched_file_idx == (len(file_list) - 1)
-    return prefetched_file_idx + 1, last_one, []
+    last_one = prefetched_file_idx == (len(full_file_list) - 1)
+    full_df = pd.concat(full_dfs) if len(full_dfs) > 0 else []
+    return prefetched_file_idx + 1, last_one, full_df
 
 
 def download_csv_to_df(conn_name):
