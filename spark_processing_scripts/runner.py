@@ -30,10 +30,10 @@ def main():
 
     print('downloading source data %s...' % args.db_name)
     if args.env == 'bb':
-        prefetched_file_idx, last_one, to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids)
+        prefetched_file_idx, last_one, left_to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids)
     else:
-        prefetched_file_idx, last_one, to_fetch_df = sug.get_rows_to_process_sql(args.db_name, prefetched_entry_ids=prefetched_entry_ids)
-    if to_fetch_df is None:
+        prefetched_file_idx, last_one, left_to_fetch_df = sug.get_rows_to_process_sql(args.db_name, prefetched_entry_ids=prefetched_entry_ids)
+    if left_to_fetch_df is None:
         print('Done!!!')
         return
 
@@ -77,34 +77,35 @@ def main():
     print('NUM IDs FOUND: %s' % len(prefetched_entry_ids) if prefetched_entry_ids is not None else 0)
 
     # loop spark job
-    while (len(to_fetch_df) > 0) or (not last_one):
+    while (len(left_to_fetch_df) > 0) or (not last_one):
         # keep an internal counter so we don't have to keep hitting S3 to count output files
-        file_count += 1
+
 
         # read dataframe
-        df, to_fetch_df = sug.get_rows_to_process_df(
-            args.num_files, args.start, to_fetch_df, prefetched_entry_ids
+        to_fetch_this_round_df, left_to_fetch_df = sug.get_rows_to_process_df(
+            args.num_files, args.start, left_to_fetch_df, prefetched_entry_ids
         )
-        if len(to_fetch_df) == 0:
+        if len(to_fetch_this_round_df) == 0:
             print('ZERO LEN DF at beginning, continuing...')
             print('Prefetched file idx: %s' % prefetched_file_idx)
-            prefetched_file_idx, last_one, to_fetch_df = sug.download_pq_to_df(
+            print('Last one: %s' % last_one)
+            prefetched_file_idx, last_one, left_to_fetch_df = sug.download_pq_to_df(
                 args.db_name,
                 prefetched_entry_ids,
                 prefetched_file_idx
             )
             continue
 
-        print('FETCHING IDs: %s' % ', '.join(list(map(str, df['entry_id'].drop_duplicates().tolist()))))
-        print('LEN(DF): %s' % str(len(df)))
+        print('FETCHING IDs: %s' % ', '.join(list(map(str, to_fetch_this_round_df['entry_id'].drop_duplicates().tolist()))))
+        print('LEN(DF): %s' % str(len(to_fetch_this_round_df)))
         print('START: %s' % args.start)
 
         # process via spark_processing_scripts
         print('running spark...')
         if args.split_sentences:
-            output_sdf = sus.run_spark_sentences(df, spark, *pipelines)
+            output_sdf = sus.run_spark_sentences(to_fetch_this_round_df, spark, *pipelines)
         else:
-            output_sdf = sus.run_spark(df, spark, *pipelines)
+            output_sdf = sus.run_spark(to_fetch_this_round_df, spark, *pipelines)
 
         output_df = output_sdf.toPandas()
         if len(output_df) == 0:
@@ -116,9 +117,9 @@ def main():
             # if len(to_fetch_df['entry_id'].drop_duplicates()) < 5:
             #     to_fetch_df_old = to_fetch_df.copy()
             if args.env == 'bb':
-                prefetched_file_idx, last_one, to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids, prefetched_file_idx)
+                prefetched_file_idx, last_one, left_to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids, prefetched_file_idx)
             else:
-                prefetched_file_idx, last_one, to_fetch_df = sug.get_rows_to_process_sql(
+                prefetched_file_idx, last_one, left_to_fetch_df = sug.get_rows_to_process_sql(
                     args.db_name, prefetched_entry_ids=prefetched_entry_ids
                 )
             print('New pretrained_idx: %s...' % prefetched_file_idx)
@@ -129,6 +130,7 @@ def main():
 
         else:
             print('VALID DATA, UPLOADING...')
+            file_count += 1
             ## cache prefetched_df, instead of pulling it each time.
             if prefetched_entry_ids is not None:
                 prefetched_entry_ids = pd.concat([
@@ -156,11 +158,11 @@ def main():
                     file_count=file_count
                 )
 
-            if len(to_fetch_df['entry_id'].drop_duplicates()) < 5:
+            if len(left_to_fetch_df['entry_id'].drop_duplicates()) < 5:
                 if args.env == 'bb':
-                    prefetched_file_idx, last_one, to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids, prefetched_file_idx)
+                    prefetched_file_idx, last_one, left_to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids, prefetched_file_idx)
                 else:
-                    prefetched_file_idx, last_one, to_fetch_df = sug.get_rows_to_process_sql(args.db_name, prefetched_entry_ids, prefetched_file_idx)
+                    prefetched_file_idx, last_one, left_to_fetch_df = sug.get_rows_to_process_sql(args.db_name, prefetched_entry_ids, prefetched_file_idx)
 
             # clean up
             if args.continuous:
