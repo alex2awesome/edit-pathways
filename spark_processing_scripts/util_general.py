@@ -185,7 +185,7 @@ def download_pq_to_df(conn_name, prefetched_entry_ids, prefetched_file_idx=0, sh
             print('FOUND UNFECTCHED IDS: %s' % str(full_df['entry_id'].drop_duplicates().values.tolist()))
             full_dfs.append(full_df)
     # if we don't find a data file with unfetched entry_ids > 5
-    last_one = prefetched_file_idx == (len(full_file_list) - 1)
+    last_one = prefetched_file_idx >= (len(full_file_list) - 1)
     full_df = pd.concat(full_dfs) if len(full_dfs) > 0 else []
     return prefetched_file_idx + 1, last_one, full_df
 
