@@ -23,6 +23,6 @@ katie spark run \
     --driver-cores 5 \
     --sync-launch tail \
     -- \
-      --db_name wp \
+      --db_name independent \
       --num_files 500 \
       --continuous
