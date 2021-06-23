@@ -23,8 +23,8 @@ katie spark run \
     --driver-cores 5 \
     --sync-launch tail \
     -- \
-      --db_name guardian \
-      --num_files 5000 \
+      --db_name ap \
+      --num_files 10000 \
       --continuous \
       --split_sentences \
       --output_format pkl \

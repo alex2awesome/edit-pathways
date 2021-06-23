@@ -156,7 +156,7 @@ def main():
 
             # keep an internal counter so we don't have to keep hitting S3 to count output files
             file_count += 1
-            
+
             if len(left_to_fetch_df['entry_id'].drop_duplicates()) < 5:
                 if args.env == 'bb':
                     prefetched_file_idx, last_one, left_to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids, prefetched_file_idx)
