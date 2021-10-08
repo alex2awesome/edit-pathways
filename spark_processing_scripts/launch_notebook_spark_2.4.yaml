@@ -1,0 +1,37 @@
+apiVersion: ds.bloomberg.com/v1
+kind: JupyterNotebook
+metadata:
+  generateName: jupyternotebook-
+  namespace: aspangher
+spec:
+  git:
+    url: https://bbgithub.dev.bloomberg.com/aspangher/edit-project.git
+  framework: jupyter-python-3.7-spark-2.4-rhel
+  identities:
+    - hadoop:
+        id: aspangher-cluster-test
+    - bcs:
+        id: aspangher-cluster-test
+    - git:
+        id: spectro-oauth-aspangher
+  pipPackages:
+    # For more details check out https://pip.pypa.io/en/stable/reference/pip_install/#git
+    - dask
+    - fsspec>=0.3.3
+    - pandas
+    - spacy==2.3.2
+    - seaborn
+    - pyspark
+    - pycountry
+    - spark-nlp
+    - boto3
+    - s3fs
+    - unidecode
+  size: Large
+  # Packages for sparkjobs. Includes jars and packages. Note: These jars ONLY work within the sparkContext and are not accessible by the default notebook.
+  sparkPackages:
+    # Maven coordinates of addition dependencies, transitive dependencies will be handled.
+    packages:
+      - com.johnsnowlabs.nlp:spark-nlp_2.11:2.7.5
+      - com.johnsnowlabs.nlp:spark-nlp_2.12:3.2.3
+
