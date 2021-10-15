@@ -208,12 +208,54 @@ body{
                 <div class="card-header" id="headingOne">
                   <h5 class="mb-0">
                     <button class="btn btn-link collapsed" data-toggle="collapse" type="button" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                      Instructions and Examples
+                      Instructions
                     </button>
                   </h5>
                 </div>
                 <div id="collapseTwo" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
-                    <div class="card-body"></div>
+                    <div class="card-body">
+                        <h4>Goals and Overview</h4>
+                        The goal of this exercise is to help us identify sentences in an article-rewrite that contain substantially new information.
+
+                        Please watch the video or read below to learn how to interact with our interface.
+                        <p>
+                            <video width="320" height="240" controls>
+                              <source src="https://storage.googleapis.com/public-mturk-resources/sped-up.mp4" type="video/mp4">
+                            Your browser does not support the video tag.
+                            </video>
+                        </p>
+
+                        <h4>Steps to completing the task:</h4>
+                        <ol>
+                            <li>For each sentence in the left-hand column, determine if there is a sentence that conveys substantially the same information on the right.
+                                <ul>
+                                    <li>By mousing over the sentence block, you will see word-overlaps between the moused-over block and all blocks in the opposite column.
+                                        <b>THIS IS MEANT TO BE HELPFUL BUT NOT COMPLETE.</b> Please do not rely on this alone.
+                                        We expect that many sentences with high word-overlap still might convey different information.
+                                        <i>We will be checking answers for completeness!!</i></li>
+                                    <li>If you find two blocks that look very similar but are not exactly the same, ask yourself: is there substantially new information included?
+                                        Or is the edit merely cosmetic?</li>
+                                </ul>
+                            </li>
+                            <li>When you find blocks that you think should match - i.e. they contain the same, or substantially similar information - connect them by:
+                                (a) right-clicking on the first block and (b) right clicking on it's matching block</li>
+                            <li>If you right-click on a block accidentally, you may right-click on the same block to remove the line.</li>
+                            <li>Please note, <i>there may be blocks that do not match!!</i> This is OK.</li>
+                        </ol>
+                    </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-header" id="headingOne">
+                  <h5 class="mb-0">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" type="button" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                      Examples
+                    </button>
+                  </h5>
+                </div>
+                <div id="collapseTwo" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+                    <div class="card-body">
+                    </div>
                 </div>
               </div>
             </div>
@@ -597,9 +639,6 @@ body{
 			class: 'connection hidden ' + line_selector
 		})
 
-
-        $('.' + line_selector).css('opacity', diff_ratio).attr('diff-ratio', diff_ratio)
-
 		// make dropdown
 		this._make_right_click_line_dropdown(line_selector, textblock_x_selector, textblock_y_selector)
         this._update_node_data_with_new_connection(textblock_x_selector, textblock_y_selector, line_selector)
@@ -671,6 +710,19 @@ body{
     	var this_class = this
         var exists = $('.moving_line').length
         if (exists){
+            if (this_class.start_line_id == this_div.id){
+                $('.moving_line').remove()
+                return
+            }
+
+            if (
+                ((this_class.start_line_id.indexOf('x') != -1) && (this_div.id.indexOf('x') != -1)) ||
+                ((this_class.start_line_id.indexOf('y') != -1) && (this_div.id.indexOf('y') != -1))
+        ){
+                alertify.alert('You cannot connect two textblocks from the same column!')
+                return
+            }
+
             if (this_class.start_line_id.indexOf('x') != -1){
                 var textblock_x_selector = this_class.start_line_id
                 var textblock_y_selector = this_div.id
@@ -865,8 +917,6 @@ body{
             // update all the nodes on the other side as this node.
             var node_arcs = get_arcs(this)
             node_arcs.forEach(function(d){
-                // shade the arc itself
-                $('.' + d).removeClass('hidden')
                 // get other textblock and the html that it should update to.
                 var other_textblock = $('.' + d).attr(other_side)
                 var other_new_html = $('.' + d).attr('hidden-html-' + other_side)
@@ -876,11 +926,11 @@ body{
         })
         .on('mouseout', function(d) {
             //.filter(function(i, d){console.log($(d).attr('class'))})
-            $('.connection')
-                .filter(function(i, d){return $(d).attr('class').indexOf('annotated') == -1})
-                .addClass('hidden').each(function(i, d){
-                $(this).css('opacity', $(this).attr('diff-ratio'))
-            })
+            // $('.connection')
+            //     .filter(function(i, d){return $(d).attr('class').indexOf('annotated') == -1})
+            //     .addClass('hidden').each(function(i, d){
+            //     $(this).css('opacity', $(this).attr('diff-ratio'))
+            // })
             $('.textblock').removeClass('shaded')
             $('.textblock').each(function (i, d) {
                 var orig_html = $(d).attr('orig-html')
@@ -897,50 +947,31 @@ body{
         constructor() {
             turkSetAssignmentID();
             this.GENERIC_THANKS_MESSAGE = 'Thank you so much for your help with our task!'
+            this.completed_checks = false
         }
 
         _format_data(d, question_class){
-            if (question_class == 'connections removed'){
-                var orig_line = data.arcs.filter(function(c){ return c.line_selector == d})[0]
-                return {
-                    "doc_id": "{{ doc_id }}",
-                    "question_class": question_class,
-                    "sent_idx_x": orig_line['sent_idx_x'],
-                    "sent_idx_y": orig_line['sent_idx_y'],
-                    'version_x': x_vers,
-                    'version_y': y_vers,
-                }
-            }
-            else {
-                return {
-                    "doc_id": "{{ doc_id }}",
-                    "question_class": question_class,
-                    "sent_idx_x": $('.' + d).attr('left').split('-')[2],
-                    "sent_idx_y": $('.' + d).attr('right').split('-')[2],
-                    'version_x': x_vers,
-                    'version_y': y_vers,
-                }
+            return {
+                "doc_id": "{{ doc_id }}",
+                "question_class": question_class,
+                "sent_idx_x": $('.' + d).attr('left').split('-')[2],
+                "sent_idx_y": $('.' + d).attr('right').split('-')[2],
+                'version_x': x_vers,
+                'version_y': y_vers,
             }
         }
 
         get_data_from_dom() {
             var that = this
-            this.output = {
+            that.output = {
                 'doc_id': "{{ doc_id }}",
-                'connections_removed': [],
-                'connections_added': [],
-                'connections_final': [],
+                'annotated connections': [],
+                'nodes': data.nodes,
+                'original_arcs': data.arcs
             }
 
-            // get data from the dom
-            var lines_at_start = []
-            data.arcs.forEach(function (d) {
-                if ((d.sent_idx_x != null) && (d.sent_idx_y != null)) {
-                    lines_at_start.push( d.line_selector)
-                }
-            })
             var lines_at_end = []
-            $('.connection').each(function (i, d) {
+            $('.connection.annotated').each(function (i, d) {
                 lines_at_end.push(
                     $(d).attr('class')
                         .split(/\s+/)
@@ -950,58 +981,43 @@ body{
                 )
             })
 
-            var lines_removed = lines_at_start.filter(function (x, i) {
-                return lines_at_end.indexOf(x) < 0
-            })
-            var lines_added = lines_at_end.filter(function (x, i) {
-                return lines_at_start.indexOf(x) < 0
-            })
-
             // put in this class
-            lines_removed.forEach(function(d){
-                that.output['connections_removed'].push(that._format_data(d, 'connections removed'))
-            })
-            lines_added.forEach(function(d){
-                that.output['connections_added'].push(that._format_data(d, 'connections added'))
-            })
             lines_at_end.forEach(function(d){
-                that.output['connections_final'].push(that._format_data(d, 'connections final'))
+                that.output['annotated connections'].push(that._format_data(d, 'connections annotated'))
             })
-            this.num_lines_added = lines_added.length
-            this.num_lines_removed = lines_removed.length
-            this.output['num_connections_added'] = this.num_lines_added
-            this.output['num_connections_removed'] = this.num_lines_removed
+            this.num_lines_added = lines_at_end.length
+            this.output['num_connections_added'] = lines_at_end.length
         }
 
         gather_and_submit_data(submit_button, submit_click_event) {
             this.submit_button = submit_button
             this.submit_click_event = submit_click_event
             this.get_data_from_dom()
-            this.first_confirm() // -> second_confirm -> third_confirm -> submit_data
+            this.first_check() // -> second_confirm -> third_confirm -> submit_data
         }
 
-        first_confirm(){
+        first_check(){
             var that = this
             // First question
             alertify.confirm(
-                    "You\'ve added " + this.num_lines_added + " lines and removed " + this.num_lines_removed + ". Is this correct?",
-            ).set('header', '<em>Checking number of connections drawn/removed...</em>')
+                    "You\'ve added " + this.num_lines_added + " lines. Is this correct?",
+            ).set('header', '<em>Checking number of connections drawn...</em>')
              .set('labels', {
                         ok: "Continue, submit!",
                         cancel: "Let me recheck..."
                     })
                  .set('onok', function () {
-                        that.second_confirm()
+                        that.second_check()
                     })
                  .set('oncancel', function() {
                         alertify.error('Thanks for being diligent! Please recheck and resubmit!')
                     })
         }
 
-        second_confirm(){
+        second_check(){
             var that = this
             setTimeout(function() {
-                var word_diff_ratios = $('.connection').map(function (i, d) {
+                var word_diff_ratios = $('.connection.annotated').map(function (i, d) {
                     return $(d).attr('word-diff-ratio')
                 })
                 var low_ratios = word_diff_ratios.filter(function (i, d) {return d < .2})
@@ -1024,12 +1040,12 @@ body{
                         // .set('onclose', function () { });
                  // otherwise, skip straight to the final confirm
                 } else {
-                    that.third_confirm()
+                    that.third_check()
                 }
             }, 700)
         }
 
-        third_confirm(){
+        third_check(){
             var that = this
             setTimeout(function() {
                 alertify.confirm(
@@ -1042,17 +1058,18 @@ body{
                     .set('onok', function () {
                         alertify.success('Ok! Submitting...')
                         alertify.success(that.GENERIC_THANKS_MESSAGE)
-                        that.submit_data()
+                        that.record_data()
                     })
                     .set('oncancel', function () {
                         alertify.error('Thanks for being diligent! Please recheck and resubmit!')
                     })
             }, 700)
         }
-        submit_data(){
+        record_data(){
             {% if do_mturk %}
             // submit mturk
             $('#data').attr('value', JSON.stringify(this.output))
+            this.completed_checks = true
             $(this.submit_button).trigger(this.submit_click_event.type);
             {% else %}
             // submit AJAX
@@ -1063,7 +1080,7 @@ body{
                 contentType: 'application/json',
                 data: JSON.stringify(this.output),
                 success: function (result) {
-                    if (result === "success") location.href = "/view_task"
+                    if (result === "success") location.href = "/view_task_scratch"
                 }
             })
             {% endif %}
@@ -1071,12 +1088,13 @@ body{
     }
 
     // submit button click
-    var clicked=false
+    var sh = new SubmitHandler()
     $('#submitButton').on('click', function(submit_click_event){
-        var sh = new SubmitHandler()
         var submit_button = this
-        submit_click_event.preventDefault();
-        sh.gather_and_submit_data(submit_button, submit_click_event);
+        if (! sh.completed_checks) {
+            submit_click_event.preventDefault();
+            sh.gather_and_submit_data(submit_button, submit_click_event);
+        }
     })
 
 </script>
