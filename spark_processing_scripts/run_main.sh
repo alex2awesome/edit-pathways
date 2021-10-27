@@ -1,6 +1,6 @@
 # cluster ds-ob-dev02
 HADOOP_IDENTITY="aspangher-cluster-test"
-BCS_IDENTITY="aspangher-bcs-test"
+BCS_IDENTITY="aspangher-cluster-test"
 GIT_IDENTITY="spectro-oauth-aspangher"
 NAMESPACE="aspangher"
 
@@ -8,7 +8,7 @@ NAMESPACE="aspangher"
 #for PVF_LEVEL in 4 6; do
 katie spark run \
     --namespace ${NAMESPACE} \
-    --identities ${HADOOP_IDENTITY} ${BCS_IDENTITY} ${GIT_IDENTITY} \
+    --identities hadoop=${HADOOP_IDENTITY} bcs=${BCS_IDENTITY} git=${GIT_IDENTITY} \
     --job-name sentence-parse \
     --python-mode \
     --spark-framework spark-2.4-python-3.7 \

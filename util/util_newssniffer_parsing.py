@@ -124,7 +124,13 @@ filter_sents = lambda x: not (
     any(map(lambda y: x.startswith(y), starts_with)) or
     any(map(lambda y: x.endswith(y), ends_with))
 )
-get_words = lambda s: list(map(lambda x: x.text, get_nlp()(s)))
+
+def get_words(s, split_method='spacy'):
+    if split_method == 'spacy':
+        return list(map(lambda x: x.text, get_nlp()(s)))
+    else:
+        return s.split()
+
 get_lemmas = lambda s: list(map(lambda x: x.lemma_.lower(), get_nlp()(s)))
 filter_stopword_lemmas = lambda word_list: list(filter(lambda x: x not in stopwords_lemmas, word_list))
 filter_punct = lambda word_list: list(filter(lambda x: x not in string.punctuation, word_list))
@@ -259,8 +265,8 @@ def get_sentence_diff(a_old, a_new, filter_common_sents=True, merge_clusters=Tru
     return vers_old, vers_new
 
 
-def get_word_diffs(s_old, s_new):
-    s_old_words, s_new_words = get_words(s_old), get_words(s_new)
+def get_word_diffs(s_old, s_new, split_method='spacy'):
+    s_old_words, s_new_words = get_words(s_old, split_method), get_words(s_new, split_method)
     return get_list_diff(s_old_words, s_new_words)
 
 
@@ -725,7 +731,31 @@ def html_compare_articles(
     return '\n'.join(html)
 
 
-def html_compare_sentences(old_sent, new_sent):
+import numpy as np
+def is_none_or_nan(x):
+    if isinstance(x, str):
+        return False
+    elif isinstance(x, type(None)):
+        return True
+    elif np.isnan(x):
+        return True
+    else:
+        return False
+
+def html_compare_sentences(old_sent, new_sent, split_method='spacy', return_dict=False):
+    if isinstance(old_sent, str) and isinstance(new_sent, str):
+        old_sent, new_sent = get_word_diffs(old_sent, new_sent, split_method=split_method)
+
+    elif isinstance(old_sent, str) and is_none_or_nan(new_sent):
+        if return_dict:
+            return {'sentence_x_html': old_sent, 'sentence_y_html': None}
+        return old_sent, None
+
+    elif is_none_or_nan(old_sent) and isinstance(new_sent, str):
+        if return_dict:
+            return {'sentence_x_html': None, 'sentence_y_html': new_sent}
+        return None, new_sent
+
     new_html, old_html = [], []
     for w_old, w_new in zip(old_sent, new_sent):
         if w_old['tag'] == '-':
@@ -736,5 +766,8 @@ def html_compare_sentences(old_sent, new_sent):
             new_html.append('<span style="background-color:rgba(0,255,0,0.3)">' + w_new['text'] + ' </span>')
         else:
             new_html.append(w_new['text'])
+    if return_dict:
+        return {'sentence_x_html': ' '.join(old_html), 'sentence_y_html': ' '.join(new_html)}
     return ' '.join(old_html), ' '.join(new_html)
+
 

@@ -4,6 +4,7 @@ import boto3
 import xmltodict, json
 import pandas as pd
 from tqdm.auto import tqdm
+import time
 nlp = None
 
 # "^m{0,4}(cm|cd|d?c{0,3})(xc|xl|l?x{0,3})(ix|iv|v?i{0,3})$"
@@ -123,10 +124,15 @@ class MTurkHandler():
         all_reviewable_hit_ids = list(map(lambda x: x['HITId'], all_reviewable_hit_ids))
         return all_reviewable_hit_ids
 
-    def get_answer_df_for_hit_list(self, hit_list):
+
+    def get_answers_for_hit_list(self, hit_list):
+        """Returns `answers`, a dict of everything Amazon returns, and `answer_df`, a formatted DF for analysis."""
+        answers = []
         answer_dfs = []
         for hit_id in tqdm(hit_list):
             ##
+            time.sleep(.5)
+
             assignmentsList = self.client.list_assignments_for_hit(
                 HITId=hit_id,
                 # AssignmentStatuses=['Submitted', 'Approved'],
@@ -138,13 +144,14 @@ class MTurkHandler():
                 # Retreive the attributes for each Assignment
                 answer_dict = xmltodict.parse(assignment['Answer'])
                 answer = json.loads(answer_dict['QuestionFormAnswers']['Answer'][1]['FreeText'])
-                answer_df = pd.DataFrame(answer)
+                answers.append(answer)
+                answer_df = pd.DataFrame(answer['annotated connections'])
                 answer_df['worker_id'] = assignment['WorkerId']
                 answer_df['assignment_id'] = assignment['AssignmentId']
                 answer_df['hit_id'] = assignment['HITId']
                 answer_df['time_delta'] = assignment['SubmitTime'] - assignment['AcceptTime']
                 answer_dfs.append(answer_df)
-        return pd.concat(answer_dfs)
+        return answers, pd.concat(answer_dfs)
 
     def reject_assignment(self, assignment_list, comment=None):
         if comment is None:

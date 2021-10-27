@@ -86,11 +86,7 @@ def main():
             print('ZERO LEN DF at beginning, continuing...')
             print('Prefetched file idx: %s' % prefetched_file_idx)
             print('Last one: %s' % last_one)
-            prefetched_file_idx, last_one, left_to_fetch_df = sug.download_pq_to_df(
-                args.db_name,
-                prefetched_entry_ids,
-                prefetched_file_idx
-            )
+            prefetched_file_idx, last_one, left_to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids, prefetched_file_idx)
             continue
 
         print('FETCHING IDs: %s' % ', '.join(list(map(str, to_fetch_this_round_df['entry_id'].drop_duplicates().tolist()))))
@@ -116,9 +112,7 @@ def main():
             if args.env == 'bb':
                 prefetched_file_idx, last_one, left_to_fetch_df = sug.download_pq_to_df(args.db_name, prefetched_entry_ids, prefetched_file_idx)
             else:
-                prefetched_file_idx, last_one, left_to_fetch_df = sug.get_rows_to_process_sql(
-                    args.db_name, prefetched_entry_ids=prefetched_entry_ids
-                )
+                prefetched_file_idx, last_one, left_to_fetch_df = sug.get_rows_to_process_sql(args.db_name, prefetched_entry_ids=prefetched_entry_ids)
             print('New pretrained_idx: %s...' % prefetched_file_idx)
             # continue
         # else:

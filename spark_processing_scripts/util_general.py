@@ -8,6 +8,8 @@ import pandas as pd
 import sqlite3
 import s3fs
 from tqdm.auto import tqdm
+import unidecode
+
 
 conn_mapper_dict = {
     'nyt': 'newssniffer-nytimes',
@@ -232,6 +234,7 @@ def get_rows_to_process_df(num_entries, start_idx, full_df, prefetched_entry_ids
                     .iloc[start_idx : start_idx + num_entries]
             )]
             .assign(summary=lambda df: df['summary'].str.replace('</p><p>', ' '))
+            .assign(summary=lambda df: df['summary'].apply(unidecode.unidecode))
     )
     print('len(to_get_df): %s' % len(to_get_df['entry_id'].drop_duplicates()))
     left_to_process_df = output_df.loc[lambda df: ~df['entry_id'].isin(to_get_df['entry_id'])]
