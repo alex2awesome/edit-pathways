@@ -377,21 +377,21 @@ body{
     <p><em>Right click and select "Remove" for all connections between sentences that do NOT match.
        <br>Read above for more detailed instructions and examples.</em></p>
     <br>
-<!--    <h4>Headline: {{ headline }}</h4>-->
-    <p>Article Key: {{ doc_id }}</p>
+<!--    <h4>Headline: </h4>-->
+    <p>Article Key: ('bbc-2', 685622, 0, 1)</p>
     <br>
     <div class="row header" >
-        <div class="col-5" doc_id="{{ doc_id }}" ><h3>Old Version</h3></div>
-        <div class="col-2" doc_id="{{ doc_id }}" ></div>
-        <div class="col-5" doc_id="{{ doc_id }}" ><h3>New Version</h3></div>
+        <div class="col-5" doc_id="('bbc-2', 685622, 0, 1)" ><h3>Old Version</h3></div>
+        <div class="col-2" doc_id="('bbc-2', 685622, 0, 1)" ></div>
+        <div class="col-5" doc_id="('bbc-2', 685622, 0, 1)" ><h3>New Version</h3></div>
     </div>
     <div class="row text" >
-        <div class="col-5 textblock_pool_version_x" doc_id="{{ doc_id }}" ></div>
-        <div class="col-2 filler" doc_id="{{ doc_id }}" ></div>
-        <div class="col-5 textblock_pool_version_y" doc_id="{{ doc_id }}" ></div>
+        <div class="col-5 textblock_pool_version_x" doc_id="('bbc-2', 685622, 0, 1)" ></div>
+        <div class="col-2 filler" doc_id="('bbc-2', 685622, 0, 1)" ></div>
+        <div class="col-5 textblock_pool_version_y" doc_id="('bbc-2', 685622, 0, 1)" ></div>
     </div>
     <div class="row annotation">
-	    <div class="error question col-4" doc_id="{{ doc_id }}" error_type='error'>
+	    <div class="error question col-4" doc_id="('bbc-2', 685622, 0, 1)" error_type='error'>
 		  <p>
     	  <h4>Does this paragraph have errors?</h4>
     	  <div id="error_btn_grp" class="btn-group-vertical btn-group-toggle" role="group" data-toggle="buttons">
@@ -410,7 +410,7 @@ body{
 		  </div>
 		  </p>
 		</div>
-	    <div class="error question col-4" doc_id="{{ doc_id }}" error_type='confidence'>
+	    <div class="error question col-4" doc_id="('bbc-2', 685622, 0, 1)" error_type='confidence'>
 		  <p>
     	  <h4>How confident are you in this tagging?</h4>
     	  <div class="btn-group-vertical btn-group-toggle" role="group" data-toggle="buttons">
@@ -971,11 +971,11 @@ body{
     }
     pm = new PageManager(
 		textblock_dims, false, false,
-		"{{ doc_id }}", buttons, arcs,
+		"('bbc-2', 685622, 0, 1)", buttons, arcs,
 		textblock_pool_min_height
 	)
 
-    data = JSON.parse('{{ data | tojson | safe }}'.replaceAll('NaN', 'null'))
+    data = JSON.parse('{"arcs": [{"avg_sentence_distance_x": NaN, "avg_sentence_distance_y": NaN, "sent_idx_x": NaN, "sent_idx_y": 9.0, "version_x": 0, "version_y": 1}, {"avg_sentence_distance_x": NaN, "avg_sentence_distance_y": NaN, "sent_idx_x": 3.0, "sent_idx_y": NaN, "version_x": 0, "version_y": 1}, {"avg_sentence_distance_x": NaN, "avg_sentence_distance_y": NaN, "sent_idx_x": NaN, "sent_idx_y": 5.0, "version_x": 0, "version_y": 1}, {"avg_sentence_distance_x": 0.3788530751770516, "avg_sentence_distance_y": 0.3780582672639184, "sent_idx_x": 1.0, "sent_idx_y": 4.0, "version_x": 0, "version_y": 1}, {"avg_sentence_distance_x": NaN, "avg_sentence_distance_y": NaN, "sent_idx_x": NaN, "sent_idx_y": 8.0, "version_x": 0, "version_y": 1}, {"avg_sentence_distance_x": NaN, "avg_sentence_distance_y": 0.4295962735682733, "sent_idx_x": 1.0, "sent_idx_y": 1.0, "version_x": 0, "version_y": 1}, {"avg_sentence_distance_x": NaN, "avg_sentence_distance_y": NaN, "sent_idx_x": NaN, "sent_idx_y": 7.0, "version_x": 0, "version_y": 1}, {"avg_sentence_distance_x": NaN, "avg_sentence_distance_y": NaN, "sent_idx_x": NaN, "sent_idx_y": 2.0, "version_x": 0, "version_y": 1}, {"avg_sentence_distance_x": NaN, "avg_sentence_distance_y": NaN, "sent_idx_x": NaN, "sent_idx_y": 6.0, "version_x": 0, "version_y": 1}, {"avg_sentence_distance_x": 7.069689521693115e-07, "avg_sentence_distance_y": 7.069689521693115e-07, "sent_idx_x": 2.0, "sent_idx_y": 3.0, "version_x": 0, "version_y": 1}, {"avg_sentence_distance_x": 0.4145201734585741, "avg_sentence_distance_y": 0.4145201734585741, "sent_idx_x": 0.0, "sent_idx_y": 0.0, "version_x": 0, "version_y": 1}], "nodes": [{"sent_idx": 0, "sentence": "The Crown Prosecution Service is to consider bringing charges against 14 serving and former Staffordshire Police officers over allegations relating to a murder investigation.", "version": 0}, {"sent_idx": 1, "sentence": "The IPCC investigated dealings with a protected witness and disclosure issues prior to the trail in 2008 of five men over the death of Kevin Nunes.", "version": 0}, {"sent_idx": 2, "sentence": "Mr Nunes was shot dead in Pattingham, Staffordshire, in September 2002.", "version": 0}, {"sent_idx": 3, "sentence": "Two serving Chief Constables are among the officers involved.", "version": 0}, {"sent_idx": 0, "sentence": "The Crown Prosecution Service is to consider charging 14 serving and former police officers, including two current Chief Constables, over their roles in a murder investigation.", "version": 1}, {"sent_idx": 1, "sentence": "The Independent Police Complaints Commission (IPCC) looked at how the officers acted prior to the trial of five men over the death of Kevin Nunes.", "version": 1}, {"sent_idx": 2, "sentence": "Seven of the officers involved have since retired.", "version": 1}, {"sent_idx": 3, "sentence": "Mr Nunes was shot dead in Pattingham, Staffordshire, in September 2002.", "version": 1}, {"sent_idx": 4, "sentence": "The IPCC investigation examined the officers\u0027 dealings with a protected witness and disclosure issues prior to the trail in 2008.", "version": 1}, {"sent_idx": 5, "sentence": "The four most senior-ranking officers implicated are: They were all senior officers at Staffordshire Police at the time of the allegations.", "version": 1}, {"sent_idx": 6, "sentence": "In March 2012 five men who were jailed in 2008 for the murder were freed on appeal, after it emerged concerns over the credibility of the key prosecution witness were not disclosed to the defence.", "version": 1}, {"sent_idx": 7, "sentence": "Police believe the 20-year-old had been a drug dealer who was shot in an execution-style killing after straying into another gang\u0027s territory.", "version": 1}, {"sent_idx": 8, "sentence": "The IPCC has reviewed more than 8,000 documents and taken around 300 statements as part of their investigation and interviewed each of the fourteen officers at least twice.", "version": 1}, {"sent_idx": 9, "sentence": "IPCC commissioner Tom Davies said: \u0027\u0027This has been a thorough and painstaking investigation which has required careful scrutiny of thousands of documents and hundreds of statements, and interviews have been carried out with relevant officers. \u0027\u0027I am satisfied that we have reached a point in the investigation where it is right for the CPS to examine the evidence gathered in relation to five officers, and we intend to submit a further file of evidence in relation to nine other officers in coming weeks.", "version": 1}, {"sent_idx": 10, "sentence": "\u0027\u0027", "version": 1}]}'.replaceAll('NaN', 'null'))
     versions = data['nodes'].map(function(d){return d['version']})
     x_vers = d3.min(versions)
     y_vers = d3.max(versions)
@@ -1091,7 +1091,7 @@ body{
 
         _format_data(d, question_class){
             return {
-                "doc_id": "{{ doc_id }}",
+                "doc_id": "('bbc-2', 685622, 0, 1)",
                 "question_class": question_class,
                 "sent_idx_x": $('.' + d).attr('left').split('-')[2],
                 "sent_idx_y": $('.' + d).attr('right').split('-')[2],
@@ -1106,7 +1106,7 @@ body{
             that.num_y_nodes = y_nodes.length
             that.num_nodes_min = Math.min(that.num_x_nodes, that.num_y_nodes)
             that.output = {
-                'doc_id': "{{ doc_id }}",
+                'doc_id': "('bbc-2', 685622, 0, 1)",
                 'annotated connections': [],
                 'nodes': data.nodes,
                 'original_arcs': data.arcs
@@ -1140,24 +1140,7 @@ body{
 
         first_check(){
             var that = this
-            {% if production == True %}
-            // First question
-            if (this.num_lines_added == 0){
-                alertify.alert(
-                    "You've annotated 0 connections. We believe this is highly unlikely and indicative of being a spammer. " +
-                    "Please note, we will be blocking and reporting workers who show spammer-like behavior."
-                )
-                return
-            }
-
-            if (that.num_lines_added / that.num_nodes_min < .5){
-                alertify.alert(
-                    "You've drawn connections between annotated less than 50% of the nodes. We believe this is highly unlikely and indicative of being a spammer. " +
-                    "Please note, we will be blocking and reporting workers who show spammer-like behavior."
-                )
-                return
-            }
-            {% endif %}
+            
             alertify.confirm(
                     "You\'ve added " + this.num_lines_added + " lines. Is this correct?",
             ).set('header', '<em>Checking number of connections drawn...</em>')
@@ -1225,24 +1208,12 @@ body{
             }, 700)
         }
         record_data(){
-            {% if do_mturk %}
+            
             // submit mturk
             $('#data').attr('value', JSON.stringify(this.output))
             this.completed_checks = true
             $(this.submit_button).trigger(this.submit_click_event.type);
-            {% else %}
-            // submit AJAX
-            this.output['start_time'] = "{{ start_time }}"
-            $.ajax({
-                url: "/post_task",
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify(this.output),
-                success: function (result) {
-                    if (result === "success") location.href = "/view_task_scratch"
-                }
-            })
-            {% endif %}
+            
         }
     }
 

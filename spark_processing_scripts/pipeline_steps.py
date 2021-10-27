@@ -168,6 +168,15 @@ def get_sparknlp_pipeline(env='bb'):
                 .setMaxSentenceLength(512)
                 .setBatchSize(100)
         )
+        # word_embeddings = (
+        #     sa.RoBertaEmbeddings
+        #         .load('s3://aspangher/spark-nlp/distilroberta_base_en_3.1.0_2.4')
+        #         .setInputCols(["sentences", "token"])
+        #         .setOutputCol("embeddings")
+        #         .setMaxSentenceLength(512)
+        #         .setBatchSize(100)
+        # )
+
     else:
         import os
         local_model_file = 'small_bert_L4_128_en_2.6.0_2.4'

@@ -8,3 +8,4 @@ pyspark
 # pycountry
 spark-nlp
 s3fs==2021.05.0
+unidecode

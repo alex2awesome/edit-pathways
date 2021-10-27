@@ -33,5 +33,3 @@ spec:
     # Maven coordinates of addition dependencies, transitive dependencies will be handled.
     packages:
       - com.johnsnowlabs.nlp:spark-nlp_2.11:2.7.5
-      - com.johnsnowlabs.nlp:spark-nlp_2.12:3.2.3
-
