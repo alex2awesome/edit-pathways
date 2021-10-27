@@ -1,6 +1,9 @@
 ##
 data/
 sequential_parsing/usc-research-data-access.json
+evaluation/.DS_Store/
+.DS_Store/
+presentations/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
