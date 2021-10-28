@@ -33,14 +33,6 @@
 <script src="https://cdn.jsdelivr.net/gh/musclesoft/jquery-connections/jquery.connections.js"></script>
 
 <style>
-.hidden {
-    /*transition: opacity 1s ease-out;*/
-    /*opacity: 0;*/
-    /*height: 0;*/
-    /*overflow: hidden;*/
-    /*color: white;*/
-    visibility: hidden;
-}
 
 .example{
     background-color: #d7d7d7;
@@ -59,29 +51,66 @@
 	border-style: solid;
 }
 
-
-
-#moving_div {
-	position: fixed;
-	width: 1px;
-	height: 1px;
-	z-index: -1;
-}
-.moving_line {
-	z-index: -1;
-}
-
 /* Handle the question text-boxes */
 .textblock {
   border-radius: 4px;
+  color: black;
   background: rgba(237, 245, 241, 0.87);
   display: inline-block;
   border: 2px solid Black;
   padding: 5px 10px 5px 10px;
-  margin: 10px 10px 10px 10px;
   z-index: 1;
+  position: relative;
 }
 
+.textblock-potential {
+  /*border-radius: 4px;*/
+  /*color: black;*/
+  /*background: rgba(237, 245, 241, 0.87);*/
+  /*display: inline-block;*/
+  /*border: 2px solid Black;*/
+  z-index: 2;
+  position: relative;
+  padding: 5px 10px 5px 10px;
+}
+
+.textblock-potential-active{
+    background-color: rgba(102, 193, 102, 0.61);
+    margin: 10px;
+    border-radius: 4px;
+}
+
+.textblock-potential-row {
+    background-color: rgba(84, 148, 173, 0.73);
+    margin: 10px;
+    height: 30px;
+    border-radius: 4px;
+}
+
+.textblock-row{
+    background-color: rgba(128, 128, 128, 0.56);
+    margin: 10px;
+    border-radius: 4px;
+}
+
+.textblock-snap{
+    background-color: rgba(255, 0, 0, 0.41);
+    margin: 10px 10px 10px 10px;
+    border-radius: 4px;
+}
+
+.deleted-text-div{
+    position: relative;
+    padding: 5px 10px 5px 10px;
+    border: 2px solid Black;
+    border-radius: 4px;
+
+}
+
+.deleted-text{
+    color: rgba(0, 0, 0, 0.58);
+    text-decoration: line-through;
+}
 
 .textblock_pool {
 	height: 200px;
@@ -91,37 +120,10 @@
 	padding-right: 10px;
 }
 
-.subset-subj {
-	background: #76FF84;
-	background-color: #76FF84;
-}
-
-/* handle line styles*/
-.connection {
-	border: 8px double;
-    /*border-width: 2.5px;*/
-	z-index: 0;
-	/*display: table;*/
-	border-radius: 100%;
-	/*pointer-events:none;*/
-	color: rgb(200, 200, 200);
-	color: rgba(0, 0, 0, 0.7);
-}
-
 .shaded {
 	border-color: #55f;
     /*border-radius: 20px;*/
     /*border-width: 5px;*/
-}
-
-.dropdown-menu {
-    position: absolute;
-    z-index: 100;
-}
-
-
-.annotation{
-    height: 50%;
 }
 
 #submitButton{
@@ -140,38 +142,30 @@ body{
     margin: 10px !important;
 }
 
+
+.color-none{
+    background-color: transparent;
+    color: transparent;
+}
+
+.hidden {
+    /*transition: opacity 1s ease-out;*/
+    /*opacity: 0;*/
+    /*height: 0;*/
+    /*overflow: hidden;*/
+    /*color: white;*/
+    visibility: hidden;
+}
+
+.hidden-none{
+    display: None;
+}
+
+
 /*.hidden{*/
 /*    display: none;*/
 /*}*/
 
-/* arrows */
-.arrow {
-  border: solid black;
-  border-width: 0 3px 3px 0;
-  display: inline-block;
-  padding: 3px;
-  position: relative;
-}
-
-.right {
-  transform: rotate(-45deg);
-  -webkit-transform: rotate(-45deg);
-}
-
-.left {
-  transform: rotate(135deg);
-  -webkit-transform: rotate(135deg);
-}
-
-.up {
-  transform: rotate(-135deg);
-  -webkit-transform: rotate(-135deg);
-}
-
-.down {
-  transform: rotate(45deg);
-  -webkit-transform: rotate(45deg);
-}
 
 </style>
 <!-- jquery connections -->
@@ -381,19 +375,17 @@ body{
     <p>Article Key: {{ doc_id }}</p>
     <br>
     <div class="row header" >
-        <div class="col-5" doc_id="{{ doc_id }}" ><h3>Old Version</h3></div>
-        <div class="col-2" doc_id="{{ doc_id }}" ></div>
-        <div class="col-5" doc_id="{{ doc_id }}" ><h3>New Version</h3></div>
+        <div class="col-4" doc_id="{{ doc_id }}" ><h3>Article</h3></div>
+        <div class="col-8" doc_id="{{ doc_id }}" ></div>
     </div>
     <div class="row text" >
-        <div class="col-5 textblock_pool_version_x" doc_id="{{ doc_id }}" ></div>
-        <div class="col-2 filler" doc_id="{{ doc_id }}" ></div>
-        <div class="col-5 textblock_pool_version_y" doc_id="{{ doc_id }}" ></div>
+        <div class="col-4 textblock_pool" doc_id="{{ doc_id }}" ></div>
+        <div class="col-8 questions" doc_id="{{ doc_id }}" ></div>
     </div>
     <div class="row annotation">
 	    <div class="error question col-4" doc_id="{{ doc_id }}" error_type='error'>
 		  <p>
-    	  <h4>Does this paragraph have errors?</h4>
+    	  <h4>Does this article have errors?</h4>
     	  <div id="error_btn_grp" class="btn-group-vertical btn-group-toggle" role="group" data-toggle="buttons">
               <div class="btn-group">
                 <label class="btn btn-outline-success btn-sm active" label="legit">
@@ -460,141 +452,6 @@ body{
 
 <script language='Javascript'>
 
-    function get_word_diff_ratio(s_old, s_new) {
-        var s_old_words = s_old.split(' ')
-        var s_new_words = s_new.split(' ')
-        var s = new difflib.SequenceMatcher(null, s_old_words, s_new_words)
-        return s.ratio()
-    }
-
-    function get_list_diff(l_old, l_new){
-        var vars_old = []
-        var vars_new = []
-        var diffs = difflib.ndiff(l_old, l_new)
-        var in_question = false
-        diffs.forEach(function(item, idx){
-            var label = item[0]
-            var text = item.slice(2)
-            if (label == '?'){
-                return
-            }
-
-            else if (label == '-'){
-                vars_old.push({
-                    'text': text,
-                    'tag': '-'
-                })
-                if (
-                        // if something is removed from the old sentence, a '?' will be present in the next idx
-                        ((idx < diffs.length - 1) && (diffs[idx + 1][0] == '?'))
-                        // if NOTHING is removed from the old sentence, a '?' might still be present in 2 idxs, unless the next sentence is a - as well.
-                     || ((idx < diffs.length - 2) && (diffs[idx + 2][0] == '?') && (diffs[idx + 1][0] != '-'))
-                ){
-                    in_question = true
-                    return
-                }
-                // test if the sentences are substantially similar, but for some reason ndiff marked them as different.
-                if ((idx < (diffs.length - 1)) && (diffs[idx + 1][0] == '+')){
-                    var text_new = diffs[idx + 1].slice(2)
-                    if (get_word_diff_ratio(text, text_new) > .8) {
-                        in_question = true
-                        return
-                    }
-                }
-                vars_new.push({
-                    'text': '',
-                    'tag': ' '
-                })
-            }
-            else if (label == '+'){
-                vars_new.push({
-                    'text': text,
-                    'tag': '+'
-                })
-                if (in_question){
-                    in_question = false
-                }
-                else{
-                    vars_old.push({
-                        'text':'',
-                        'tag': ' '
-                    })
-                }
-            }
-            else {
-                vars_old.push({
-                    'text': text,
-                    'tag': ' '
-                })
-                vars_new.push({
-                    'text': text,
-                    'tag': ' '
-                })
-            }
-        })
-        return [vars_old, vars_new]
-    }
-
-    function get_word_diffs(s_old, s_new) {
-        var s_old_words = s_old.split(' ')
-        var s_new_words = s_new.split(' ')
-        return get_list_diff(s_old_words, s_new_words)
-    }
-
-    function html_compare_sentences_old(old_sent, new_sent) {
-        var sents = get_word_diffs(old_sent, new_sent)
-        old_sent = sents[0]
-        new_sent = sents[1]
-        var new_html = []
-        var old_html = []
-        var max_idx = Math.max(old_sent.length, new_sent.length)
-        for (var idx = 0; idx < max_idx; idx++) {
-            var w_old = old_sent[idx]
-            var w_new = new_sent[idx]
-            if (w_old['tag'] == '-') {
-                old_html.push('<span style="background-color:rgba(255,0,0,0.3)">' + w_old['text'] + '</span>')
-            } else {
-                old_html.push(w_old['text'])
-            }
-            if (w_new['tag'] == '+') {
-                new_html.push('<span style="background-color:rgba(0,255,0,0.3)">' + w_new['text'] + ' </span>')
-            } else {
-                new_html.push(w_new['text'])
-            }
-        }
-        return [old_html.join(' '), new_html.join(' ')]
-    }
-
-    function html_compare_sentences(old_sent, new_sent) {
-        var sents = get_word_diffs(old_sent, new_sent)
-        old_sent = sents[0]
-        new_sent = sents[1]
-        var new_html = []
-        var old_html = []
-        var max_idx = Math.max(old_sent.length, new_sent.length)
-        for (var idx = 0; idx < max_idx; idx++) {
-            var w_old = old_sent[idx]
-            var w_new = new_sent[idx]
-            if (w_old['tag'] == ' ') {
-                old_html.push('<span style="background-color:rgba(98,255,90,0.25)">' + w_old['text'] + '</span>')
-            } else {
-                old_html.push('<span style="color:rgba(63,63,72,0.75)">' + w_old['text'] + '</span>')
-            }
-            if (w_new['tag'] == ' ') {
-                new_html.push('<span style="background-color:rgba(98,255,90,0.25)">' + w_new['text'] + ' </span>')
-            } else {
-                new_html.push('<span style="color:rgba(63,63,72,0.75)">' + w_new['text'] + '</span>')
-            }
-        }
-        return [old_html.join(' '), new_html.join(' ')]
-    }
-
-
-    textblockpool_class_mapper= {
-        'x': '.textblock_pool_version_x',
-        'y': '.textblock_pool_version_y'
-    }
-
     $('#otherbutton').on('click', function(d){
         $('#otherform').removeClass('hidden')
     })
@@ -651,41 +508,6 @@ body{
       };
     })($.fn.attr);
 
-    function get_arcs(textblock_selector){
-        var attrs = $(textblock_selector).attr()
-        var arc_attrs = Object.keys(attrs).filter(function(d){return d.indexOf('arc') != -1})
-        var line_ids = arc_attrs.map(function(d){ return attrs[d]})
-        return line_ids
-            .filter(function(d) {return $('.' + d).length != 0 } )
-            .sort(function(d1, d2){ return d1.split('-')[1] - d2.split('-')[1]})
-    }
-
-     function connection_mouseover(include_shading){
-        var left = $(this).attr('left')
-        var right = $(this).attr('right')
-        var new_html_x = $(this).attr('hidden-html-left')
-        var new_html_y = $(this).attr('hidden-html-right')
-        // update
-        // if (include_shading == true) {
-            $(this).addClass('shaded')
-        // }
-        $('#' + left).addClass('shaded').html(new_html_x)
-        $('#' + right).addClass('shaded').html(new_html_y)
-    }
-
-    function connection_mouseout(include_shading){
-        var left = $(this).attr('left')
-        var right = $(this).attr('right')
-        var old_html_x = $('#' + left).attr('orig-html')
-        var old_html_y = $('#' + right).attr('orig-html')
-        // update
-        // if (include_shading==true) {
-            $(this).removeClass('shaded')
-        // }
-        $('#' + left).removeClass('shaded').html(old_html_x)
-        $('#' + right).removeClass('shaded').html(old_html_y)
-    }
-
     // page handling
     class PageManager {
 	constructor(
@@ -694,7 +516,6 @@ body{
         check,
         doc_key,
         dropdown_buttons,
-        dropdown_arcs,
         textblock_pool_min
 	) {
 		this.demo = demo
@@ -702,7 +523,6 @@ body{
 		this.doc_key = doc_key
 		// dropdown buttons
 		this.dropdown_buttons = dropdown_buttons
-		this.dropdown_arcs = dropdown_arcs
 		// dimensions for textblock divs
 		this.textblock_pool_min = textblock_pool_min
 		this.textblock_dim = textblock_dim;
@@ -711,237 +531,78 @@ body{
 		this.curr_dropdown_zindex = 3
 	}
 
-	_get_new_connection_idx(){
-	    return $('.connection').length
-    }
-
-	_update_node_data_with_new_connection(textblock_x_selector, textblock_y_selector, line_selector){
-        // compare diff text for blocks directly connected by a line.
-        var x_arcs = get_arcs('#' + textblock_x_selector)
-        var y_arcs = get_arcs('#' + textblock_y_selector)
-        var x_arc_index = x_arcs.length + 1;
-        var y_arc_index = y_arcs.length + 1;
-        var text_x = $('#' + textblock_x_selector).attr('orig-text')
-        var text_y = $('#' + textblock_y_selector).attr('orig-text')
-        var htmls = html_compare_sentences(text_x, text_y)
-        var diff_ratio = get_word_diff_ratio(text_x, text_y)
-        var html_x = htmls[0]
-        var html_y = htmls[1]
-        $('.' + line_selector)
-				.attr('left', textblock_x_selector)
-				.attr('right', textblock_y_selector)
-				.attr('doc_id', this.doc_key)
-                .attr('hidden-html-left', html_x)
-                .attr('hidden-html-right', html_y)
-                .attr('word-diff-ratio', diff_ratio)
-
-        // update diff text for all lines leading into a node
-        $('#' + textblock_x_selector).attr('arc-' + x_arc_index, line_selector)
-        var x_arcs_new = get_arcs('#' + textblock_x_selector)
-        x_arcs_new = x_arcs_new
-            .sort(function( d1, d2) { return $('.' + d1).attr('right').split('-')[2] - $('.' + d2).attr('right').split('-')[2]})
-        var all_y_text_leading_to_x = []
-        x_arcs_new.forEach(function(d){
-            var node = $('.' + d)
-            var y_text = $('#' + node.attr('right')).attr('orig-text')
-            all_y_text_leading_to_x.push(y_text)
-        })
-        htmls = html_compare_sentences(text_x, all_y_text_leading_to_x.join(' '))
-        var x_html_all = htmls[0]
-        $('#' + textblock_x_selector).attr('html-all', x_html_all)
-
-
-        $('#' + textblock_y_selector).attr('arc-' + y_arc_index, line_selector)
-        var y_arcs_new = get_arcs('#' + textblock_y_selector)
-        y_arcs_new = y_arcs_new
-            .sort(function( d1, d2) { return $('.' + d1).attr('left').split('-')[2] - $('.' + d2).attr('left').split('-')[2]})
-        var all_x_text_leading_to_y = []
-        y_arcs_new.forEach(function(d){
-            var node = $('.' + d)
-            var x_text = $('#' + node.attr('left')).attr('orig-text')
-            all_x_text_leading_to_y.push(x_text)
-        })
-        htmls = html_compare_sentences(all_x_text_leading_to_y.join(' '), text_y)
-        var y_html_all = htmls[1]
-        $('#' + textblock_y_selector).attr('html-all', y_html_all)
-    }
-
-    // create a connection from input data (to re-create datapoints)
-    create_static_connection(left_textblock, right_textblock, diff_ratio, class_name){
-    	var line_selector = 'line-' + this._get_new_connection_idx()
-        var textblock_x_selector = 'sentence-x-' + left_textblock
-        var textblock_y_selector = 'sentence-y-' + right_textblock
-
-        //
-        $('#' + textblock_x_selector).connections({
-			to: '#' + textblock_y_selector,
-			class: 'connection hidden ' + line_selector
-		})
-
-		// make dropdown
-		this._make_right_click_line_dropdown(line_selector, textblock_x_selector, textblock_y_selector)
-        this._update_node_data_with_new_connection(textblock_x_selector, textblock_y_selector, line_selector)
-        return line_selector
-    }
-
-    //
-    // handle the right-click dropdown for the line
-    _make_right_click_line_dropdown(line_selector, textblock_x_selector, textblock_y_selector){
-        var label_left  = $('#' + textblock_x_selector).attr('label')
-        var label_right = $('#' + textblock_y_selector).attr('label')
-
-		var that = this
-		var menu_options = {}
-		var default_options = d3.values(this.dropdown_arcs)
-								.map(function(d){return d3.values(d)})
-								.flat()
-                                .flat()
-								.remove_duplicates()
-		var options = (this.dropdown_arcs[label_left] || {})[label_right] || default_options
-		if (options.length == 1){
-			$('.' + line_selector).html(options[0])
-		}
-		else{
-			options.forEach(function(d){menu_options[d] =  {'name': d }})
-			menu_options["sep1"] = "---------"
-		}
-		menu_options['remove'] = {
-			name: "Remove",
-			icon: function(){ return 'context-menu-icon context-menu-icon-quit';
-		}}
-
-		// handle right-click event. (old: if person right-clicks on the line, remove it.)
-	    $.contextMenu({
-	        selector: '.' + line_selector,
-	        callback: function(key, options) {
-	        	var this_line = this
-	        	$(this_line).html(key)
-	        	$(this_line).addClass('line-type-' + key)
-	        	$(this_line).attr('label', key)
-				$(this_line).css('z-index', 0)
-	            if (key == 'remove'){
-				  $(this_line).remove();
-	            }
-	        },
-	        items: menu_options,
-			hide: function(){
-				$(this).css('z-index', 0)
-			}
-	    });
-
-		$('.' + line_selector).on('contextmenu', function(e){
-            $(this).css('z-index', that.curr_dropdown_zindex)
-			that.curr_dropdown_zindex = that.curr_dropdown_zindex + 1
-        })
-
-		$(document).click(function() {
-			$('.connection').css('z-index', 0)
-		});
-		$(document.body).on("contextmenu:hide",	function(e){
-			$('.connection').css('z-index', 0)
-		});
-    }
-
-    //
-    handle_connection(this_div){
-	    // this_div
-    	// e is the textblock's contextmenu event.
-    	var this_class = this
-        var exists = $('.moving_line').length
-        if (exists){
-            if (this_class.start_line_id == this_div.id){
-                $('.moving_line').remove()
-                return
-            }
-
-            if (
-                ((this_class.start_line_id.indexOf('x') != -1) && (this_div.id.indexOf('x') != -1)) ||
-                ((this_class.start_line_id.indexOf('y') != -1) && (this_div.id.indexOf('y') != -1))
-        ){
-                alertify.alert('You cannot connect two textblocks from the same column!')
-                return
-            }
-
-            if (this_class.start_line_id.indexOf('x') != -1){
-                var textblock_x_selector = this_class.start_line_id
-                var textblock_y_selector = this_div.id
-            }
-            else{
-                var textblock_x_selector = this_div.id
-                var textblock_y_selector = this_class.start_line_id
-            }
-   			var line_selector = 'line-' + this._get_new_connection_idx()
-
-        	// close and make a connection
-            // 1. remove floating arrow
-            $('.moving_line').remove()
-            // 2. make permanent arrow
-            $('#' + textblock_x_selector).connections({
-				to: '#' + textblock_y_selector,
-				class: 'connection annotated ' + line_selector
-   			})
-
-   			// 3. make right-click dropdown menu
-	        this._make_right_click_line_dropdown(line_selector, textblock_x_selector, textblock_y_selector)
-            this._update_node_data_with_new_connection(textblock_x_selector, textblock_y_selector, line_selector)
-			// 4. bind data to the line
-			$('.' + line_selector)
-				.attr('left', textblock_x_selector)
-				.attr('right', textblock_y_selector)
-				.attr('doc_id', this_class.doc_key)
-                .on('mouseover', connection_mouseover)
-                .on('mouseout', connection_mouseout)
-        } else {
-        	// make a floating arrow.
-            $(this_div).connections({
-                to:'#moving_div',
-                class: 'moving_line'
-            })
-           this.start_line_id = this_div.id
-        }
-    }
-
-    create_textblock(selected_text, version, block_type, block_id){
+    create_original_textblock(selected_text, block_type, block_id){
     	var that = this
+
         // create textblock element for the righthand side
-        var textblock_pool = $(textblockpool_class_mapper[version]).filter(
+        var textblock_pool = $('.textblock_pool').filter(
             function (d) {
                 return $(d).attr('doc_id') == this.doc_key
             }
         )
-        // create textblock div
+
+        // slot
         var textblock_row = document.createElement('div')
-        $(textblock_row).addClass('row')
-        //
+        $(textblock_row)
+            .addClass('row')
+            .addClass('textblock-row')
+
+
+        // draggable div
         var textblock_div = document.createElement('div')
         $(textblock_div)
         	.addClass('textblock')
         	.attr('doc_id', that.doc_key)
-	       	.attr('id', 'sentence-' + version + '-' + block_id)
+	       	.attr('id', 'sentence-' + block_id)
 	       	.attr('label', block_type)
-            .attr('orig-text', selected_text)
-            .attr('orig-html', '<span class="textblock_span">' + selected_text + '</span>')
-            .attr('html-all', '<span class="textblock_span">' + selected_text + '</span>')
 
+        // text content
         var textblock_span = document.createElement('span')
         $(textblock_span).addClass('textblock_span')
         textblock_span.textContent = selected_text
+
         // append elements to the textblock
         $(textblock_div).append(textblock_span)
+		$(textblock_div).draggable({
+            'snap': '.slot-' + block_id,
+            'snapMode': 'inner',
+            'snapTolerance': 30
+        });
 
-        if (! this.demo){
-            // handle line-drawing
-            $(textblock_div).bind('contextmenu', function(e) {
-    	        e.preventDefault();
-            	that.handle_connection(this)
+
+        var deleted_text = document.createElement('span')
+        $(deleted_text).addClass('deleted-text')
+        deleted_text.textContent = selected_text
+        var deleted_text_div = document.createElement('div')
+        $(deleted_text_div).addClass('deleted-text-div').addClass('hidden-none')
+        $(deleted_text_div).append(deleted_text)
+        var textblock_snap = document.createElement('div')
+        $(textblock_snap)
+            .addClass('textblock-snap')
+            .addClass('slot-' + block_id)
+            .attr('accepted-textblock', 'sentence-' + block_id)
+            .droppable({
+                out: function(event, ui){
+                    if ($(this).attr('accepted-textblock') == $(ui.draggable).attr('id')) {
+                        $(this).find('.deleted-text-div').removeClass('hidden-none')
+                        $(this).css('height', $(this).find('.deleted-text-div').css('height'))
+                        $('.textblock-potential').parent().removeClass('color-none')
+                    }
+                },
+                drop: function(event, ui){
+                    if ($(this).attr('accepted-textblock') == $(ui.draggable).attr('id')){
+                        $(this).find('.deleted-text').addClass('color-none')
+                    }
+                }
             })
-        }
 
         // append textblock to the pool of textblocks
-        $(textblock_row).append(textblock_div)
+        $(textblock_snap).append(deleted_text_div)
+        $(textblock_snap).append(textblock_div)
+    	$(textblock_row).append(textblock_snap)
     	$(textblock_row).appendTo(textblock_pool)
-		$(textblock_div).draggable();
-		// dynamically resize the height of the textblock pool
+
+        // dynamically resize the height of the textblock pool
         var multiplier = 2
 	    var new_height = d3.sum(
 	        textblock_pool.find('.textblock').map(function(i, d){
@@ -949,7 +610,52 @@ body{
  	    		    that.textblock_dim.margin + that.textblock_dim.border + that.textblock_dim.padding
                 ) // 2 * (margin + border + padding)
  		}))
+
        $(textblock_pool).css('height', d3.max([this.textblock_pool_min, new_height]))
+    }
+
+    create_potential_slot(){
+        var that = this;
+
+        // create textblock element for the righthand side
+        var textblock_pool = $('.textblock_pool').filter(
+            function (d) {
+                return $(d).attr('doc_id') == this.doc_key
+            }
+        )
+
+        // slot
+        var textblock_row = document.createElement('div')
+        $(textblock_row)
+            .addClass('color-none')
+            .addClass('textblock-potential-row')
+
+        // draggable div
+        var textblock_potential_div = document.createElement('div')
+        $(textblock_potential_div)
+        	.addClass('textblock-potential')
+        	.attr('doc_id', that.doc_key)
+
+        $(textblock_row).append(textblock_potential_div)
+        $(textblock_pool).append(textblock_row)
+
+        $(textblock_row).droppable({
+            drop: function(event, ui){
+                $(this).find('.textblock-potential').append(ui.draggable)
+            },
+            out: function(event, ui){
+                $(this)
+                    .removeClass('textblock-potential-active')
+                    .addClass('textblock-potential-row')
+                $(this).css('height', 30)
+            },
+            over: function (event, ui) {
+                $(this)
+                    .removeClass('textblock-potential-row')
+                    .addClass('textblock-potential-active')
+                $(this).css('height', parseInt(ui.draggable.css('height')) + 20)
+            }
+        })
     }
 }
 
@@ -964,118 +670,21 @@ body{
     buttons = [
 		['NODE', 'btn-outline-primary', 'node'],
     ]
-    arcs = {
-        'NODE': {
-            'NODE': [],
-        }
-    }
     pm = new PageManager(
 		textblock_dims, false, false,
-		"{{ doc_id }}", buttons, arcs,
+		"{{ doc_id }}", buttons,
 		textblock_pool_min_height
 	)
 
     data = JSON.parse('{{ data | tojson | safe }}'.replaceAll('NaN', 'null'))
-    versions = data['nodes'].map(function(d){return d['version']})
-    x_vers = d3.min(versions)
-    y_vers = d3.max(versions)
-    var x_nodes = []
-    var y_nodes = []
     $(data.nodes).each(function (i, d) {
-       if(d.version == x_vers) {
-           pm.create_textblock(d.sentence, 'x', 'NODE', d.sent_idx)
-           x_nodes.push({
-               'sentence': d.sentence,
-               'sent_idx': d.sent_idx
-           })
-       } else {
-           pm.create_textblock(d.sentence, 'y', 'NODE', d.sent_idx)
-           y_nodes.push({
-               'sentence': d.sentence,
-               'sent_idx': d.sent_idx
-           })
-       }
+       pm.create_original_textblock(d.sentence, 'NODE', d.sent_idx)
+        pm.create_potential_slot()
     })
-
-    potential_arcs = []
-    for (var i=0; i < x_nodes.length; i++){
-        for (var j=0; j < y_nodes.length; j++){
-            var diff_ratio = get_word_diff_ratio(x_nodes[i]['sentence'], y_nodes[j]['sentence'])
-            potential_arcs.push({
-                'sent_idx_x': x_nodes[i]['sent_idx'],
-                'sent_idx_y': y_nodes[j]['sent_idx'],
-                'diff_ratio': diff_ratio
-            })
-        }
-    }
-
-    $(potential_arcs).each( function(i, d){
-        if ((d.sent_idx_x != null ) && (d.sent_idx_y != null)){
-            var sel = pm.create_static_connection(d.sent_idx_x, d.sent_idx_y, d.diff_ratio, 'hidden')
-            d.line_selector = sel
-        }
-    })
-
-     // make lines follow the main
-     $.repeat().add('connection').each($).connections('update').wait(0);
-
-     // handle floating div
-     var $mouseX = 0, $mouseY = 0;
-     var $xp = 0, $yp =0;
-     $(document).mousemove(function(e){
-         $mouseX = e.pageX;
-         $mouseY = e.pageY - window.scrollY;
-     });
-
-     // handle updating lines on draggable
-     var $loop = setInterval(function(){
-       $xp += (($mouseX - $xp)/2);
-       $yp += (($mouseY - $yp)/2);
-       $("#moving_div").css({left:$xp +'px', top:$yp +'px'});
-     }, 30);
-
-
-    // make mouseover highlights for connections and textblocks
-    $('.connection')
-        .on('mouseover', connection_mouseover)
-        .on('mouseout', connection_mouseout)
 
     $('.textblock')
-        .on('mouseover', function(){
-            var this_textblock_selector = $(this).attr('id')
-            if (this_textblock_selector.indexOf('x') == -1){ // there isn't an x in the side we're currently on
-                var other_side = 'left'
-            } else{
-                var other_side = 'right'
-            }
-
-            // update the current node.
-            var our_html = $(this).attr('html-all')
-            $(this).addClass('shaded').html('<span class="textblock_span">' + our_html + '</span>')
-
-            // update all the nodes on the other side as this node.
-            var node_arcs = get_arcs(this)
-            node_arcs.forEach(function(d){
-                // get other textblock and the html that it should update to.
-                var other_textblock = $('.' + d).attr(other_side)
-                var other_new_html = $('.' + d).attr('hidden-html-' + other_side)
-                // shade the other textblock that the arc connects
-                $('#' + other_textblock).addClass('shaded').html(other_new_html)
-            })
-        })
-        .on('mouseout', function(d) {
-            //.filter(function(i, d){console.log($(d).attr('class'))})
-            // $('.connection')
-            //     .filter(function(i, d){return $(d).attr('class').indexOf('annotated') == -1})
-            //     .addClass('hidden').each(function(i, d){
-            //     $(this).css('opacity', $(this).attr('diff-ratio'))
-            // })
-            $('.textblock').removeClass('shaded')
-            $('.textblock').each(function (i, d) {
-                var orig_html = $(d).attr('orig-html')
-                $(d).html(orig_html)
-            })
-        })
+        .on('mouseover', function(){})
+        .on('mouseout',  function(){})
 
     //
     // mturk
