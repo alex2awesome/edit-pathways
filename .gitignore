@@ -2,8 +2,12 @@
 data/
 sequential_parsing/usc-research-data-access.json
 evaluation/.DS_Store/
+evaluation/data
 .DS_Store/
 presentations/
+modeling/data
+media-files/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -16,7 +20,7 @@ __pycache__/
 # media files
 *.mov
 *.mp4
-
+*.pkl
 *.jar
 
 # Distribution / packaging
