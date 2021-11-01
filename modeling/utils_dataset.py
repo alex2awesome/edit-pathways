@@ -24,16 +24,6 @@ def _get_attention_mask(x, max_length_seq):
     return torch.stack(attention_masks)
 
 
-class SentenceDataRow():
-    def __init__(self, sent_idx, sentences, num_add_before, num_add_after, refactor_distance, is_deleted, is_edited, is_unchanged):
-        self.sent_idx = sent_idx
-        self.sentences = sentences
-        self.num_add_before = num_add_before
-        self.num_add_after = num_add_after
-        self.refactor_distance = refactor_distance
-        self.sentence_operations = [is_deleted, is_edited, is_unchanged]
-
-
 class Dataset(data.Dataset):
     def __init__(self):
         """Reads source and target sequences from txt files."""
@@ -56,7 +46,7 @@ class BaseDataModule(pl.LightningDataModule):
         self.data_fp = kwargs.get('data_fp')
         self.add_eos_token = (kwargs.get('model_type') == "gpt2")
         self.max_length_seq = kwargs.get('max_length_seq')
-        self.do_regression = kwargs.get('regression_type') != 'classification'
+        self.do_regression = kwargs.get('do_regression')
         self.max_num_sentences = kwargs.get('max_num_sentences')
         self.batch_size = kwargs.get('batch_size')
         self.num_cpus = kwargs.get('num_cpus')
@@ -104,6 +94,7 @@ class BaseDataModule(pl.LightningDataModule):
                     return 1
                 else:
                     return 0
+            return label
 
     def setup(self, stage=None):
         """
@@ -138,27 +129,25 @@ class BaseDataModule(pl.LightningDataModule):
             num_workers=self.num_cpus
         )
 
-    def _get_attention_mask(self, x):
-        return _get_attention_mask(x, self.max_length_seq)
-
 
 class SentenceEditsModule(BaseDataModule):
     def process_document(self, doc_df):
         doc_df = doc_df.sort_values('sent_idx')
         sents = doc_df['sentence'].apply(self.process_sentence).tolist()
-        add_after = doc_df['add_above_label'].apply(self.process_label).tolist()
-        add_before = doc_df['add_before_label'].apply(self.process_label).tolist()
-        refactor_distance = doc_df['refactored_label'].apply(self.process_label).tolist()
+        labels_dict = {}
+        labels_dict['num_add_after'] = doc_df['add_below_label'].apply(self.process_label).tolist()
+        labels_dict['num_add_before'] = doc_df['add_above_label'].apply(self.process_label).tolist()
+        labels_dict['refactor_distance'] = doc_df['refactored_label'].apply(self.process_label).tolist()
+        labels_dict['is_deleted'] = doc_df['deleted_label'].tolist()
+        labels_dict['is_edited'] = doc_df['edited_label'].tolist()
+        labels_dict['is_unchanged'] = doc_df['unchanged_label'].tolist()
 
-        data_row = SentenceDataRow(sent_idx=doc_df['sent_idx'].tolist(),
-                                   sentences=sents,
-                                   num_add_before=add_before,
-                                   num_add_after=add_after,
-                                   refactor_distance=refactor_distance,
-                                   is_deleted=doc_df['deleted_label'].tolist(),
-                                   is_edited=doc_df['edited_label'].tolist(),
-                                   is_unchanged=doc_df['unchanged_label'].tolist(),
-                                   )
+        data_row = SentenceDataRow(
+            sent_idx=doc_df['sent_idx'].tolist(),
+            sentences=sents,
+            labels_dict=labels_dict,
+            max_length_seq=self.max_length_seq
+        )
         self.dataset.add_document(data_row)
 
     def get_dataset(self):
@@ -188,20 +177,118 @@ class SentenceEditsModule(BaseDataModule):
         Expects dataset[i]['sentences'] to be a list of sentences and other fields (eg. dataset[i]['is_deleted']) to be a list of labels.
         Returns tensors X_batch, y_batch
         """
-        assert len(dataset) == 1
-        columns = transpose_dict(dataset[0].__dict__)
-        sentence_batch = pad_sequence(columns["sentences"], batch_first=True)
-        sentence_attention = self._get_attention_mask(columns["sentences"])
-        num_add_before = torch.tensor(columns['num_add_before'], dtype=torch.long)
-        num_add_after = torch.tensor(columns['num_add_after'], dtype=torch.long)
-        refactor_distance = torch.tensor(columns['refactor_distance'], dtype=torch.long)
-        sentence_operations = torch.tensor(columns['sentence_operations'], dtype=torch.long)
-
+        data_rows = list(map(lambda x: x.collate(), dataset))
+        label_rows = list(map(lambda x: x.labels, data_rows))
+        label_batch = SentenceLabelBatch(label_rows=label_rows)
         return {
-            'input_ids': sentence_batch,
-            'attention_mask': sentence_attention,
-            'labels_num_added_after': num_add_after,
-            'labels_num_added_before': num_add_before,
-            'labels_refactor_distance': refactor_distance,
-            'labels_sentence_ops': sentence_operations,
+            'input_ids': list(map(lambda x: x.sentence_batch, data_rows)),
+            'attention_mask': list(map(lambda x: x.sentence_attention, data_rows)),
+            'labels': label_batch
         }
+
+
+class SentenceLabelRow():
+    def __init__(self, labels_dict):
+        self.num_add_before = labels_dict['num_add_before']
+        self.num_add_after = labels_dict['num_add_after']
+        self.refactor_distance = labels_dict['refactor_distance']
+        self.sentence_operations = [
+            labels_dict['is_deleted'],
+            labels_dict['is_edited'],
+            labels_dict['is_unchanged']
+        ]
+
+    def collate(self):
+        self.num_add_before = torch.tensor(self.num_add_before, dtype=torch.long)
+        self.num_add_after = torch.tensor(self.num_add_after, dtype=torch.long)
+        self.refactor_distance = torch.tensor(self.refactor_distance, dtype=torch.long)
+        self.sentence_operations_matrix = torch.tensor(self.sentence_operations, dtype=torch.long).T
+        self.sentence_operations = torch.where(self.sentence_operations_matrix == 1)[1]
+        return self
+
+class SentenceLabelBatch():
+    def __init__(self, label_rows=None):
+        # we might have an .add_label_row method so label_rows doesn't always have to passed in
+        assert label_rows is not None
+        self.labels = label_rows
+        self.finalize()
+
+    def finalize(self):
+        self.num_add_before = torch.cat(list(map(lambda x: x.num_add_before, self.labels)))
+        self.num_add_after = torch.cat(list(map(lambda x: x.num_add_after, self.labels)))
+        self.refactor_distance = torch.cat(list(map(lambda x: x.refactor_distance, self.labels)))
+        self.sentence_operations = torch.cat(list(map(lambda x: x.sentence_operations, self.labels)))
+
+    def __getitem__(self, item):
+        return self.labels[item]
+
+    @property
+    def deleted(self):
+        return (self.sentence_operations == 0).to(int)
+
+    @property
+    def edited(self):
+        return (self.sentence_operations == 1).to(int)
+
+    @property
+    def unchanged(self):
+        return (self.sentence_operations == 2).to(int)
+
+
+class SentenceDataRow():
+    def __init__(self, sent_idx, sentences, labels_dict, max_length_seq):
+        self.sent_idx = sent_idx
+        self.sentences = sentences
+        self.max_length_seq = max_length_seq
+        self.labels = SentenceLabelRow(labels_dict)
+
+    def collate(self):
+        self.sentence_batch = pad_sequence(self.sentences, batch_first=True)
+        self.sentence_attention = _get_attention_mask(self.sentences, self.max_length_seq)
+        self.labels.collate()
+        return self
+
+
+class SentencePredBatch():
+    def __init__(self):
+        self.sent_ops = []
+        self.sent_ops_lls = []
+        self.add_before = []
+        self.add_after = []
+        self.refactored = []
+
+    def add_row_to_batch(self, sentence_row):
+        y_pred_sent_op = sentence_row.pred_sent_ops.argmax(dim=1)
+        self.sent_ops.append(y_pred_sent_op)
+        self.sent_ops_lls.append(sentence_row.pred_sent_ops)
+        self.add_before.append(sentence_row.pred_added_before)
+        self.add_after.append(sentence_row.pred_added_after)
+        self.refactored.append(sentence_row.pred_refactored)
+
+    def finalize(self):
+        self.sent_ops = torch.cat(self.sent_ops)
+        self.sent_ops_lls = torch.cat(self.sent_ops_lls)
+        self.add_before = torch.cat(self.add_before).squeeze()
+        self.add_after = torch.cat(self.add_after).squeeze()
+        self.refactored = torch.cat(self.refactored).squeeze()
+
+    @property
+    def deleted(self):
+        return (self.sent_ops == 0).to(float)
+
+    @property
+    def edited(self):
+        return (self.sent_ops == 1).to(float)
+
+    @property
+    def unchanged(self):
+        return (self.sent_ops == 2).to(float)
+
+
+
+class SentencePredRow():
+    def __init__(self, pred_added_after, pred_added_before, pred_refactored, pred_sent_ops):
+        self.pred_added_after = pred_added_after
+        self.pred_added_before = pred_added_before
+        self.pred_refactored = pred_refactored
+        self.pred_sent_ops = pred_sent_ops

@@ -81,6 +81,21 @@ def identify_refactor_edges(crossings_dict):
     return removed_crossings
 
 
+def symmetrize_crossings(crossings):
+    """
+    Make sure that the crossings list is symmetrical.
+
+    :param crossings:
+    :return:
+    """
+    for start_edge, edge_crossing_set in crossings.items():
+        for end_edge in list(edge_crossing_set):
+            if start_edge not in crossings[end_edge]:
+                crossings[end_edge].add(start_edge)
+    return crossings
+
+
+
 def find_refactors_for_doc(one_doc=None, sents_old=None, sents_new=None):
     """
     Method to find refactorings (i.e. whether pairs of sentences cross each other in a bipartite graph)
@@ -95,31 +110,49 @@ def find_refactors_for_doc(one_doc=None, sents_old=None, sents_new=None):
     * num_crossings: the number of sentences that have been refactored,
         i.e. the number of edges in a bipartite graph of sentences that cross each other.
     """
-    # drop additions/deletions (these don't affect refactorings)
-    if sents_old is None:
-        sents_old = one_doc['sent_idx_x']
-    if sents_new is None:
-        sents_new = one_doc['sent_idx_y']
-    sents_old = list(filter(pd.notnull, sents_old))
-    sents_new = list(filter(pd.notnull, sents_new))
-    sents_old = list(map(int, sents_old))
-    sents_new = list(map(int, sents_new))
-
     # make it not zero-indexed, for bitwise addition
     correct_zero = lambda x: x + 1
-    # map missing indices (the result of dropping additions/deletions) to a compressed set.
-    sents_old_map = {v: correct_zero(k) for k, v in enumerate(unique_everseen(sents_old))}
-    sents_new_map = {v: correct_zero(k) for k, v in enumerate(unique_everseen(sents_new))}
+
+    # drop additions/deletions (these don't affect refactorings)
+    if one_doc is not None:
+        one_doc = one_doc.sort_values(['sent_idx_x', 'sent_idx_y'])
+        one_doc = one_doc.loc[lambda df: df[['sent_idx_x', 'sent_idx_y']].notnull().all(axis=1)]
+        e_pre_map = one_doc[['sent_idx_x', 'sent_idx_y']].astype(int).apply(lambda x: tuple(x), axis=1)
+
+        sents_old_idx_pre_map = sorted(list(set(list(map(lambda x: x[0], e_pre_map)))))
+        sents_new_idx_pre_map = sorted(list(set(list(map(lambda x: x[1], e_pre_map)))))
+
+        # map missing indices (the result of dropping additions/deletions) to a compressed set.
+        sents_old_map = {v: correct_zero(k) for k, v in enumerate(unique_everseen(sents_old_idx_pre_map))}
+        sents_new_map = {v: correct_zero(k) for k, v in enumerate(unique_everseen(sents_new_idx_pre_map))}
+
+        #
+        e = []
+        for e_i in e_pre_map:
+            e_i_post = (sents_old_map[e_i[0]], sents_new_map[e_i[1]])
+            e.append(e_i_post)
+
+    if sents_old is not None and sents_new is not None:
+        sents_old = list(filter(pd.notnull, sents_old))
+        sents_new = list(filter(pd.notnull, sents_new))
+        sents_old = list(map(int, sents_old))
+        sents_new = list(map(int, sents_new))
+
+        # map missing indices (the result of dropping additions/deletions) to a compressed set.
+        sents_old_map = {v: correct_zero(k) for k, v in enumerate(unique_everseen(sents_old))}
+        sents_new_map = {v: correct_zero(k) for k, v in enumerate(unique_everseen(sents_new))}
+
+        sents_old = list(map(sents_old_map.get, sents_old))
+        sents_new = list(map(sents_new_map.get, sents_new))
+        e = list(zip(sents_old, sents_new))
 
     # prepare input to function
     n = len(sents_old_map)
     m = len(sents_new_map)
-    sents_old = list(map(sents_old_map.get, sents_old))
-    sents_new = list(map(sents_new_map.get, sents_new))
-    e = list(zip(sents_old, sents_new))
 
     # calculate and return
     crossings, tree = _find_crossings(n, m, e)
+    crossings = symmetrize_crossings(crossings)
     refactors = identify_refactor_edges(crossings)
     if len(refactors) > 0:
         sents_old_map_r = {v: k for k, v in sents_old_map.items()}
