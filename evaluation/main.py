@@ -1,34 +1,46 @@
 ## this is just for testing purposes to enable quick rendering.
 
-from flask import Flask, render_template, request, url_for
+from flask import Flask, render_template, request
 from flask.json import jsonify
 import datetime
-import json, simplejson
+import json
 import os, glob
 
 app = Flask(__name__, template_folder='.')
 
-with open('data/sample_datum_small.json') as f:
+basedir = os.path.abspath(os.path.dirname(__file__))
+data_file = os.path.join(basedir, 'data/sample_ap_data.json')
+with open(data_file) as f:
     input_data = json.load(f)
 
-output_dir = 'data/output_data'
-if not os.path.exists(output_dir):
-    os.mkdir(output_dir)
-else:
-    for f in glob.glob(os.path.join(output_dir, 'output-annotation-*.json')):
-        previous_output = json.load(open(f))
-        doc_id = previous_output['doc_id']
-        if doc_id in input_data:
-            input_data[doc_id]['completed'] = True
+if False:
+    output_dir = 'data/output_data'
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+    else:
+        for f in glob.glob(os.path.join(output_dir, 'output-annotation-*.json')):
+            previous_output = json.load(open(f))
+            doc_id = previous_output['doc_id']
+            if doc_id in input_data:
+                input_data[doc_id]['completed'] = True
 
+
+@app.route('/hello', methods=['GET'])
+def main():
+    return 'hello world!'
+
+@app.route('/check_data', methods=['GET'])
+def return_data():
+    return jsonify(input_data)
 
 @app.route('/check_task', methods=['GET'])
 def render_task():
+    source = request.args.get('source')
     doc_id = request.args.get('doc_id')
     v_x = request.args.get('v_x')
     v_y = request.args.get('v_y')
     if doc_id is not None and v_x is not None and v_y is not None:
-        k = str((int(doc_id), int(v_x), int(v_y)))
+        k = str((source, int(doc_id), int(v_x), int(v_y)))
     else:
         keys = list(input_data.keys())
         for k in keys:
@@ -45,7 +57,7 @@ def render_task():
     datum['arcs'] = arcs
 
     return render_template(
-        'templates/check-matched-sentences.html',
+        'templates/check-matched-sentences-app-engine.html',
         data=datum,
         doc_id=k,
         do_mturk=False,
