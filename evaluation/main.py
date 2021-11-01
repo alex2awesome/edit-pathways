@@ -22,13 +22,45 @@ else:
             input_data[doc_id]['completed'] = True
 
 
-@app.route('/view_task', methods=['GET'])
+@app.route('/check_task', methods=['GET'])
 def render_task():
     doc_id = request.args.get('doc_id')
     v_x = request.args.get('v_x')
     v_y = request.args.get('v_y')
     if doc_id is not None and v_x is not None and v_y is not None:
         k = str((int(doc_id), int(v_x), int(v_y)))
+    else:
+        keys = list(input_data.keys())
+        for k in keys:
+            if input_data[k].get('completed', False) == False:
+                break
+
+    # get data
+    datum = input_data[k]
+    nodes = datum['nodes']
+    arcs = datum['arcs']
+    for n in nodes:
+        n['sentence'] = n['sentence'].replace('"', '')
+    datum['nodes'] = nodes
+    datum['arcs'] = arcs
+
+    return render_template(
+        'templates/check-matched-sentences.html',
+        data=datum,
+        doc_id=k,
+        do_mturk=False,
+        start_time=str(datetime.datetime.now()),
+    )
+
+
+@app.route('/view_task_match', methods=['GET'])
+def match_sentences():
+    source = request.args.get('source')
+    doc_id = request.args.get('doc_id')
+    v_x = request.args.get('v_x')
+    v_y = request.args.get('v_y')
+    if doc_id is not None and v_x is not None and v_y is not None:
+        k = str(source, (int(doc_id), int(v_x), int(v_y)))
     else:
         keys = list(input_data.keys())
         for k in keys:
@@ -53,8 +85,8 @@ def render_task():
     )
 
 
-@app.route('/view_task_scratch', methods=['GET'])
-def render_task_2():
+@app.route('/view_task_edit', methods=['GET'])
+def edit_old_version():
     doc_id = request.args.get('doc_id')
     v_x = request.args.get('v_x')
     v_y = request.args.get('v_y')
@@ -69,19 +101,20 @@ def render_task_2():
     # get data
     datum = input_data[k]
     nodes = datum['nodes']
-    arcs = datum['arcs']
+    v_x = min(list(map(lambda x: x['version'], nodes)))
+    nodes = list(filter(lambda x: x['version'] == v_x, nodes))
     for n in nodes:
         n['sentence'] = n['sentence'].replace('"', '')
     datum['nodes'] = nodes
-    datum['arcs'] = arcs
 
     return render_template(
-        'templates/match-sentences-from-scratch.html',
+        'templates/edit-sentences.html',
         data=datum,
         doc_id=k,
         do_mturk=False,
         start_time=str(datetime.datetime.now()),
     )
+
 
 
 @app.route('/post_task', methods=['POST'])
