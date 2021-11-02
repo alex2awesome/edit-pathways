@@ -171,6 +171,8 @@ class SentenceEditsModule(BaseDataModule):
         return self.dataset
 
     def transfer_batch_to_device(self, batch, device, dataloader_idx):
+        batch['attention_mask'] = list(map(lambda x: x.to(device), batch['attention_mask']))
+        batch['input_ids'] = list(map(lambda x: x.to(device), batch['input_ids']))
         labels = batch['labels']
         batch['labels'] = labels.to(device)
         return batch
