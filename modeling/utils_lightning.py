@@ -72,6 +72,8 @@ class SentenceMetrics():
             self.refactor_distance = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
 
     def __call__(self, y_pred, y_true, *args, **kwargs):
+        print('metrics, y_pred device: %s ' % y_pred.sent_ops.device)
+        print('metrics, y_true device: %s ' % y_true.sentence_operations.device)
         self.sentence_changes_weighted(y_pred.sent_ops, y_true.sentence_operations)
         self.sentence_changes_macro(y_pred.sent_ops, y_true.sentence_operations)
         self.deletion(y_pred.deleted, y_true.deleted)
