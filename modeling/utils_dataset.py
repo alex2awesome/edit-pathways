@@ -170,6 +170,11 @@ class SentenceEditsModule(BaseDataModule):
         input_data.groupby(['entry_id', 'version']).apply(self.process_document)
         return self.dataset
 
+    def transfer_batch_to_device(self, batch, device, dataloader_idx):
+        labels = batch['labels']
+        batch['labels'] = labels.to(device)
+        return batch
+
     def collate_fn(self, dataset):
         """
         Takes in an instance of Torch Dataset (or a subclassed instance).
@@ -206,6 +211,12 @@ class SentenceLabelRow():
         self.sentence_operations = torch.where(self.sentence_operations_matrix == 1)[1]
         return self
 
+    def to(self, device):
+        self.num_add_before = self.num_add_before.to(device)
+        self.num_add_after = self.num_add_after.to(device)
+        self.refactor_distance = self.refactor_distance.to(device)
+        self.sentence_operations = self.sentence_operations.to(device)
+
 class SentenceLabelBatch():
     def __init__(self, label_rows=None):
         # we might have an .add_label_row method so label_rows doesn't always have to passed in
@@ -233,6 +244,15 @@ class SentenceLabelBatch():
     @property
     def unchanged(self):
         return (self.sentence_operations == 2).to(int)
+
+    def to(self, device):
+        self.num_add_before = self.num_add_before.to(device)
+        self.num_add_after = self.num_add_after.to(device)
+        self.refactor_distance = self.refactor_distance.to(device)
+        self.sentence_operations = self.sentence_operations.to(device)
+        for label in self.labels:
+            label.to(device)
+        return self
 
 
 class SentenceDataRow():
