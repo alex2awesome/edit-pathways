@@ -28,7 +28,7 @@ then
   frozen_layers="0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22"
 else
   pretrained_model='roberta-base'
-  frozen_layers="0 1 2 3 4 5 6 7"
+  frozen_layers="0 1 2 3 4"
 fi
 ##
 
@@ -51,8 +51,8 @@ katie compute run \
         --num_train_epochs 3 \
         --do_train \
         --do_eval \
-        --train_data_file_s3 training-data/training_data_full.csv.gz \
-        --notes "Poisson Regression, Sentence Level" \
+        --train_data_file_s3 training-data/training_data_short_15.csv.gz \
+        --notes "Poisson Regression, Sentence Level, Docs < 15" \
         --freeze_encoder_layers $frozen_layers \
         --dropout .1 \
         --accumulate_grad_batches 1 \
