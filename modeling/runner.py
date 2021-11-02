@@ -14,7 +14,6 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning import loggers
 import torch
 from transformers import AutoConfig
-from fine_tuning.language_models import LMModel
 import os
 os.environ['WANDB_CONSOLE'] = 'off'
 
@@ -179,6 +178,7 @@ if __name__=="__main__":
 
         print(glob.glob(os.path.join(pretrained_path, '*')))
         if args.finetuned_lm_file is not None:
+            from fine_tuning.language_models import LMModel
             download_file_to_filepath(remote_file_name=args.finetuned_lm_file)
             config = AutoConfig.from_pretrained(pretrained_path)
             # print(config)
