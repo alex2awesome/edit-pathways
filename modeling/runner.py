@@ -158,7 +158,8 @@ if __name__=="__main__":
         from modeling.utils_data_access import get_fs, download_model_files_bb, download_file_to_filepath
         # train (and eval df)
         print('Downloading data...')
-        main_data_file = os.path.join(here, 'input_data.csv')
+        fname = 'input_data.csv.gz' if args.train_data_file_s3.endswith('.gz') else 'input_data.csv'
+        main_data_file = os.path.join(here, fname)
         download_file_to_filepath(remote_file_name=args.train_data_file_s3, local_path=main_data_file)
         if args.eval_data_file_s3 is not None:
             eval_data_file = os.path.join(here, 'eval_data.csv')
