@@ -51,7 +51,7 @@ katie compute run \
         --num_train_epochs 3 \
         --do_train \
         --do_eval \
-        --train_data_file_s3 training-data/sentence-data-small.csv \
+        --train_data_file_s3 training-data/training_data_full.csv.gz \
         --notes "Poisson Regression, Sentence Level" \
         --freeze_encoder_layers $frozen_layers \
         --dropout .1 \
