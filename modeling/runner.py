@@ -94,7 +94,6 @@ def main(
                 'do_regression': config.do_regression,
                 'use_poisson_regression': config.use_poisson_regression,
                 'dataset_size': len(dataset.train_dataset),
-                'sentence_embedding_method': config.sentence_embedding_method,
                 'experiment': experiment,
                 # trainer params
                 'num_warmup_steps': config.num_warmup_steps,
