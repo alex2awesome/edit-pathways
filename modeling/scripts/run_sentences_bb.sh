@@ -74,9 +74,13 @@ katie compute run \
 #            --train_data_file_s3 data/news-discourse-training-data.csv \
 #        --concat_headline \
 
-
+#--tensorboard-log-dir s3://aspangher/edit-pathways/tensorboard \
+#--namespace s-ai-classification \
+#--tensorboard-log-dir hdfs:///projects/ai_classification/aspangher/edit-pathways/tensorboard \
 
 #for i in version_0  version_1  version_10 version_11 version_12 version_13 version_14 version_15 version_16 version_17 version_18 version_19 version_2  version_20 version_21 version_22 version_23 version_24 version_25 version_26 version_27 version_28 version_29 version_3  version_30 version_31 version_32 version_33 version_34 version_35 version_36 version_37 version_38 version_39 version_4  version_40 version_41 version_42 version_43 version_44 version_45 version_46 version_47 version_48 version_49 version_5 version_6  version_7  version_8  version_9;
 #do
 #  katie hdfs --identity ai-clf-dob2-gen --namespace s-ai-classification rename /projects/ai_classification/aspangher/controlled-sequence-gen/tensorboard/default/$i /projects/ai_classification/aspangher/controlled-sequence-gen/tensorboard-old/default/$i
 #done
+
+#
