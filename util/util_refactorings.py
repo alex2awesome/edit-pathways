@@ -61,8 +61,11 @@ def remove_one_crossing(dict_r):
         # 1c. If there are multiple keys that move the same distance, take the ones that move up.
         # 1d. If there are multiple of these keys, just take the first
         else:
-            chosen_keys = list(filter(lambda x: x[1] - x[0] < 0, chosen_keys))
-            key_to_remove = chosen_keys[0]
+            moves_up = list(filter(lambda x: x[1] - x[0] < 0, chosen_keys))
+            if len(moves_up) > 0:
+                key_to_remove = moves_up[0]
+            else:
+                key_to_remove = chosen_keys[0]
 
     dict_r.pop(key_to_remove)
     for key, crossings in dict_r.items():
