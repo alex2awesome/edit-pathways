@@ -6,13 +6,14 @@ pandas
 # koalas
 pyspark
 # pycountry
+# torch<1.9.0,>=1.6.0
 spark-nlp
 s3fs==2021.05.0
 unidecode
 deepspeed==0.4.3
 python-utils==2.5.6
 pandas==1.0.1
-torch<1.9.0,>=1.6.0
+torch==1.10.0
 transformers==4.10.2
 pytorch-lightning==1.4.1
 python-utils==2.5.6
