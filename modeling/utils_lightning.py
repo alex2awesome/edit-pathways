@@ -2,7 +2,7 @@ import pytorch_lightning as pl
 import torch
 from torchmetrics import MetricCollection, F1, MeanSquaredError
 from modeling.utils_general import get_config, SuperBlank
-
+from torch import nn
 adam_beta1, adam_beta2, adam_epsilon = .9, .999, 1e-08
 class LightningOptimizer(SuperBlank, pl.LightningModule):
     """
@@ -49,8 +49,9 @@ class LightningOptimizer(SuperBlank, pl.LightningModule):
         }
 
 
-class SentenceMetrics():
+class SentenceMetrics(nn.Module):
     def __init__(self, config, step, device, dist_sync_on_step):
+        super().__init__()
         self.step = step
         self.config = config
 
@@ -72,7 +73,7 @@ class SentenceMetrics():
             self.refactor_distance = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
 
         print(device)
-        self.to(device)
+        # self.to(device)
 
     def to(self, device):
         self.sentence_changes_weighted = self.sentence_changes_weighted.to(device)

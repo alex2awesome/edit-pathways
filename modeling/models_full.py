@@ -59,8 +59,6 @@ class SentenceDiscriminator(LightningStepsBase, LightningOptimizer, SuperBlank, 
         doc_embs = self.doc_embeddings(context_embs)
 
         # get losses
-        print(label.num_add_before.device)
-        print(label.num_add_after.device)
         loss_added_afer, pred_added_after = self.add_after_head(context_embs, label.num_add_after, pos_embs, doc_embs)
         loss_added_before, pred_added_before = self.add_after_head(context_embs, label.num_add_before, pos_embs, doc_embs)
         loss_refactored, pred_refactored = self.refactor_head(context_embs, label.refactor_distance, pos_embs, doc_embs)
