@@ -265,7 +265,7 @@ class SentenceDataRow():
         self.labels = SentenceLabelRow(labels_dict)
 
     def collate(self):
-        self.sentence_batch = pad_sequence(self.sentences, batch_first=True)
+        self.sentence_batch = pad_sequence(self.sentences, batch_first=True)[:, :self.max_length_seq]
         self.sentence_attention = _get_attention_mask(self.sentences, self.max_length_seq)
         self.labels.collate()
         return self
