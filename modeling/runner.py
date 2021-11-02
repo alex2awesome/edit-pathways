@@ -156,7 +156,7 @@ if __name__=="__main__":
             if not os.path.exists(eval_data_file):
                 eval_data_file = os.path.join(here, args.eval_data_file_s3)
     else:
-        from util.utils_data_access import get_fs, download_model_files_bb, download_file_to_filepath
+        from modeling.utils_data_access import get_fs, download_model_files_bb, download_file_to_filepath
         # train (and eval df)
         print('Downloading data...')
         main_data_file = os.path.join(here, 'input_data.csv')

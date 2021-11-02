@@ -28,7 +28,7 @@ then
   frozen_layers="0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22"
 else
   pretrained_model='roberta-base'
-  frozen_layers="0 1 2 3 4 5 6 7 8 9"
+  frozen_layers="0 1 2 3 4 5 6 7"
 fi
 ##
 
@@ -46,15 +46,14 @@ katie compute run \
         -- \
         --model_type $model_type \
         --pretrained_files_s3 $pretrained_model \
-        --experiment baseline_non-sequential \
+        --experiment sentence \
         --batch_size 1 \
         --num_train_epochs 3 \
         --do_train \
         --do_eval \
-        --train_data_file_s3 data/semi-balanced-data-by-sentence.tsv \
-        --notes "Flat Discriminator with Augmented/Balanced Training data" \
-        --freeze_transformer \
-        --sentence_embedding_method 'attention' \
+        --train_data_file_s3 training-data/sentence-data-small.csv \
+        --notes "Poisson Regression, Sentence Level" \
+        --freeze_encoder_layers $frozen_layers \
         --dropout .1 \
         --accumulate_grad_batches 1 \
         --learning_rate 1e-4 \
@@ -62,7 +61,9 @@ katie compute run \
         --use_positional \
         --use_doc_emb \
         --doc_embed_arithmetic \
-
+        --do_regression \
+        --use_poisson_regression \
+        --loss_weighting .25 .25 .25 .25
 
 #       --pretrained_files_s3 $pretrained_model \
 #        --freeze_encoder_layers $frozen_layers \
