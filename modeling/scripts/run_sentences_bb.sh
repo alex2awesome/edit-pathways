@@ -1,4 +1,4 @@
-DEFAULT_REPO='git+https://bbgithub.dev.bloomberg.com/aspangher/edit-pathways.git'
+DEFAULT_REPO='git+https://bbgithub.dev.bloomberg.com/aspangher/edit-project.git'
 DEFAULT_BRANCH='master'
 DEFAULT_PACKAGE=$DEFAULT_REPO@$DEFAULT_BRANCH
 
@@ -37,7 +37,7 @@ katie compute run \
         --compute-framework $DEFAULT_FRAMEWORK \
         --node-size $DEFAULT_JOB_SIZE \
         $worker_args \
-        --python-module discriminator.model_runner \
+        --python-module modeling.runner \
         --identities hadoop=$DEFAULT_HADOOP_IDENTITY bcs=$DEFAULT_BCS_IDENTITY git=$DEFAULT_GIT_IDENTIY \
         --pip-packages $DEFAULT_PACKAGE \
         --namespace s-ai-classification \

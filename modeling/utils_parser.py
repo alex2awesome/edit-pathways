@@ -3,6 +3,7 @@ def attach_model_arguments(parser):
     parser.add_argument("--train_data_file_s3", default='data/news-discourse-training-data.csv', type=str)
     parser.add_argument("--eval_data_file_s3", default=None, type=str)
     parser.add_argument("--pretrained_files_s3", default='elmo', type=str)
+    parser.add_argument("--finetuned_lm_file", default=None, type=str)
     parser.add_argument("--model_type", help="Which pretrained model to use - RoBERTa, BERT or GPT2", type=str)
     parser.add_argument("--batch_size", type=int, default=64, metavar="N", help="input batch size for training (default: 64)")
     parser.add_argument("--save_model", action="store_true")
