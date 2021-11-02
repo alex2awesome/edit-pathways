@@ -20,3 +20,11 @@ utils==1.0.1
 pyarrow==3.0.0
 tensorboardX==1.8
 tensorboard==2.3.0
+torchmetrics==0.5.0
+ninja==1.10.0.post3
+flax==0.3.4
+jaxlib==0.1.69
+aiobotocore==1.4.1
+boto==2.49.0
+boto3==1.14.20
+botocore==1.20.106
