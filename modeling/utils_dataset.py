@@ -107,7 +107,7 @@ class BaseDataModule(pl.LightningDataModule):
         if stage in ('fit', None):
             d = self.get_dataset()
             # split randomly
-            train_size = int(0.9 * len(d))
+            train_size = int(0.95 * len(d))
             test_size = len(d) - train_size
             self.train_dataset, self.test_dataset = torch.utils.data.random_split(d, [train_size, test_size])
 
