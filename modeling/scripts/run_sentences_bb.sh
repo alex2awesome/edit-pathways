@@ -63,7 +63,9 @@ katie compute run \
         --doc_embed_arithmetic \
         --do_regression \
         --use_poisson_regression \
-        --loss_weighting .25 .25 .25 .25
+        --loss_weighting .25 .25 .25 .25 \
+        --num_contextual_layers 2 \
+        --num_sent_attn_heads 2
 
 #       --pretrained_files_s3 $pretrained_model \
 #        --freeze_encoder_layers $frozen_layers \
