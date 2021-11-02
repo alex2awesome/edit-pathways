@@ -167,6 +167,7 @@ class SentenceEditsModule(BaseDataModule):
         Returns Dataset
         """
         input_data = pd.read_csv(self.data_fp)
+        input_data['sentence'] = input_data['sentence'].fillna('')
         input_data.groupby(['entry_id', 'version']).apply(self.process_document)
         return self.dataset
 
