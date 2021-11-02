@@ -50,7 +50,7 @@ class LightningOptimizer(SuperBlank, pl.LightningModule):
 
 
 class SentenceMetrics():
-    def __init__(self, config, step, dist_sync_on_step):
+    def __init__(self, config, step, device, dist_sync_on_step):
         self.step = step
         self.config = config
 
@@ -70,6 +70,18 @@ class SentenceMetrics():
             self.additions_below = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
             self.additions_above = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
             self.refactor_distance = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
+
+        self.to(device)
+
+    def to(self, device):
+        self.sentence_changes_weighted = self.sentence_changes_weighted.to(device)
+        self.sentence_changes_macro = self.sentence_changes_macro.to(device)
+        self.deletion = self.deletion.to(device)
+        self.edited = self.edited.to(device)
+        self.unchanged = self.unchanged.to(device)
+        self.additions_below = self.additions_below.to(device)
+        self.additions_above = self.additions_above.to(device)
+        self.refactor_distance = self.refactor_distance.to(device)
 
     def __call__(self, y_pred, y_true, *args, **kwargs):
         print('metrics, y_pred device: %s ' % y_pred.sent_ops.device)
@@ -136,11 +148,13 @@ class LightningStepsBase(SuperBlank, pl.LightningModule):
             self.training_report = SentenceMetrics(
                 config=self.config,
                 step='Train',
+                device=self.device,
                 dist_sync_on_step=kwargs.get('accelerator') == 'dp'
             )
             self.validation_report = SentenceMetrics(
                 config=self.config,
                 step='Validation',
+                device=self.device,
                 dist_sync_on_step=kwargs.get('accelerator') == 'dp'
             )
 
