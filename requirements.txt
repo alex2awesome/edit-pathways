@@ -13,5 +13,5 @@ deepspeed==0.4.3
 python-utils==2.5.6
 pandas==1.0.1
 torch<1.9.0,>=1.6.0
-transformers>=4.1,<4.6
+transformers==4.10.2
 pytorch-lightning==1.4.1
