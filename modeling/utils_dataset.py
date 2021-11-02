@@ -78,6 +78,7 @@ class BaseDataModule(pl.LightningDataModule):
             raise FileNotFoundError('Data files... make sure to download them from S3!')
 
     def process_sentence(self, text):
+        text = text if pd.notnull(text) else ''
         seq = self.tokenizer.encode(text)
         if self.add_eos_token:
             seq.append(self.tokenizer.eos_token_id)
