@@ -23,7 +23,7 @@ python $SCRIPT_DIR/../model_runner.py \
         --do_train \
         --local \
         --do_eval \
-        --train_data_file_s3 "$project_dir/data/sentence-data-small.csv" \
+        --train_data_file_s3 "$project_dir/data/training_data_short_15__sampled_50000.csv" \
         --notes "Sentence Discriminator" \
         --freeze_transformer \
         --do_regression \

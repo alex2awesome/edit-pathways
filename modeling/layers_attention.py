@@ -46,10 +46,7 @@ class SentenceLevelSelfAttention(nn.Module):
 class DocLevelSelfAttention(nn.Module):
     def __init__(self, config):
         super().__init__()
-        if config.bidirectional:
-            self.self_attention = AdditiveSelfAttention(input_dim=config.hidden_dim * 2, dropout=config.dropout)
-        else:
-            self.self_attention = AdditiveSelfAttention(input_dim=config.hidden_dim, dropout=config.dropout)
+        self.self_attention = AdditiveSelfAttention(input_dim=config.hidden_dim, dropout=config.dropout)
 
     def forward(self, sent_encoding):
         ## get document embedding?
