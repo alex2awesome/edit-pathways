@@ -52,8 +52,8 @@ katie compute run \
         --do_train \
         --do_eval \
         --num_dataloader_cpus 0 \
-        --train_data_file_s3 training-data/training_data_short_15__sampled_10000.csv \
-        --notes "Normal Regression, Sentence Level, Docs < 15,> 5, downsampled 10,000" \
+        --train_data_file_s3 training-data/training_data_short_15__sampled_30000.csv \
+        --notes "Normal Regression, Sentence Level, Docs < 15,> 5, downsampled 30,000" \
         --freeze_encoder_layers $frozen_layers \
         --dropout .1 \
         --accumulate_grad_batches 1 \
@@ -66,6 +66,7 @@ katie compute run \
         --num_contextual_layers 2 \
         --num_sent_attn_heads 2 \
         --do_regression \
+        
 
 #       --pretrained_files_s3 $pretrained_model \
 #        --freeze_encoder_layers $frozen_layers \

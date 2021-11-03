@@ -1,0 +1,19 @@
+apiVersion: ds.bloomberg.com/v1
+kind: TensorBoard
+metadata:
+  generateName: test
+  namespace: s-ai-classification
+spec:
+  identities:
+    - bcs: null
+      git: null
+      hadoop:
+        id: aspangher-cluster-test
+  logDir: >-
+    hdfs:///projects/ai_classification/aspangher/edit-pathways/tensorboard
+  priorityclassname: ds-dev
+  resources:
+    cores: 1
+    memory: 20G
+  size: Custom
+  tensorFlowFramework: tensorflow-1.14-python-3.7
