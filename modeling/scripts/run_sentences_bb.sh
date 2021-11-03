@@ -50,7 +50,6 @@ katie compute run \
         --batch_size 1 \
         --num_train_epochs 3 \
         --do_train \
-        --use_deepspeed \
         --do_eval \
         --num_dataloader_cpus 0 \
         --train_data_file_s3 training-data/training_data_short_15__sampled_10000.csv \
