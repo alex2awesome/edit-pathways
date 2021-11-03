@@ -203,7 +203,7 @@ class SentenceLabelRow():
     def __init__(self, labels_dict):
         self.num_add_before = torch.tensor(labels_dict['num_add_before'], dtype=torch.long)
         self.num_add_after = torch.tensor(labels_dict['num_add_after'], dtype=torch.long)
-        self.refactor_distance = torch.tensor(labels_dict['refactor_distance'])
+        self.refactor_distance = torch.tensor(labels_dict['refactor_distance'], dtype=torch.long)
         sentence_operations_list = [
             labels_dict['is_deleted'],
             labels_dict['is_edited'],
