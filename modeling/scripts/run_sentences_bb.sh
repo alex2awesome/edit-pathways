@@ -53,7 +53,7 @@ katie compute run \
         --do_eval \
         --num_dataloader_cpus 0 \
         --train_data_file_s3 training-data/training_data_short_15__sampled_10000.csv \
-        --notes "Classification, Sentence Level, Docs < 15,> 5, downsampled 10,000" \
+        --notes "Poisson Regression, Sentence Level, Docs < 15,> 5, downsampled 10,000" \
         --freeze_encoder_layers $frozen_layers \
         --dropout .1 \
         --accumulate_grad_batches 1 \
@@ -64,9 +64,9 @@ katie compute run \
         --doc_embed_arithmetic \
         --loss_weighting .25 .25 .25 .25 \
         --num_contextual_layers 2 \
-        --num_sent_attn_heads 2
-#        --do_regression \
-#        --use_poisson_regression \
+        --num_sent_attn_heads 2 \
+        --do_regression \
+        --use_poisson_regression \
 
 #       --pretrained_files_s3 $pretrained_model \
 #        --freeze_encoder_layers $frozen_layers \

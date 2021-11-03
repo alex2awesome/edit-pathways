@@ -70,10 +70,11 @@ class SentenceMetrics(nn.Module):
         else:
             self.additions_below = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
             self.additions_above = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
-            self.refactor_distance = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
-
-        print(device)
-        # self.to(device)
+            self.refactor_ops_weighted = F1(num_classes=3, average='weighted', dist_sync_on_step=dist_sync_on_step)
+            self.refactor_ops_macro = F1(num_classes=3, average='macro', dist_sync_on_step=dist_sync_on_step)
+            self.refactor_up = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
+            self.refactor_un = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
+            self.refactor_down = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
 
     def to(self, device):
         self.sentence_changes_weighted = self.sentence_changes_weighted.to(device)
@@ -83,7 +84,14 @@ class SentenceMetrics(nn.Module):
         self.unchanged = self.unchanged.to(device)
         self.additions_below = self.additions_below.to(device)
         self.additions_above = self.additions_above.to(device)
-        self.refactor_distance = self.refactor_distance.to(device)
+        if self.config.do_regression:
+            self.refactor_distance = self.refactor_distance.to(device)
+        else:
+            self.refactor_ops_weighted = self.refactor_ops_weighted.to(device)
+            self.refactor_ops_macro = self.refactor_ops_macro.to(device)
+            self.refactor_up = self.refactor_up.to(device)
+            self.refactor_un = self.refactor_un.to(device)
+            self.refactor_down = self.refactor_down.to(device)
 
     def __call__(self, y_pred, y_true, *args, **kwargs):
         assert (
@@ -100,7 +108,15 @@ class SentenceMetrics(nn.Module):
                 self.unchanged(y_p_i.unchanged, y_t_i.unchanged)
                 self.additions_above(y_p_i.pred_added_before, y_t_i.num_add_before)
                 self.additions_below(y_p_i.pred_added_after, y_t_i.num_add_after)
-                self.refactor_distance(y_p_i.pred_refactored, y_t_i.refactor_distance)
+                if self.config.do_regression:
+                    self.refactor_distance(y_p_i.pred_refactored, y_t_i.refactor_distance)
+                else:
+                    self.refactor_ops_weighted(y_p_i.pred_refactored_ops, y_t_i.refactor_ops)
+                    self.refactor_ops_macro(y_p_i.pred_refactored_ops, y_t_i.refactor_ops)
+                    self.refactor_up(y_p_i.pred_ref_up, y_t_i.refactor_up)
+                    self.refactor_un(y_p_i.pred_ref_un, y_t_i.refactor_unchanged)
+                    self.refactor_down(y_p_i.pred_ref_down, y_t_i.refactor_down)
+
 
         # if we do organize PredRows/LabelRows as a Batch
         elif (not isinstance(y_pred, list)) and (not isinstance(y_true, list)):

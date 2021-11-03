@@ -90,7 +90,16 @@ class NormalRegressionSequenceHead(SequenceHeadBase):
         self.drop = nn.Dropout(config.dropout)
         self.criterion = torch.nn.MSELoss(reduction='none')
 
-class PoissonRegressionSequenceHead(SequenceHeadBase):
+    def forward(self, sentence_embs, labels, position_embeddings=None, doc_embedding=None):
+        # loss
+        pred = self.perform_prediction(sentence_embs, position_embeddings, doc_embedding)
+        pred = pred.reshape(labels.shape)
+        loss = self.calculate_loss(pred, labels)
+        loss = torch.mean(loss)
+        return loss, pred
+
+
+class PoissonRegressionSequenceHead(NormalRegressionSequenceHead):
     def __init__(self, config):
         super().__init__(config=config)
         self.config = config
