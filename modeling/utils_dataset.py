@@ -293,7 +293,7 @@ class SentencePredRow():
         self.pred_added_after = pred_added_after
         self.pred_added_before = pred_added_before
         self.pred_refactored = pred_refactored
-        self.pred_refactored_ops = pred_refactored_ops
+        self.pred_refactored_ops = pred_refactored_ops.argmax(axis=1)
         data_type = float if not use_deepspeed else torch.half
         if pred_refactored_ops is not None:
             self.pred_ref_up = (self.pred_refactored_ops == 0).to(data_type)

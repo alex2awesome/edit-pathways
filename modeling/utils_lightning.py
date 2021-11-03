@@ -130,16 +130,23 @@ class SentenceMetrics(nn.Module):
             self.refactor_distance(y_pred.refactored, y_true.refactor_distance)
 
     def compute(self):
-        return {
-            '%s: Sentence Changes, Weighted' % self.step : self.sentence_changes_weighted.compute(),
-            '%s: Sentence Changes, Macro' % self.step: self.sentence_changes_macro.compute(),
-            '%s: Deletion F1' % self.step: self.deletion.compute(),
-            '%s: Edited F1' % self.step: self.edited.compute(),
-            '%s: Unchanged F1' % self.step: self.unchanged.compute(),
-            '%s: Additions Above, MSE' % self.step: self.additions_above.compute(),
-            '%s: Additions Below, MSE' % self.step: self.additions_below.compute(),
-            '%s: Refactor Distance, MSE' % self.step: self.refactor_distance.compute(),
-        }
+        output = {}
+        output['%s: Sentence Changes, Weighted' % self.step] = self.sentence_changes_weighted.compute()
+        output['%s: Sentence Changes, Macro' % self.step] = self.sentence_changes_macro.compute()
+        output['%s: Deletion F1' % self.step] = self.deletion.compute()
+        output['%s: Edited F1' % self.step] = self.edited.compute()
+        output['%s: Unchanged F1' % self.step] = self.unchanged.compute()
+        output['%s: Additions Above, MSE' % self.step] = self.additions_above.compute()
+        output['%s: Additions Below, MSE' % self.step] = self.additions_below.compute()
+        if self.config.do_regression:
+            output['%s: Refactor Distance, MSE' % self.step] = self.refactor_distance.compute()
+        else:
+            output['%s: Refactor Changes, Weighted' % self.step] = self.refactor_ops_weighted.compute()
+            output['%s: Refactor Changes, Macro' % self.step] = self.refactor_ops_macro.compute()
+            output['%s: Refactor Up, F1' % self.step] = self.refactor_up.compute()
+            output['%s: Refactor Unchanged, F1' % self.step] = self.refactor_un.compute()
+            output['%s: Refactor Down, F1' % self.step] = self.refactor_down.compute()
+        return output
 
     def reset(self):
         self.sentence_changes_weighted.reset()
@@ -149,7 +156,14 @@ class SentenceMetrics(nn.Module):
         self.unchanged.reset()
         self.additions_above.reset()
         self.additions_below.reset()
-        self.refactor_distance.reset()
+        if self.config.do_regression:
+            self.refactor_distance.reset()
+        else:
+            self.refactor_ops_weighted.reset()
+            self.refactor_ops_macro.reset()
+            self.refactor_up.reset()
+            self.refactor_un.reset()
+            self.refactor_down.reset()
 
 
 class DocMetrics():
