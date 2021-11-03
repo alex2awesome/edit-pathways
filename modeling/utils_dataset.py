@@ -97,6 +97,19 @@ class BaseDataModule(pl.LightningDataModule):
                     return 0
             return label
 
+    def process_refactor(self, label):
+        if self.do_regression:
+            return label
+        else:
+            output = {'refactor up': 0, 'refactor unchanged': 0, 'refactor down': 0}
+            if label == 0:
+                output['refactor unchanged'] = 1
+            elif label > 0:
+                output['refactor up'] = 1
+            elif label < 0:
+                output['refactor down'] = 1
+            return output
+
     def setup(self, stage=None):
         """
             Download and split the dataset before training/testing.
@@ -138,7 +151,17 @@ class SentenceEditsModule(BaseDataModule):
         labels_dict = {}
         labels_dict['num_add_after'] = doc_df['add_below_label'].apply(self.process_label).tolist()
         labels_dict['num_add_before'] = doc_df['add_above_label'].apply(self.process_label).tolist()
-        labels_dict['refactor_distance'] = doc_df['refactored_label'].apply(self.process_label).tolist()
+        if not self.do_regression:
+            refactor = (
+                doc_df['refactored_label']
+                    .apply(lambda x: pd.Series(self.process_refactor(x)))
+            )
+            labels_dict['refactor_up'] = refactor['refactor up'].tolist()
+            labels_dict['refactor_unchanged'] = refactor['refactor unchanged'].tolist()
+            labels_dict['refactor_down'] = refactor['refactor down'].tolist()
+        else:
+            labels_dict['refactor_distance'] = doc_df['refactored_label'].tolist()
+
         labels_dict['is_deleted'] = doc_df['deleted_label'].tolist()
         labels_dict['is_edited'] = doc_df['edited_label'].tolist()
         labels_dict['is_unchanged'] = doc_df['unchanged_label'].tolist()
@@ -147,7 +170,8 @@ class SentenceEditsModule(BaseDataModule):
             sent_idx=doc_df['sent_idx'].tolist(),
             sentences=sents,
             labels_dict=labels_dict,
-            max_length_seq=self.max_length_seq
+            max_length_seq=self.max_length_seq,
+            do_regression=self.do_regression
         )
         self.dataset.add_document(data_row)
 
@@ -200,10 +224,24 @@ class SentenceEditsModule(BaseDataModule):
 
 
 class SentenceLabelRow():
-    def __init__(self, labels_dict):
+    def __init__(self, labels_dict, do_regression):
         self.num_add_before = torch.tensor(labels_dict['num_add_before'], dtype=torch.long)
         self.num_add_after = torch.tensor(labels_dict['num_add_after'], dtype=torch.long)
-        self.refactor_distance = torch.tensor(labels_dict['refactor_distance'], dtype=torch.long)
+        self.do_regression = do_regression
+        if self.do_regression:
+            self.refactor_distance = torch.tensor(labels_dict['refactor_distance'], dtype=torch.long)
+        else:
+            refactor_ops_list = [
+                labels_dict['refactor_up'],
+                labels_dict['refactor_unchanged'],
+                labels_dict['refactor_down'],
+            ]
+            refactor_ops_matrix = torch.tensor(refactor_ops_list, dtype=torch.long).T
+            self.refactor_ops = torch.where(refactor_ops_matrix == 1)[1]
+            self.refactor_up = (self.refactor_ops == 0).to(int)
+            self.refactor_unchanged = (self.refactor_ops == 1).to(int)
+            self.refactor_down = (self.refactor_ops == 2).to(int)
+
         sentence_operations_list = [
             labels_dict['is_deleted'],
             labels_dict['is_edited'],
@@ -218,7 +256,13 @@ class SentenceLabelRow():
     def to(self, device):
         self.num_add_before = self.num_add_before.to(device)
         self.num_add_after = self.num_add_after.to(device)
-        self.refactor_distance = self.refactor_distance.to(device)
+        if self.do_regression:
+            self.refactor_distance = self.refactor_distance.to(device)
+        else:
+            self.refactor_up = self.refactor_up.to(device)
+            self.refactor_down = self.refactor_down.to(device)
+            self.refactor_unchanged = self.refactor_unchanged.to(device)
+            self.refactor_ops = self.refactor_ops.to(device)
         self.sentence_operations = self.sentence_operations.to(device)
         self.deleted = self.deleted.to(device)
         self.edited = self.edited.to(device)
@@ -227,27 +271,44 @@ class SentenceLabelRow():
 
 
 class SentenceDataRow():
-    def __init__(self, sent_idx, sentences, labels_dict, max_length_seq):
+    def __init__(self, sent_idx, sentences, labels_dict, max_length_seq, do_regression):
         self.sent_idx = sent_idx
         self.sentences = sentences
         self.max_length_seq = max_length_seq
-        self.labels = SentenceLabelRow(labels_dict)
+        self.labels = SentenceLabelRow(labels_dict, do_regression)
         self.sentence_batch = pad_sequence(self.sentences, batch_first=True)[:, :self.max_length_seq]
         self.sentence_attention = _get_attention_mask(self.sentences, self.max_length_seq)
 
 
 class SentencePredRow():
-    def __init__(self, pred_added_after, pred_added_before, pred_refactored, pred_sent_ops, use_deepspeed=False):
+    def __init__(
+        self,
+        pred_added_after,
+        pred_added_before,
+        pred_sent_ops,
+        pred_refactored=None,
+        pred_refactored_ops=None,
+        use_deepspeed=False
+    ):
         self.pred_added_after = pred_added_after
         self.pred_added_before = pred_added_before
         self.pred_refactored = pred_refactored
-        self.pred_sent_ops = pred_sent_ops.argmax(axis=1)
+        self.pred_refactored_ops = pred_refactored_ops
         data_type = float if not use_deepspeed else torch.half
+        if pred_refactored_ops is not None:
+            self.pred_ref_up = (self.pred_refactored_ops == 0).to(data_type)
+            self.pred_ref_un = (self.pred_refactored_ops == 1).to(data_type)
+            self.pred_ref_down = (self.pred_refactored_ops == 2).to(data_type)
+        self.pred_sent_ops = pred_sent_ops.argmax(axis=1)
         self.deleted = (self.pred_sent_ops == 0).to(data_type)
         self.edited = (self.pred_sent_ops == 1).to(data_type)
         self.unchanged = (self.pred_sent_ops == 2).to(data_type)
 
 
+##############
+#
+# batch data objects
+#
 class SentenceLabelBatch():
     def __init__(self, label_rows=None):
         # we might have an .add_label_row method so label_rows doesn't always have to passed in
