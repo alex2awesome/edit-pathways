@@ -15,10 +15,10 @@ num_gpus_per_node=1
 if [[ $num_nodes -gt 1 ]]
 then
   APPROACH='distributed-pytorch'
-  worker_args="--node-num-gpus $num_gpus_per_node --num-workers $num_nodes --node-num-cores 4 --node-memory 60G"
+  worker_args="--node-num-gpus $num_gpus_per_node --num-workers $num_nodes --node-num-cores 16 --node-memory 80Gi"
 else
   APPROACH='single'
-  worker_args="--node-num-gpus $num_gpus_per_node --node-num-cores 4 --node-memory 60G"
+  worker_args="--node-num-gpus $num_gpus_per_node --node-num-cores 16 --node-memory 80Gi"
 fi
 
 model_type=roberta
@@ -51,8 +51,9 @@ katie compute run \
         --num_train_epochs 3 \
         --do_train \
         --do_eval \
-        --train_data_file_s3 training-data/training_data_short_15.csv.gz \
-        --notes "Poisson Regression, Sentence Level, Docs < 15" \
+        --num_dataloader_cpus 8 \
+        --train_data_file_s3 training-data/training_data_short_15__sampled_30000.csv \
+        --notes "Classification, Sentence Level, Docs < 15,> 5, downsampled 30,000" \
         --freeze_encoder_layers $frozen_layers \
         --dropout .1 \
         --accumulate_grad_batches 1 \
@@ -61,11 +62,11 @@ katie compute run \
         --use_positional \
         --use_doc_emb \
         --doc_embed_arithmetic \
-        --do_regression \
-        --use_poisson_regression \
         --loss_weighting .25 .25 .25 .25 \
         --num_contextual_layers 2 \
         --num_sent_attn_heads 2
+#        --do_regression \
+#        --use_poisson_regression \
 
 #       --pretrained_files_s3 $pretrained_model \
 #        --freeze_encoder_layers $frozen_layers \
