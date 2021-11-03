@@ -176,7 +176,10 @@ class SentenceEditsModule(BaseDataModule):
         batch['attention_mask'] = list(map(lambda x: x.to(device), batch['attention_mask']))
         batch['input_ids'] = list(map(lambda x: x.to(device), batch['input_ids']))
         labels = batch['labels']
-        batch['labels'] = labels.to(device)
+        if isinstance(labels, list):
+            batch['labels'] = list(map(lambda x: x.to(device), labels))
+        else:
+            batch['labels'] = labels.to(device)
         return batch
 
     def collate_fn(self, dataset):
@@ -188,11 +191,11 @@ class SentenceEditsModule(BaseDataModule):
         """
         data_rows = list(map(lambda x: x.collate(), dataset))
         label_rows = list(map(lambda x: x.labels, data_rows))
-        label_batch = SentenceLabelBatch(label_rows=label_rows)
+        # label_batch = SentenceLabelBatch(label_rows=label_rows)
         return {
             'input_ids': list(map(lambda x: x.sentence_batch, data_rows)),
             'attention_mask': list(map(lambda x: x.sentence_attention, data_rows)),
-            'labels': label_batch
+            'labels': label_rows
         }
 
 
@@ -220,6 +223,20 @@ class SentenceLabelRow():
         self.num_add_after = self.num_add_after.to(device)
         self.refactor_distance = self.refactor_distance.to(device)
         self.sentence_operations = self.sentence_operations.to(device)
+        return self
+
+    @property
+    def deleted(self):
+        return (self.sentence_operations == 0).to(int)
+
+    @property
+    def edited(self):
+        return (self.sentence_operations == 1).to(int)
+
+    @property
+    def unchanged(self):
+        return (self.sentence_operations == 2).to(int)
+
 
 class SentenceLabelBatch():
     def __init__(self, label_rows=None):
@@ -315,4 +332,16 @@ class SentencePredRow():
         self.pred_added_after = pred_added_after
         self.pred_added_before = pred_added_before
         self.pred_refactored = pred_refactored
-        self.pred_sent_ops = pred_sent_ops
+        self.pred_sent_ops = pred_sent_ops.argmax(axis=1)
+
+    @property
+    def deleted(self):
+        return (self.pred_sent_ops == 0).to(float)
+
+    @property
+    def edited(self):
+        return (self.pred_sent_ops == 1).to(float)
+
+    @property
+    def unchanged(self):
+        return (self.pred_sent_ops == 2).to(float)

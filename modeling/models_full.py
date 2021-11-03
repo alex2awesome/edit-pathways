@@ -101,7 +101,7 @@ class SentenceDiscriminator(LightningStepsBase, LightningOptimizer, SuperBlank, 
         if isinstance(input_ids, list):
             # batch is list of docs
             losses = []
-            preds_batch = SentencePredBatch()
+            preds_batch = [] # SentencePredBatch()
             attention_mask = vec_or_nones(attention_mask, len(input_ids))
             input_lens = vec_or_nones(input_lens, len(input_ids))
             #
@@ -115,9 +115,9 @@ class SentenceDiscriminator(LightningStepsBase, LightningOptimizer, SuperBlank, 
                 )
 
                 losses.append(loss)
-                preds_batch.add_row_to_batch(sentence_row=preds)
+                preds_batch.append(preds)# add_row_to_batch(sentence_row=preds)
 
             loss = sum(losses)
-            preds_batch.finalize()
+            # preds_batch.finalize()
 
             return loss, preds_batch
