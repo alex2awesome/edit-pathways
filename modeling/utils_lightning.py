@@ -86,14 +86,30 @@ class SentenceMetrics(nn.Module):
         self.refactor_distance = self.refactor_distance.to(device)
 
     def __call__(self, y_pred, y_true, *args, **kwargs):
-        self.sentence_changes_weighted(y_pred.sent_ops, y_true.sentence_operations)
-        self.sentence_changes_macro(y_pred.sent_ops, y_true.sentence_operations)
-        self.deletion(y_pred.deleted, y_true.deleted)
-        self.edited(y_pred.edited, y_true.edited)
-        self.unchanged(y_pred.unchanged, y_true.unchanged)
-        self.additions_above(y_pred.add_before, y_true.num_add_before)
-        self.additions_below(y_pred.add_after, y_true.num_add_after)
-        self.refactor_distance(y_pred.refactored, y_true.refactor_distance)
+        assert (
+                (isinstance(y_true, list) and isinstance(y_pred, list)) or
+                (not isinstance(y_true, list) and not isinstance(y_pred, list))
+        )
+        if isinstance(y_true, list) and isinstance(y_pred, list):
+            for y_t_i, y_p_i in zip(y_true, y_pred):
+                self.sentence_changes_weighted(y_p_i.pred_sent_ops, y_t_i.sentence_operations)
+                self.sentence_changes_macro(y_p_i.pred_sent_ops, y_t_i.sentence_operations)
+                self.deletion(y_p_i.deleted, y_t_i.deleted)
+                self.edited(y_p_i.edited, y_t_i.edited)
+                self.unchanged(y_p_i.unchanged, y_t_i.unchanged)
+                self.additions_above(y_p_i.pred_added_before, y_t_i.num_add_before)
+                self.additions_below(y_p_i.pred_added_after, y_t_i.num_add_after)
+                self.refactor_distance(y_p_i.pred_refactored, y_t_i.refactor_distance)
+
+        elif (not isinstance(y_pred, list)) and (not isinstance(y_true, list)):
+            self.sentence_changes_weighted(y_pred.sent_ops, y_true.sentence_operations)
+            self.sentence_changes_macro(y_pred.sent_ops, y_true.sentence_operations)
+            self.deletion(y_pred.deleted, y_true.deleted)
+            self.edited(y_pred.edited, y_true.edited)
+            self.unchanged(y_pred.unchanged, y_true.unchanged)
+            self.additions_above(y_pred.add_before, y_true.num_add_before)
+            self.additions_below(y_pred.add_after, y_true.num_add_after)
+            self.refactor_distance(y_pred.refactored, y_true.refactor_distance)
 
     def compute(self):
         return {

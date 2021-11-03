@@ -15,10 +15,10 @@ num_gpus_per_node=1
 if [[ $num_nodes -gt 1 ]]
 then
   APPROACH='distributed-pytorch'
-  worker_args="--node-num-gpus $num_gpus_per_node --num-workers $num_nodes --node-num-cores 16 --node-memory 80Gi"
+  worker_args="--node-num-gpus $num_gpus_per_node --num-workers $num_nodes --node-num-cores 4 --node-memory 80Gi"
 else
   APPROACH='single'
-  worker_args="--node-num-gpus $num_gpus_per_node --node-num-cores 16 --node-memory 80Gi"
+  worker_args="--node-num-gpus $num_gpus_per_node --node-num-cores 4 --node-memory 80Gi"
 fi
 
 model_type=roberta
@@ -51,7 +51,7 @@ katie compute run \
         --num_train_epochs 3 \
         --do_train \
         --do_eval \
-        --num_dataloader_cpus 8 \
+        --num_dataloader_cpus 0 \
         --train_data_file_s3 training-data/training_data_short_15__sampled_10000.csv \
         --notes "Classification, Sentence Level, Docs < 15,> 5, downsampled 10,000" \
         --freeze_encoder_layers $frozen_layers \
