@@ -182,14 +182,14 @@ class SentenceEditsModule(BaseDataModule):
             batch['labels'] = labels.to(device)
         return batch
 
-    def collate_fn(self, dataset):
+    def collate_fn(self, data_rows):
         """
         Takes in an instance of Torch Dataset (or a subclassed instance).
         Expects the batch size to be 1.
         Expects dataset[i]['sentences'] to be a list of sentences and other fields (eg. dataset[i]['is_deleted']) to be a list of labels.
         Returns tensors X_batch, y_batch
         """
-        data_rows = list(map(lambda x: x.collate(), dataset))
+        # data_rows = list(map(lambda x: x.collate(), dataset))
         label_rows = list(map(lambda x: x.labels, data_rows))
         # label_batch = SentenceLabelBatch(label_rows=label_rows)
         return {
@@ -201,45 +201,29 @@ class SentenceEditsModule(BaseDataModule):
 
 class SentenceLabelRow():
     def __init__(self, labels_dict):
-        self.num_add_before = labels_dict['num_add_before']
-        self.num_add_after = labels_dict['num_add_after']
-        self.refactor_distance = labels_dict['refactor_distance']
-        self.sentence_operations_list = [
+        self.num_add_before = torch.tensor(labels_dict['num_add_before'], dtype=torch.long)
+        self.num_add_after = torch.tensor(labels_dict['num_add_after'], dtype=torch.long)
+        self.refactor_distance = torch.tensor(labels_dict['refactor_distance'])
+        sentence_operations_list = [
             labels_dict['is_deleted'],
             labels_dict['is_edited'],
             labels_dict['is_unchanged']
         ]
-
-    def collate(self):
-        self.num_add_before = torch.tensor(self.num_add_before, dtype=torch.long)
-        self.num_add_after = torch.tensor(self.num_add_after, dtype=torch.long)
-        self.refactor_distance = torch.tensor(self.refactor_distance, dtype=torch.long)
-        self.sentence_operations_matrix = torch.tensor(self.sentence_operations_list, dtype=torch.long).T
-        try:
-            self.sentence_operations = torch.where(self.sentence_operations_matrix == 1)[1]
-        except:
-            print('FAILED:')
-            print(self.sentence_operations_matrix)
-        return self
+        sentence_operations_matrix = torch.tensor(sentence_operations_list, dtype=torch.long).T
+        self.sentence_operations = torch.where(sentence_operations_matrix == 1)[1]
+        self.deleted = (self.sentence_operations == 0).to(int)
+        self.edited = (self.sentence_operations == 1).to(int)
+        self.unchanged = (self.sentence_operations == 2).to(int)
 
     def to(self, device):
         self.num_add_before = self.num_add_before.to(device)
         self.num_add_after = self.num_add_after.to(device)
         self.refactor_distance = self.refactor_distance.to(device)
         self.sentence_operations = self.sentence_operations.to(device)
+        self.deleted = self.deleted.to(device)
+        self.edited = self.edited.to(device)
+        self.unchanged = self.unchanged.to(device)
         return self
-
-    @property
-    def deleted(self):
-        return (self.sentence_operations == 0).to(int)
-
-    @property
-    def edited(self):
-        return (self.sentence_operations == 1).to(int)
-
-    @property
-    def unchanged(self):
-        return (self.sentence_operations == 2).to(int)
 
 
 class SentenceLabelBatch():
@@ -286,12 +270,8 @@ class SentenceDataRow():
         self.sentences = sentences
         self.max_length_seq = max_length_seq
         self.labels = SentenceLabelRow(labels_dict)
-
-    def collate(self):
         self.sentence_batch = pad_sequence(self.sentences, batch_first=True)[:, :self.max_length_seq]
         self.sentence_attention = _get_attention_mask(self.sentences, self.max_length_seq)
-        self.labels.collate()
-        return self
 
 
 class SentencePredBatch():
