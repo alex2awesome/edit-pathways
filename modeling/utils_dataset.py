@@ -204,7 +204,7 @@ class SentenceLabelRow():
         self.num_add_before = labels_dict['num_add_before']
         self.num_add_after = labels_dict['num_add_after']
         self.refactor_distance = labels_dict['refactor_distance']
-        self.sentence_operations = [
+        self.sentence_operations_list = [
             labels_dict['is_deleted'],
             labels_dict['is_edited'],
             labels_dict['is_unchanged']
@@ -214,7 +214,7 @@ class SentenceLabelRow():
         self.num_add_before = torch.tensor(self.num_add_before, dtype=torch.long)
         self.num_add_after = torch.tensor(self.num_add_after, dtype=torch.long)
         self.refactor_distance = torch.tensor(self.refactor_distance, dtype=torch.long)
-        self.sentence_operations_matrix = torch.tensor(self.sentence_operations, dtype=torch.long).T
+        self.sentence_operations_matrix = torch.tensor(self.sentence_operations_list, dtype=torch.long).T
         try:
             self.sentence_operations = torch.where(self.sentence_operations_matrix == 1)[1]
         except:
