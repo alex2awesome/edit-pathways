@@ -117,6 +117,7 @@ def main(
         plugins='deepspeed_stage_2' if args.use_deepspeed else None,
         accumulate_grad_batches=config.accumulate_grad_batches,
         gradient_clip_val=config.max_grad_norm,
+        precision=16 if args.use_deepspeed else 32
     )
     trainer.fit(model, datamodule=dataset)
 
