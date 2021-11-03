@@ -226,6 +226,28 @@ class SentenceLabelRow():
         return self
 
 
+class SentenceDataRow():
+    def __init__(self, sent_idx, sentences, labels_dict, max_length_seq):
+        self.sent_idx = sent_idx
+        self.sentences = sentences
+        self.max_length_seq = max_length_seq
+        self.labels = SentenceLabelRow(labels_dict)
+        self.sentence_batch = pad_sequence(self.sentences, batch_first=True)[:, :self.max_length_seq]
+        self.sentence_attention = _get_attention_mask(self.sentences, self.max_length_seq)
+
+
+class SentencePredRow():
+    def __init__(self, pred_added_after, pred_added_before, pred_refactored, pred_sent_ops, use_deepspeed=False):
+        self.pred_added_after = pred_added_after
+        self.pred_added_before = pred_added_before
+        self.pred_refactored = pred_refactored
+        self.pred_sent_ops = pred_sent_ops.argmax(axis=1)
+        data_type = float if not use_deepspeed else torch.half
+        self.deleted = (self.pred_sent_ops == 0).to(data_type)
+        self.edited = (self.pred_sent_ops == 1).to(data_type)
+        self.unchanged = (self.pred_sent_ops == 2).to(data_type)
+
+
 class SentenceLabelBatch():
     def __init__(self, label_rows=None):
         # we might have an .add_label_row method so label_rows doesn't always have to passed in
@@ -264,16 +286,6 @@ class SentenceLabelBatch():
         return self
 
 
-class SentenceDataRow():
-    def __init__(self, sent_idx, sentences, labels_dict, max_length_seq):
-        self.sent_idx = sent_idx
-        self.sentences = sentences
-        self.max_length_seq = max_length_seq
-        self.labels = SentenceLabelRow(labels_dict)
-        self.sentence_batch = pad_sequence(self.sentences, batch_first=True)[:, :self.max_length_seq]
-        self.sentence_attention = _get_attention_mask(self.sentences, self.max_length_seq)
-
-
 class SentencePredBatch():
     def __init__(self):
         self.sent_ops = []
@@ -309,23 +321,3 @@ class SentencePredBatch():
     def unchanged(self):
         return (self.sent_ops == 2).to(float)
 
-
-
-class SentencePredRow():
-    def __init__(self, pred_added_after, pred_added_before, pred_refactored, pred_sent_ops):
-        self.pred_added_after = pred_added_after
-        self.pred_added_before = pred_added_before
-        self.pred_refactored = pred_refactored
-        self.pred_sent_ops = pred_sent_ops.argmax(axis=1)
-
-    @property
-    def deleted(self):
-        return (self.pred_sent_ops == 0).to(float)
-
-    @property
-    def edited(self):
-        return (self.pred_sent_ops == 1).to(float)
-
-    @property
-    def unchanged(self):
-        return (self.pred_sent_ops == 2).to(float)

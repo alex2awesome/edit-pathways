@@ -68,7 +68,8 @@ class SentenceDiscriminator(LightningStepsBase, LightningOptimizer, SuperBlank, 
             pred_sent_ops=pred_sent_ops,
             pred_refactored=pred_refactored,
             pred_added_before=pred_added_before,
-            pred_added_after=pred_added_after
+            pred_added_after=pred_added_after,
+            use_deepspeed=self.config.use_deepspeed
         )
 
         losses = Variable(torch.tensor([loss_added_afer, loss_added_before, loss_refactored, loss_sent_ops]), requires_grad=True)
