@@ -161,6 +161,7 @@ class LightningStepsBase(SuperBlank, pl.LightningModule):
     def step(self, batch, batch_idx, log_name):
         loss, y_pred = self.forward(**batch)
         self.log(log_name, loss)
+        torch.cuda.empty_cache()
         return {'loss': loss, 'y_pred': y_pred, 'y_true': batch['labels']}
 
     def training_step(self, batch, batch_idx):
