@@ -144,6 +144,74 @@ class BaseDataModule(pl.LightningDataModule):
         )
 
 
+class DocumentEditsModule(BaseDataModule):
+    def process_document(self, doc_s):
+        sents = doc_s['sentences'].split('<SENT>')
+        sents = list(map(self.process_sentence))
+        labels = doc_s.drop(['source', 'entry_id', 'version', 'sentences'], axis=1).astype(int)
+        data_row = DocDataRow(
+            sentences=sents,
+            labels=labels,
+            max_length_seq=self.max_length_seq,
+        )
+        self.dataset.add_document(data_row)
+
+    def get_dataset(self):
+        """
+        Read in csv with the fields:
+            * 'source', 'entry_id', 'version'
+            * sentences
+            * 'add_above_label, 0/n, ...'
+            * 'add_below_label, 0/n...'
+            * deleted_label, 0/n'...
+            * 'edited_label, 0/n...'
+            * 'not refactored, 0/n...'
+            * 'refactored down, 0/n'...
+            * 'unchanged_label, 0/n'
+        Returns Dataset
+        """
+        input_data = pd.read_csv(self.data_fp).drop(['source', 'entry_id', 'version'], axis=1)
+        input_data['sentences'] = input_data['sentences'].fillna('')
+        input_data.groupby(['source', 'entry_id', 'version']).apply(self.process_document)
+        return self.dataset
+
+    def transfer_batch_to_device(self, batch, device, dataloader_idx):
+        batch['attention_mask'] = list(map(lambda x: x.to(device), batch['attention_mask']))
+        batch['input_ids'] = list(map(lambda x: x.to(device), batch['input_ids']))
+        labels = batch['labels']
+        if isinstance(labels, list):
+            batch['labels'] = list(map(lambda x: x.to(device), labels))
+        else:
+            batch['labels'] = labels.to(device)
+        return batch
+
+    def collate_fn(self, data_rows):
+        """
+        Takes in an instance of Torch Dataset (or a subclassed instance).
+        Expects the batch size to be 1.
+        Expects dataset[i]['sentences'] to be a list of sentences and other fields (eg. dataset[i]['is_deleted']) to be a list of labels.
+        Returns tensors X_batch, y_batch
+        """
+        # data_rows = list(map(lambda x: x.collate(), dataset))
+        label_rows = list(map(lambda x: x.labels, data_rows))
+        # label_batch = SentenceLabelBatch(label_rows=label_rows)
+        return {
+            'input_ids': list(map(lambda x: x.sentence_batch, data_rows)),
+            'attention_mask': list(map(lambda x: x.sentence_attention, data_rows)),
+            'labels': label_rows
+        }
+
+class DocDataRow():
+    def __init__(self, sent_idx, sentences, labels_dict, max_length_seq, do_regression):
+        self.sent_idx = sent_idx
+        self.sentences = sentences
+        self.max_length_seq = max_length_seq
+        self.labels = SentenceLabelRow(labels_dict, do_regression)
+        self.sentence_batch = pad_sequence(self.sentences, batch_first=True)[:, :self.max_length_seq]
+        self.sentence_attention = _get_attention_mask(self.sentences, self.max_length_seq)
+
+
+
 class SentenceEditsModule(BaseDataModule):
     def process_document(self, doc_df):
         doc_df = doc_df.sort_values('sent_idx')
@@ -193,7 +261,7 @@ class SentenceEditsModule(BaseDataModule):
         """
         input_data = pd.read_csv(self.data_fp)
         input_data['sentence'] = input_data['sentence'].fillna('')
-        input_data.groupby(['entry_id', 'version']).apply(self.process_document)
+        input_data.groupby(['source', 'entry_id', 'version']).apply(self.process_document)
         return self.dataset
 
     def transfer_batch_to_device(self, batch, device, dataloader_idx):
