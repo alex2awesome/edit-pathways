@@ -38,7 +38,7 @@ class SentenceLevelSelfAttention(nn.Module):
         self.drop = nn.Dropout(config.dropout)
 
     def forward(self, contexualized_word_embs, context_mask):
-        self_attention = self.self_attention(contexualized_word_embs, context_mask)              # sent_encoding: (# sents in batch x hidden_dim )
+        self_attention = self.self_attention(contexualized_word_embs, context_mask)              #      sent_encoding: (# sents in batch x hidden_dim )
         sent_encoding = torch.sum(contexualized_word_embs * self_attention.unsqueeze(-1), dim=1)
         return self.drop(sent_encoding)
 
