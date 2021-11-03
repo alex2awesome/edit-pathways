@@ -91,6 +91,7 @@ class SentenceMetrics(nn.Module):
                 (not isinstance(y_true, list) and not isinstance(y_pred, list))
         )
         if isinstance(y_true, list) and isinstance(y_pred, list):
+            # if we don't organize PredRows/LabelRows as a Batch (maybe has memory issues?)
             for y_t_i, y_p_i in zip(y_true, y_pred):
                 self.sentence_changes_weighted(y_p_i.pred_sent_ops, y_t_i.sentence_operations)
                 self.sentence_changes_macro(y_p_i.pred_sent_ops, y_t_i.sentence_operations)
@@ -101,6 +102,7 @@ class SentenceMetrics(nn.Module):
                 self.additions_below(y_p_i.pred_added_after, y_t_i.num_add_after)
                 self.refactor_distance(y_p_i.pred_refactored, y_t_i.refactor_distance)
 
+        # if we do organize PredRows/LabelRows as a Batch
         elif (not isinstance(y_pred, list)) and (not isinstance(y_true, list)):
             self.sentence_changes_weighted(y_pred.sent_ops, y_true.sentence_operations)
             self.sentence_changes_macro(y_pred.sent_ops, y_true.sentence_operations)

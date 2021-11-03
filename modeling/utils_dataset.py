@@ -215,7 +215,11 @@ class SentenceLabelRow():
         self.num_add_after = torch.tensor(self.num_add_after, dtype=torch.long)
         self.refactor_distance = torch.tensor(self.refactor_distance, dtype=torch.long)
         self.sentence_operations_matrix = torch.tensor(self.sentence_operations, dtype=torch.long).T
-        self.sentence_operations = torch.where(self.sentence_operations_matrix == 1)[1]
+        try:
+            self.sentence_operations = torch.where(self.sentence_operations_matrix == 1)[1]
+        except:
+            print('FAILED:')
+            print(self.sentence_operations_matrix)
         return self
 
     def to(self, device):
