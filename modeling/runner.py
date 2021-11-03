@@ -99,6 +99,7 @@ def main(
                 'num_warmup_steps': config.num_warmup_steps,
                 'learning_rate': config.learning_rate,
                 'gradient_accumulation': config.accumulate_grad_batches,
+                'notes': config.notes
             }
         )
     else:
