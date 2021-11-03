@@ -111,9 +111,10 @@ def main(
         callbacks=[checkpoint_callback],
         gpus=num_gpus,
         num_nodes=num_nodes,
-        accelerator=accelerator,
+        accelerator=accelerator if not args.use_deepspeed else None,
         max_epochs=10,
         logger=tb_logger,
+        plugins='deepspeed_stage_2' if args.use_deepspeed else None,
         accumulate_grad_batches=config.accumulate_grad_batches,
         gradient_clip_val=config.max_grad_norm,
     )

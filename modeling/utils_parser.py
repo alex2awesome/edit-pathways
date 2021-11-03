@@ -21,6 +21,7 @@ def attach_model_arguments(parser):
     parser.add_argument('--num_train_epochs', type=int, default=None)
     parser.add_argument('--log_all_metrics', action='store_true')
     parser.add_argument('--tb_logdir', default=None, type=str, help="Path for tensorboard logs.")
+    parser.add_argument('--use_deepspeed', action='store_true')
 
     ## optimization params
     parser.add_argument('--learning_rate', type=float, default=5e-5)
