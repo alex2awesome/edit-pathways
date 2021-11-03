@@ -37,7 +37,7 @@ class SentenceDiscriminator(LightningStepsBase, LightningOptimizer, SuperBlank, 
                 self.add_before_head = NormalRegressionSequenceHead(config=self.config)
                 self.add_after_head = NormalRegressionSequenceHead(config=self.config)
         else:
-            self.refactor_head = BinaryClassSequenceHead(config=self.config)
+            self.refactor_head = MultiClassSequenceHead(config=self.config)
             self.add_before_head = BinaryClassSequenceHead(config=self.config)
             self.add_after_head = BinaryClassSequenceHead(config=self.config)
 
@@ -61,12 +61,22 @@ class SentenceDiscriminator(LightningStepsBase, LightningOptimizer, SuperBlank, 
         # get losses
         loss_added_afer, pred_added_after = self.add_after_head(context_embs, label.num_add_after, pos_embs, doc_embs)
         loss_added_before, pred_added_before = self.add_before_head(context_embs, label.num_add_before, pos_embs, doc_embs)
-        loss_refactored, pred_refactored = self.refactor_head(context_embs, label.refactor_distance, pos_embs, doc_embs)
+        pred_refactored, pred_refactored_ops = None, None
+        if self.config.do_regression:
+            loss_refactored, pred_refactored = self.refactor_head(context_embs, label.refactor_distance, pos_embs, doc_embs)
+        else:
+            loss_refactored, pred_refactored_ops = self.refactor_head(
+                context_embs,
+                label.refactor_ops,
+                pos_embs,
+                doc_embs
+            )
         loss_sent_ops, pred_sent_ops = self.sentence_operation_head(context_embs, label.sentence_operations, pos_embs, doc_embs)
 
         predictions = SentencePredRow(
             pred_sent_ops=pred_sent_ops,
             pred_refactored=pred_refactored,
+            pred_refactored_ops=pred_refactored_ops,
             pred_added_before=pred_added_before,
             pred_added_after=pred_added_after,
             use_deepspeed=self.config.use_deepspeed
