@@ -72,22 +72,34 @@ class BinaryClassSequenceHead(SequenceHeadBase):
         loss = self.criterion(preds, labels)
         return loss
 
+
+class MultilabelSequenceHead(SequenceHeadBase):
+    def __init__(self, num_labels, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.pred = nn.Linear(self.config.hidden_dim, num_labels)
+        self.drop = nn.Dropout(self.config.dropout)
+        self.criterion = nn.BCEWithLogitsLoss()
+
+    def calculate_loss(self, preds, labels):
+        preds = preds.reshape(labels.shape)
+        labels = labels.float()
+        return super().calculate_loss(preds, labels)
+
+
 class MultiClassSequenceHead(SequenceHeadBase):
-    def __init__(self, config, *args, **kwargs):
-        super().__init__(config, *args, **kwargs)
-        self.config = config
-        self.pred = nn.Linear(config.hidden_dim, 3)
-        self.drop = nn.Dropout(config.dropout)
+    def __init__(self, num_labels=3, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.pred = nn.Linear(self.config.hidden_dim, num_labels)
+        self.drop = nn.Dropout(self.config.dropout)
         self.criterion = nn.CrossEntropyLoss(reduction='none')
         self._init_prediction_weights()
 
 
 class NormalRegressionSequenceHead(SequenceHeadBase):
-    def __init__(self, config):
-        super().__init__(config=config)
-        self.config = config
-        self.pred = nn.Linear(config.hidden_dim, 1)
-        self.drop = nn.Dropout(config.dropout)
+    def __init__(self, num_labels=1, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.pred = nn.Linear(self.config.hidden_dim, num_labels)
+        self.drop = nn.Dropout(self.config.dropout)
         self.criterion = torch.nn.MSELoss(reduction='none')
 
     def forward(self, sentence_embs, labels, position_embeddings=None, doc_embedding=None):
@@ -100,18 +112,12 @@ class NormalRegressionSequenceHead(SequenceHeadBase):
 
 
 class PoissonRegressionSequenceHead(NormalRegressionSequenceHead):
-    def __init__(self, config):
-        super().__init__(config=config)
-        self.config = config
-        self.pred = nn.Linear(config.hidden_dim, 1)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.exp = torch.exp
-        self.drop = nn.Dropout(config.dropout)
         self.criterion = torch.nn.PoissonNLLLoss(reduction='none')
 
     def perform_prediction(self, sentence_embs, position_embeddings=None, doc_embedding=None):
-        concatted_embs = self.concat_vectors(sentence_embs, position_embeddings, doc_embedding)
-        if self.num_addt_vectors > 0:
-            concatted_embs = self.pre_pred(self.drop(torch.tanh(concatted_embs)))    ## pre_pred = (batch_size x hidden_dim * 2)
-        pred = self.pred(self.drop(torch.tanh(concatted_embs)))                     ## pred = ( batch_size x num_labels)
+        pred = super().perform_prediction(sentence_embs, position_embeddings, doc_embedding)
         return torch.exp(pred)
 
