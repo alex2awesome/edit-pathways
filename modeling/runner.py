@@ -4,9 +4,9 @@ import logging
 from modeling.utils_config import training_args, TransformersConfig, get_transformer_config
 from modeling.utils_parser import attach_model_arguments
 from modeling.utils_general import reformat_model_path
-from modeling.models_full import SentenceDiscriminator
+from modeling.models_full import SentenceDiscriminator, DocumentDiscriminator
 from modeling.utils_dataset import (
-    SentenceEditsModule
+    SentenceEditsModule, DocumentEditsModule
 )
 #
 import pytorch_lightning as pl
@@ -22,13 +22,13 @@ logging.basicConfig(level=logging.INFO)
 
 experiments = {
     'sentence': (SentenceEditsModule, SentenceDiscriminator),
-    'document': (),
+    'document': (DocumentEditsModule, DocumentDiscriminator),
 }
 
 def main(
         training_args,
         config,
-        experiment='lstm_sequential',
+        experiment='sentence',
         output_fp='.',
         num_nodes=1,
         num_gpus=1,
@@ -44,6 +44,7 @@ def main(
 
     datasetclass, discriminator_class = experiments[experiment]
     dataset = datasetclass(
+        config=config,
         data_fp=config.main_data_file,
         pretrained_model_path=config.pretrained_cache_dir,
         num_cpus=config.num_dataloader_cpus,
@@ -53,6 +54,8 @@ def main(
     dataset.setup(stage='fit')
 
     # some config handling
+    if experiment == 'document':
+        config.id2label = dataset.class_label_order
     config.pad_id = dataset.tokenizer.pad_token_id or 0
     config.num_steps_per_epoch = len(dataset.train_dataset)
     config.total_steps = training_args.num_train_epochs * config.num_steps_per_epoch

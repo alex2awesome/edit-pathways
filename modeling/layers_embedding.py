@@ -112,9 +112,9 @@ class SentenceEmbeddingsLayer(nn.Module):
 
 
 class DocEmbedding(nn.Module):
-    def __init__(self, config):
+    def __init__(self, config, expand=True):
         super().__init__()
-        self.doc_attention = DocLevelSelfAttention(config)  ## we find DocLevelSelfAttention performs the same/better than DocLevelAttention
+        self.doc_attention = DocLevelSelfAttention(config, expand)  ## we find DocLevelSelfAttention performs the same/better than DocLevelAttention
 
     def forward(self, sentence_embeddings):
         return self.doc_attention(sentence_embeddings)

@@ -43,6 +43,7 @@ class Dataset(data.Dataset):
 class BaseDataModule(pl.LightningDataModule):
     def __init__(self, *args, **kwargs):
         super().__init__()
+        self.config = kwargs.get('config')
         self.data_fp = kwargs.get('data_fp')
         self.add_eos_token = (kwargs.get('model_type') == "gpt2")
         self.max_length_seq = kwargs.get('max_length_seq')
@@ -145,21 +146,34 @@ class BaseDataModule(pl.LightningDataModule):
 
 
 class DocumentEditsModule(BaseDataModule):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.class_label_order = None
+
     def process_document(self, doc_s):
         sents = doc_s['sentences'].split('<SENT>')
-        sents = list(map(self.process_sentence))
-        labels = doc_s.drop(['source', 'entry_id', 'version', 'sentences'], axis=1).astype(int)
+        sents = list(map(self.process_sentence, sents))
+        labels = (
+            doc_s
+              .drop('sentences')
+              .astype(int)
+        )
+        if self.class_label_order is None:
+            self.class_label_order = labels.index.tolist()
+        else:
+            labels = labels[self.class_label_order]
+
         data_row = DocDataRow(
             sentences=sents,
             labels=labels,
             max_length_seq=self.max_length_seq,
+            do_regression=self.do_regression
         )
         self.dataset.add_document(data_row)
 
     def get_dataset(self):
         """
-        Read in csv with the fields:
-            * 'source', 'entry_id', 'version'
+        Read in csv where each row represents a document, with the following fields:
             * sentences
             * 'add_above_label, 0/n, ...'
             * 'add_below_label, 0/n...'
@@ -171,8 +185,10 @@ class DocumentEditsModule(BaseDataModule):
         Returns Dataset
         """
         input_data = pd.read_csv(self.data_fp).drop(['source', 'entry_id', 'version'], axis=1)
+        if self.config.local:
+            input_data = input_data.head(100)
         input_data['sentences'] = input_data['sentences'].fillna('')
-        input_data.groupby(['source', 'entry_id', 'version']).apply(self.process_document)
+        input_data.apply(self.process_document, axis=1)
         return self.dataset
 
     def transfer_batch_to_device(self, batch, device, dataloader_idx):
@@ -202,14 +218,29 @@ class DocumentEditsModule(BaseDataModule):
         }
 
 class DocDataRow():
-    def __init__(self, sent_idx, sentences, labels_dict, max_length_seq, do_regression):
-        self.sent_idx = sent_idx
+    def __init__(self, sentences, labels, max_length_seq, do_regression):
         self.sentences = sentences
         self.max_length_seq = max_length_seq
-        self.labels = SentenceLabelRow(labels_dict, do_regression)
+        self.labels = DocLabelRow(labels, do_regression)
         self.sentence_batch = pad_sequence(self.sentences, batch_first=True)[:, :self.max_length_seq]
         self.sentence_attention = _get_attention_mask(self.sentences, self.max_length_seq)
 
+
+class DocLabelRow():
+    def __init__(self, labels, do_regression):
+        self.labels = torch.tensor(labels, dtype=torch.long)
+        self.vals = labels.values.tolist()
+        if not do_regression:
+            self.labels = (self.labels > 0).to(torch.long)
+
+    def to(self, device):
+        self.labels = self.labels.to(device)
+        return self
+
+
+class DocPredRow():
+    def __init__(self, preds):
+        self.preds = preds.squeeze()
 
 
 class SentenceEditsModule(BaseDataModule):
@@ -291,6 +322,16 @@ class SentenceEditsModule(BaseDataModule):
         }
 
 
+class SentenceDataRow():
+    def __init__(self, sent_idx, sentences, labels_dict, max_length_seq, do_regression):
+        self.sent_idx = sent_idx
+        self.sentences = sentences
+        self.max_length_seq = max_length_seq
+        self.labels = SentenceLabelRow(labels_dict, do_regression)
+        self.sentence_batch = pad_sequence(self.sentences, batch_first=True)[:, :self.max_length_seq]
+        self.sentence_attention = _get_attention_mask(self.sentences, self.max_length_seq)
+
+
 class SentenceLabelRow():
     def __init__(self, labels_dict, do_regression):
         self.num_add_before = torch.tensor(labels_dict['num_add_before'], dtype=torch.long)
@@ -338,15 +379,6 @@ class SentenceLabelRow():
         return self
 
 
-class SentenceDataRow():
-    def __init__(self, sent_idx, sentences, labels_dict, max_length_seq, do_regression):
-        self.sent_idx = sent_idx
-        self.sentences = sentences
-        self.max_length_seq = max_length_seq
-        self.labels = SentenceLabelRow(labels_dict, do_regression)
-        self.sentence_batch = pad_sequence(self.sentences, batch_first=True)[:, :self.max_length_seq]
-        self.sentence_attention = _get_attention_mask(self.sentences, self.max_length_seq)
-
 
 class SentencePredRow():
     def __init__(
@@ -361,9 +393,9 @@ class SentencePredRow():
         self.pred_added_after = pred_added_after
         self.pred_added_before = pred_added_before
         self.pred_refactored = pred_refactored
-        self.pred_refactored_ops = pred_refactored_ops.argmax(axis=1)
         data_type = float if not use_deepspeed else torch.half
         if pred_refactored_ops is not None:
+            self.pred_refactored_ops = pred_refactored_ops.argmax(axis=1)
             self.pred_ref_up = (self.pred_refactored_ops == 0).to(data_type)
             self.pred_ref_un = (self.pred_refactored_ops == 1).to(data_type)
             self.pred_ref_down = (self.pred_refactored_ops == 2).to(data_type)

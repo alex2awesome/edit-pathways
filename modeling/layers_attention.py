@@ -44,9 +44,10 @@ class SentenceLevelSelfAttention(nn.Module):
 
 
 class DocLevelSelfAttention(nn.Module):
-    def __init__(self, config):
+    def __init__(self, config, expand=True):
         super().__init__()
         self.self_attention = AdditiveSelfAttention(input_dim=config.hidden_dim, dropout=config.dropout)
+        self.expand = expand
 
     def forward(self, sent_encoding):
         ## get document embedding?
@@ -58,5 +59,6 @@ class DocLevelSelfAttention(nn.Module):
 
         ## reshape
         sent_encoding = sent_encoding.squeeze()                               # inner_pred = batch_size x (hidden_dim * 2)
-        doc_encoding = doc_encoding.expand(sent_encoding.size())              #  doc_encoding = batch_size x (hidden_dim * 2)
+        if self.expand:
+            doc_encoding = doc_encoding.expand(sent_encoding.size())              #  doc_encoding = batch_size x (hidden_dim * 2)
         return doc_encoding
