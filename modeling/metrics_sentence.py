@@ -1,8 +1,10 @@
 from torch import nn
-from torchmetrics import F1, MeanSquaredError
+from torchmetrics import MeanSquaredError, F1
+from modeling.utils_mixer import Mixer
+
 
 class SentenceMetricsBase(nn.Module):
-    def __init__(self, config, step, dist_sync_on_step):
+    def __init__(self, config, step, dist_sync_on_step=False):
         super().__init__()
         self.step = step
         self.dist_sync_on_step = dist_sync_on_step
@@ -10,9 +12,9 @@ class SentenceMetricsBase(nn.Module):
         self.metrics = nn.ModuleDict()
 
     def __call__(self, y_pred, y_true, *args, **kwargs):
-        assert (isinstance(y_true, list) and isinstance(y_pred, list))
-        for y_t_i, y_p_i in zip(y_true, y_pred):
-            self.update(y_t_i, y_p_i)
+        assert (isinstance(y_pred, list) and isinstance(y_true, list))
+        for y_p_i, y_t_i in zip(y_pred, y_true):
+            self.update(y_p_i, y_t_i)
 
     def reset(self):
         for k in self.metrics:
@@ -32,6 +34,7 @@ class SentenceMetricsRefactorRegression(SentenceMetricsBase):
         self.metrics[self.key] = MeanSquaredError(dist_sync_on_step=self.dist_sync_on_step)
 
     def update(self, pred, target):
+        super().update(pred, target)
         self.metrics[self.key](pred.pred_refactored, target.refactor_distance)
 
 
@@ -119,42 +122,34 @@ class SentenceMetricsAddClassification(SentenceMetricsBase):
         self.metrics[self.keys[1]](pred.pred_added_after, target.num_add_after)
 
 
-class SentenceMetrics(SentenceMetricsBase):
+class SentenceMetricsBlank(SentenceMetricsBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    def update(self, pred, target):
+        pass
 
 
-class DocMetrics(nn.Module):
-    def __init__(self, step, config, dist_sync_on_step):
-        super().__init__()
-        self.step = step
-        self.metrics = nn.ModuleDict()
+
+
+def get_sentence_metrics(config, step, dist_sync_on_step):
+    sentence_metrics_mixin = []
+    if config.do_addition:
         if config.do_regression:
-            for k in config.id2label:
-                self.metrics[k] = MeanSquaredError(dist_sync_on_step=dist_sync_on_step)
+            sentence_metrics_mixin.append(SentenceMetricsAddRegression)
         else:
-            for k in config.id2label:
-                self.metrics[k] = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
-
-    def __call__(self, y_pred, y_true, *args, **kwargs):
-        assert (isinstance(y_true, list) and isinstance(y_pred, list))
-        for y_p_i, y_t_i in zip(y_pred, y_true):
-            for y_p_i_j, y_t_i_j in zip(y_p_i.preds, y_t_i.labels):
-                for k in self.metrics:
-                    self.metrics[k](y_p_i_j.unsqueeze(dim=0), y_t_i_j.unsqueeze(dim=0))
-
-    def compute(self):
-        output = {}
-        for k in self.metrics:
-            output_key = '%s: %s' % (self.step, k)
-            output[output_key] = self.metrics[k].compute()
-        return output
-
-    def reset(self):
-        for k in self.metrics:
-            self.metrics[k].reset()
-
-    def to(self, device):
-        for k in self.metrics:
-            self.metrics[k].to(device)
+            sentence_metrics_mixin.append(SentenceMetricsAddClassification)
+    if config.do_refactor:
+        if config.do_regression:
+            sentence_metrics_mixin.append(SentenceMetricsRefactorRegression)
+        else:
+            sentence_metrics_mixin.append(SentenceMetricsRefactorClassification)
+    if config.do_operations:
+        sentence_metrics_mixin.append(SentenceMetricsOperations)
+    sentence_metrics_mixin.append(SentenceMetricsBlank)
+    return Mixer(
+        config=config,
+        step=step,
+        dist_sync_on_step=dist_sync_on_step,
+        mixin=sentence_metrics_mixin
+    )
