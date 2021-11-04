@@ -137,7 +137,6 @@ class DocMetrics(nn.Module):
                 for k in self.metrics:
                     self.metrics[k](y_p_i_j.unsqueeze(dim=0), y_t_i_j.unsqueeze(dim=0))
 
-
     def compute(self):
         output = {}
         for k in self.metrics:
