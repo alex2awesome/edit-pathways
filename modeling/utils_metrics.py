@@ -122,7 +122,7 @@ class DocMetrics(nn.Module):
     def __init__(self, step, config, dist_sync_on_step):
         super().__init__()
         self.step = step
-        self.metrics = {}
+        self.metrics = nn.ModuleDict()
         if config.do_regression:
             for k in config.id2label:
                 self.metrics[k] = MeanSquaredError(dist_sync_on_step=dist_sync_on_step)
