@@ -1,6 +1,28 @@
 from torch import nn
 from torchmetrics import F1, MeanSquaredError
 
+class SentenceMetricsRefactor(nn.Module):
+    def __init__(self, config, step, device, dist_sync_on_step):
+        super().__init__()
+        if self.config.do_regression:
+            self.refactor_distance = MeanSquaredError(dist_sync_on_step=dist_sync_on_step)
+        else:
+            self.refactor_ops_weighted = F1(num_classes=3, average='weighted', dist_sync_on_step=dist_sync_on_step)
+            self.refactor_ops_macro = F1(num_classes=3, average='macro', dist_sync_on_step=dist_sync_on_step)
+            self.refactor_up = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
+            self.refactor_un = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
+            self.refactor_down = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
+
+    def to(self, device):
+        if self.config.do_regression:
+            self.refactor_distance = self.refactor_distance.to(device)
+        else:
+            self.refactor_ops_weighted = self.refactor_ops_weighted.to(device)
+            self.refactor_ops_macro = self.refactor_ops_macro.to(device)
+            self.refactor_up = self.refactor_up.to(device)
+            self.refactor_un = self.refactor_un.to(device)
+            self.refactor_down = self.refactor_down.to(device)
+
 
 class SentenceMetrics(nn.Module):
     def __init__(self, config, step, device, dist_sync_on_step):
@@ -19,15 +41,10 @@ class SentenceMetrics(nn.Module):
         if self.config.do_regression:
             self.additions_below = MeanSquaredError(dist_sync_on_step=dist_sync_on_step)
             self.additions_above = MeanSquaredError(dist_sync_on_step=dist_sync_on_step)
-            self.refactor_distance = MeanSquaredError(dist_sync_on_step=dist_sync_on_step)
+
         else:
             self.additions_below = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
             self.additions_above = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
-            self.refactor_ops_weighted = F1(num_classes=3, average='weighted', dist_sync_on_step=dist_sync_on_step)
-            self.refactor_ops_macro = F1(num_classes=3, average='macro', dist_sync_on_step=dist_sync_on_step)
-            self.refactor_up = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
-            self.refactor_un = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
-            self.refactor_down = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
 
     def to(self, device):
         self.sentence_changes_weighted = self.sentence_changes_weighted.to(device)
@@ -37,14 +54,6 @@ class SentenceMetrics(nn.Module):
         self.unchanged = self.unchanged.to(device)
         self.additions_below = self.additions_below.to(device)
         self.additions_above = self.additions_above.to(device)
-        if self.config.do_regression:
-            self.refactor_distance = self.refactor_distance.to(device)
-        else:
-            self.refactor_ops_weighted = self.refactor_ops_weighted.to(device)
-            self.refactor_ops_macro = self.refactor_ops_macro.to(device)
-            self.refactor_up = self.refactor_up.to(device)
-            self.refactor_un = self.refactor_un.to(device)
-            self.refactor_down = self.refactor_down.to(device)
 
     def __call__(self, y_pred, y_true, *args, **kwargs):
         assert (

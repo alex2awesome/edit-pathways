@@ -122,9 +122,9 @@ class PoissonRegressionSequenceHead(NormalRegressionSequenceHead):
         return torch.exp(pred)
 
 
-from pytorch_forecasting.metrics import BetaDistributionLoss
 class BetaRegressionSequenceHead(NormalRegressionSequenceHead):
     def __init__(self, *args, **kwargs):
+        from pytorch_forecasting.metrics import BetaDistributionLoss
         super().__init__(*args, **kwargs)
         self.exp = torch.exp
         self.criterion = BetaDistributionLoss(reduction='none')
