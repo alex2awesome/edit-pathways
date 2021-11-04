@@ -148,3 +148,7 @@ class DocMetrics(nn.Module):
     def reset(self):
         for k in self.metrics:
             self.metrics[k].reset()
+
+    def to(self, device):
+        for k in self.metrics:
+            self.metrics[k].to(device)
