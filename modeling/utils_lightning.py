@@ -125,12 +125,10 @@ class LightningStepsSentence(LightningStepsBase):
         self.training_report = SentenceMetrics(
             config=self.config,
             step='Train',
-            device=self.device,
             dist_sync_on_step=dist_sync_on_step
         )
         self.validation_report = SentenceMetrics(
             config=self.config,
             step='Validation',
-            device=self.device,
             dist_sync_on_step=dist_sync_on_step
         )

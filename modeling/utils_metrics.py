@@ -1,59 +1,14 @@
 from torch import nn
 from torchmetrics import F1, MeanSquaredError
 
-class SentenceMetricsRefactor(nn.Module):
-    def __init__(self, config, step, device, dist_sync_on_step):
-        super().__init__()
-        if self.config.do_regression:
-            self.refactor_distance = MeanSquaredError(dist_sync_on_step=dist_sync_on_step)
-        else:
-            self.refactor_ops_weighted = F1(num_classes=3, average='weighted', dist_sync_on_step=dist_sync_on_step)
-            self.refactor_ops_macro = F1(num_classes=3, average='macro', dist_sync_on_step=dist_sync_on_step)
-            self.refactor_up = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
-            self.refactor_un = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
-            self.refactor_down = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
-
-    def to(self, device):
-        if self.config.do_regression:
-            self.refactor_distance = self.refactor_distance.to(device)
-        else:
-            self.refactor_ops_weighted = self.refactor_ops_weighted.to(device)
-            self.refactor_ops_macro = self.refactor_ops_macro.to(device)
-            self.refactor_up = self.refactor_up.to(device)
-            self.refactor_un = self.refactor_un.to(device)
-            self.refactor_down = self.refactor_down.to(device)
-
-
-class SentenceMetrics(nn.Module):
-    def __init__(self, config, step, device, dist_sync_on_step):
+class SentenceMetricsBase(nn.Module):
+    def __init__(self, config, step, dist_sync_on_step):
         super().__init__()
         self.step = step
+        self.dist_sync_on_step = dist_sync_on_step
         self.config = config
+        self.metrics = nn.ModuleDict()
 
-        # Multiclass Classification
-        self.sentence_changes_weighted = F1(num_classes=3, average='weighted', dist_sync_on_step=dist_sync_on_step)
-        self.sentence_changes_macro = F1(num_classes=3, average='macro', dist_sync_on_step=dist_sync_on_step)
-        # Binary Classification
-        self.deletion = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
-        self.edited = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
-        self.unchanged = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
-        # Regression
-        if self.config.do_regression:
-            self.additions_below = MeanSquaredError(dist_sync_on_step=dist_sync_on_step)
-            self.additions_above = MeanSquaredError(dist_sync_on_step=dist_sync_on_step)
-
-        else:
-            self.additions_below = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
-            self.additions_above = F1(num_classes=1, dist_sync_on_step=dist_sync_on_step)
-
-    def to(self, device):
-        self.sentence_changes_weighted = self.sentence_changes_weighted.to(device)
-        self.sentence_changes_macro = self.sentence_changes_macro.to(device)
-        self.deletion = self.deletion.to(device)
-        self.edited = self.edited.to(device)
-        self.unchanged = self.unchanged.to(device)
-        self.additions_below = self.additions_below.to(device)
-        self.additions_above = self.additions_above.to(device)
 
     def __call__(self, y_pred, y_true, *args, **kwargs):
         assert (
@@ -90,6 +45,7 @@ class SentenceMetrics(nn.Module):
             self.additions_below(y_pred.add_after, y_true.num_add_after)
             self.refactor_distance(y_pred.refactored, y_true.refactor_distance)
 
+
     def compute(self):
         output = {}
         output['%s: Sentence Changes, Weighted' % self.step] = self.sentence_changes_weighted.compute()
@@ -109,22 +65,110 @@ class SentenceMetrics(nn.Module):
             output['%s: Refactor Down, F1' % self.step] = self.refactor_down.compute()
         return output
 
+
+class SentenceMetricsRefactorRegression(SentenceMetricsBase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.refactor_distance = MeanSquaredError(dist_sync_on_step=self.dist_sync_on_step)
+
+    def to(self, device):
+        self.refactor_distance = self.refactor_distance.to(device)
+
+    def update(self, pred, target):
+        self.refactor_distance(pred, target)
+
+    def reset(self):
+        self.refactor_distance.reset()
+
+
+class SentenceMetricsRefactorClassification(SentenceMetricsBase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.refactor_ops_weighted = F1(num_classes=3, average='weighted', dist_sync_on_step=self.dist_sync_on_step)
+        self.refactor_ops_macro = F1(num_classes=3, average='macro', dist_sync_on_step=self.dist_sync_on_step)
+        self.refactor_up = F1(num_classes=1, dist_sync_on_step=self.dist_sync_on_step)
+        self.refactor_un = F1(num_classes=1, dist_sync_on_step=self.dist_sync_on_step)
+        self.refactor_down = F1(num_classes=1, dist_sync_on_step=self.dist_sync_on_step)
+
+    def to(self, device):
+        self.refactor_ops_weighted = self.refactor_ops_weighted.to(device)
+        self.refactor_ops_macro = self.refactor_ops_macro.to(device)
+        self.refactor_up = self.refactor_up.to(device)
+        self.refactor_un = self.refactor_un.to(device)
+        self.refactor_down = self.refactor_down.to(device)
+
+    def update(self, pred, target):
+        self.refactor_ops_weighted(pred, target)
+        self.refactor_ops_macro(pred, target)
+        self.refactor_up(pred, target)
+        self.refactor_un(pred, target)
+        self.refactor_down(pred, target)
+
+    def reset(self):
+        self.refactor_ops_weighted.reset()
+        self.refactor_ops_macro.reset()
+        self.refactor_up.reset()
+        self.refactor_un.reset()
+        self.refactor_down.reset()
+
+
+class SentenceMetricsOperations(SentenceMetricsBase):
+    def __index__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Multiclass Classification
+        self.sentence_changes_weighted = F1(num_classes=3, average='weighted', dist_sync_on_step=self.dist_sync_on_step)
+        self.sentence_changes_macro = F1(num_classes=3, average='macro', dist_sync_on_step=self.dist_sync_on_step)
+        # Binary Classification
+        self.deletion = F1(num_classes=1, dist_sync_on_step=self.dist_sync_on_step)
+        self.edited = F1(num_classes=1, dist_sync_on_step=self.dist_sync_on_step)
+        self.unchanged = F1(num_classes=1, dist_sync_on_step=self.dist_sync_on_step)
+        # Regression
+
+    def update(self, pred, target):
+        self.sentence_changes_weighted(pred, target)
+        self.sentence_changes_macro(pred, target)
+        self.deletion(pred, target)
+        self.edited(pred, target)
+        self.unchanged(pred, target)
+
+    def to(self, device):
+        self.sentence_changes_weighted = self.sentence_changes_weighted.to(device)
+        self.sentence_changes_macro = self.sentence_changes_macro.to(device)
+        self.deletion = self.deletion.to(device)
+        self.edited = self.edited.to(device)
+        self.unchanged = self.unchanged.to(device)
+
     def reset(self):
         self.sentence_changes_weighted.reset()
         self.sentence_changes_macro.reset()
         self.deletion.reset()
         self.edited.reset()
         self.unchanged.reset()
+
+
+class SentenceMetricsAdd(SentenceMetricsBase):
+    def __index__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.config.do_regression:
+            self.additions_below = MeanSquaredError(dist_sync_on_step=self.dist_sync_on_step)
+            self.additions_above = MeanSquaredError(dist_sync_on_step=self.dist_sync_on_step)
+
+        else:
+            self.additions_below = F1(num_classes=1, dist_sync_on_step=self.dist_sync_on_step)
+            self.additions_above = F1(num_classes=1, dist_sync_on_step=self.dist_sync_on_step)
+
+    def update(self, pred, target):
+        self.additions_above(pred, target)
+        self.additions_below(pred, target)
+
+    def to(self, device):
+        self.additions_below = self.additions_below.to(device)
+        self.additions_above = self.additions_above.to(device)
+
+    def reset(self):
         self.additions_above.reset()
         self.additions_below.reset()
-        if self.config.do_regression:
-            self.refactor_distance.reset()
-        else:
-            self.refactor_ops_weighted.reset()
-            self.refactor_ops_macro.reset()
-            self.refactor_up.reset()
-            self.refactor_un.reset()
-            self.refactor_down.reset()
+
 
 
 class DocMetrics(nn.Module):
