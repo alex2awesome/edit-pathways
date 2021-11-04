@@ -27,3 +27,4 @@ flax==0.3.4
 jaxlib==0.1.69
 boto3==1.14.20
 tensorflow>=2.2.0
+pytorch-forecasting==0.9.1
