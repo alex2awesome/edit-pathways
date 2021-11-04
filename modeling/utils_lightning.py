@@ -2,7 +2,8 @@ import pytorch_lightning as pl
 import torch
 from modeling.utils_general import get_config, SuperBlank
 
-from modeling.utils_metrics import SentenceMetrics, DocMetrics
+from modeling.metrics_document import DocMetrics
+from modeling.metrics_sentence import get_sentence_metrics
 
 adam_beta1, adam_beta2, adam_epsilon = .9, .999, 1e-08
 class LightningOptimizer(SuperBlank, pl.LightningModule):
@@ -122,12 +123,12 @@ class LightningStepsSentence(LightningStepsBase):
         # metrics
         dist_sync_on_step = kwargs.get('accelerator') == 'dp'
         self.task_type = self.config.experiment
-        self.training_report = SentenceMetrics(
+        self.training_report = get_sentence_metrics(
             config=self.config,
             step='Train',
             dist_sync_on_step=dist_sync_on_step
         )
-        self.validation_report = SentenceMetrics(
+        self.validation_report = get_sentence_metrics(
             config=self.config,
             step='Validation',
             dist_sync_on_step=dist_sync_on_step

@@ -149,3 +149,17 @@ def reshape_and_pad_sequence(hidden, sequence_lens, device=None):
 class SuperBlank():
     def __init__(self, *args, **kwargs):
         super().__init__()
+
+
+def _get_attention_mask(x, max_length_seq):
+    max_len = max(map(lambda y: _get_len(y), x))
+    max_len = min(max_len, max_length_seq)
+    attention_masks = []
+    for x_i in x:
+        input_len = _get_len(x_i)
+        if input_len < max_length_seq:
+            mask = torch.cat((torch.ones(input_len), torch.zeros(max_len - input_len)))
+        else:
+            mask = torch.ones(max_length_seq)
+        attention_masks.append(mask)
+    return torch.stack(attention_masks)

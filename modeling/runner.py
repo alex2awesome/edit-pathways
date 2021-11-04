@@ -4,11 +4,11 @@ import logging
 from modeling.utils_config import training_args, TransformersConfig, get_transformer_config
 from modeling.utils_parser import attach_model_arguments
 from modeling.utils_general import reformat_model_path
-from modeling.models_full import SentenceDiscriminator, DocumentDiscriminator
-from modeling.utils_dataset import (
-    SentenceEditsModule, DocumentEditsModule
-)
+from modeling.models_document import DocumentDiscriminator
+from modeling.dataset_document import DocumentEditsModule
+from modeling.dataset_sentence import SentenceEditsModule
 #
+from modeling.models_sentence import get_sentence_model, test
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning import loggers
@@ -21,9 +21,27 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 experiments = {
-    'sentence': (SentenceEditsModule, SentenceDiscriminator),
+    'sentence': (SentenceEditsModule, get_sentence_model),
     'document': (DocumentEditsModule, DocumentDiscriminator),
 }
+
+def get_metric_to_monitor(config):
+    if config.experiment == 'sentence':
+        if config.do_operations:
+            return 'Validation: Sentence Changes, Weighted'
+        if config.do_addition:
+            if config.do_regression:
+                return 'Validation: Additions Above, MSE'
+            else:
+                return 'Validation: Additions Above, F1'
+        if config.do_refactor:
+            if config.do_regression:
+                return 'Validation: Refactor Distance, MSE'
+            else:
+                return 'Validation: Refactor Changes, Weighted'
+    if config.experiment == 'document':
+        return 'Validation: add_above_label, 0/2'
+
 
 def main(
         training_args,
@@ -75,7 +93,7 @@ def main(
     # logging/checkpoint setup
     #
     checkpoint_callback = ModelCheckpoint(
-        monitor='Validation: Sentence Changes, Weighted',
+        monitor=get_metric_to_monitor(config),
         dirpath=output_fp,
         filename='trial-%s__epoch={epoch:02d}-f1_macro={f1 macro:.2f}' % notes,
         save_top_k=1,

@@ -59,6 +59,11 @@ def attach_model_arguments(parser):
     parser.add_argument('--use_doc_emb', action='store_true')
     parser.add_argument('--doc_embed_arithmetic', action='store_true')
 
+    # task decisions
+    parser.add_argument('--do_addition', action='store_true')
+    parser.add_argument('--do_refactor', action='store_true')
+    parser.add_argument('--do_operations', action='store_true')
+
     # head decisions
     parser.add_argument('--do_regression', action='store_true')
     parser.add_argument('--use_poisson_regression', action='store_true')
