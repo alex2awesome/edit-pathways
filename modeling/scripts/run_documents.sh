@@ -62,6 +62,7 @@ katie compute run \
         --loss_weighting .25 .25 .25 .25 \
         --num_contextual_layers 2 \
         --num_sent_attn_heads 2 \
+        --use_contextual_layers \
 
 
 katie compute run \
@@ -94,7 +95,8 @@ katie compute run \
         --loss_weighting .25 .25 .25 .25 \
         --num_contextual_layers 2 \
         --num_sent_attn_heads 2 \
-        --do_regression
+        --do_regression \
+        --use_contextual_layers \
 
 
 katie compute run \
@@ -128,4 +130,5 @@ katie compute run \
         --num_contextual_layers 2 \
         --num_sent_attn_heads 2 \
         --do_regression \
-        --use_poisson_regression
+        --use_poisson_regression \
+        --use_contextual_layers \

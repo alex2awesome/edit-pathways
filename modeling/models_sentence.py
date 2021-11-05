@@ -11,7 +11,6 @@ from modeling.utils_lightning import LightningStepsSentence
 from modeling.utils_mixer import Mixer
 
 
-
 class SentenceDiscriminator(LightningStepsSentence, BaseDiscriminator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -30,14 +29,18 @@ class SentenceDiscriminator(LightningStepsSentence, BaseDiscriminator):
             attention_mask=attention_mask,
             sequence_lens=sequence_lens,
         )
-        context_embs = self.sentence_emb_context(sent_embs)
-        pos_embs = self.pos_embeddings(context_embs)
-        doc_embs = self.doc_embeddings(context_embs)
+        if self.config.use_contextual_layers:
+            sent_embs = self.sentence_emb_context(sent_embs)
+        else:
+            sent_embs = self.resize_layer(sent_embs)
+
+        pos_embs = self.pos_embeddings(sent_embs)
+        doc_embs = self.doc_embeddings(sent_embs)
 
         # get losses
         losses = []
         preds = {}
-        losses, preds = self.run(context_embs, label, pos_embs, doc_embs, losses, preds)
+        losses, preds = self.run(sent_embs, label, pos_embs, doc_embs, losses, preds)
         predictions = SentencePredRow(**preds, use_deepspeed=self.config.use_deepspeed)
         losses = Variable(torch.tensor(losses), requires_grad=True)
         if losses.shape == self.loss_weighting.shape:

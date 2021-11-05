@@ -1,5 +1,10 @@
 from modeling.layers_embedding import DocEmbedding
-from modeling.layers_heads import PoissonRegressionSequenceHead, NormalRegressionSequenceHead, MultilabelSequenceHead
+from modeling.layers_heads import (
+    PoissonRegressionSequenceHead,
+    NormalRegressionSequenceHead,
+    MultilabelSequenceHead,
+    BetaRegressionSequenceHead
+)
 from modeling.models_base import BaseDiscriminator
 from modeling.dataset_document import DocPredRow
 from modeling.utils_lightning import LightningStepsDoc
@@ -12,8 +17,10 @@ class DocumentDiscriminator(LightningStepsDoc, BaseDiscriminator):
 
     def get_heads(self):
         if self.config.do_regression:
-            if self.config.use_poisson_regression:
+            if self.config.regression_type == 'poisson_regression':
                 self.head = PoissonRegressionSequenceHead(config=self.config, num_labels=self.config.num_labels)
+            elif self.config.regression_type == 'beta_regression':
+                self.head = BetaRegressionSequenceHead()
             else:
                 self.head = NormalRegressionSequenceHead(config=self.config, num_labels=self.config.num_labels)
         else:
@@ -39,4 +46,3 @@ class DocumentDiscriminator(LightningStepsDoc, BaseDiscriminator):
         loss, pred = self.head(doc_embs, label.labels)
         predictions = DocPredRow(preds=pred)
         return loss, predictions
-

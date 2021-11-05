@@ -106,6 +106,7 @@ def main(
         )
         tb_logger.log_hyperparams({
                 'embedding_model_type': config.model_type,
+                'use_contextual_layers': config.use_contextual_layers,
                 'lstm_bidirectional': config.bidirectional,
                 'lstm_num_hidden_layers': config.num_contextual_layers,
                 'contextual_layer_type': config.context_layer,

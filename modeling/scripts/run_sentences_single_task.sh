@@ -139,6 +139,7 @@ katie compute run \
         --num_sent_attn_heads 2 \
         --do_addition \
         --do_regression \
+        --use_contextual_layers
 
 katie compute run \
         $APPROACH \
@@ -176,6 +177,7 @@ katie compute run \
         --do_addition \
         --do_regression \
         --use_poisson_regression \
+        --use_contextual_layers \
 
 
 katie compute run \
@@ -212,6 +214,7 @@ katie compute run \
         --num_contextual_layers 2 \
         --num_sent_attn_heads 2 \
         --do_refactor \
+        --use_contextual_layers \
 
 katie compute run \
         $APPROACH \
@@ -248,6 +251,7 @@ katie compute run \
         --num_sent_attn_heads 2 \
         --do_refactor \
         --do_regression \
+        --use_contextual_layers \
 
 
 katie compute run \
@@ -286,4 +290,5 @@ katie compute run \
         --do_refactor \
         --do_regression \
         --use_poisson_regression \
+        --use_contextual_layers \
 
