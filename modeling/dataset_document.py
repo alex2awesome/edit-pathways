@@ -29,7 +29,8 @@ class DocumentEditsModule(BaseDataModule):
             sentences=sents,
             labels=labels,
             max_length_seq=self.max_length_seq,
-            do_regression=self.do_regression
+            do_regression=self.do_regression,
+            num_sents=num_sents
         )
         self.dataset.add_document(data_row)
 
@@ -79,16 +80,16 @@ class DocumentEditsModule(BaseDataModule):
 
 
 class DocDataRow():
-    def __init__(self, sentences, labels, max_length_seq, do_regression):
+    def __init__(self, sentences, labels, max_length_seq, regression_type, num_sents):
         self.sentences = sentences
         self.max_length_seq = max_length_seq
-        self.labels = DocLabelRow(labels, do_regression)
+        self.labels = DocLabelRow(labels, regression_type, num_sents)
         self.sentence_batch = pad_sequence(self.sentences, batch_first=True)[:, :self.max_length_seq]
         self.sentence_attention = _get_attention_mask(self.sentences, self.max_length_seq)
 
 
 class DocLabelRow():
-    def __init__(self, labels, do_regression):
+    def __init__(self, labels, do_regression, regression_type):
         self.labels = torch.tensor(labels, dtype=torch.long)
         self.vals = labels.values.tolist()
         if not do_regression:

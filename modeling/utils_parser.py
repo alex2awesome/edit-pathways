@@ -47,6 +47,7 @@ def attach_model_arguments(parser):
     parser.add_argument('--max_num_word_positions', type=int, default=1024, help="How many positional embeddings for GPT2.")
 
     # contextualizing layer
+    parser.add_argument('--use_contextual_layers', action='store_true')
     parser.add_argument('--context_layer', type=str, default='lstm', help="How to provide context to sentence vectors. {lstm, gpt2-sentence}")
     parser.add_argument('--num_contextual_layers', type=int, default=1)
     parser.add_argument('--bidirectional', action='store_true', help="If LSTM only, whether to be bidirectional or not.")
@@ -67,4 +68,5 @@ def attach_model_arguments(parser):
     # head decisions
     parser.add_argument('--do_regression', action='store_true')
     parser.add_argument('--use_poisson_regression', action='store_true')
+    parser.add_argument('--regression_type', type=str, help='Values \in {normal, poisson, beta}')
     return parser

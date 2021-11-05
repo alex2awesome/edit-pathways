@@ -10,7 +10,10 @@ class BaseDiscriminator(LightningOptimizer, SuperBlank, nn.Module):
         self.config = get_config(kwargs=kwargs)
         super().__init__(*args, **kwargs)
         self.sentence_embeddings = SentenceEmbeddingsLayer(*args, **kwargs)
-        self.sentence_emb_context = TransformerContext(*args, **kwargs)
+        if self.config.use_contextual_layers:
+            self.sentence_emb_context = TransformerContext(*args, **kwargs)
+        else:
+            self.resize_layer = nn.Linear(self.config.embedding_dim, self.config.hidden_dim)
         self.doc_embeddings = DocEmbedding(*args, **kwargs)
         self.loss_weighting = format_loss_weighting(self.config.loss_weighting)
         self.get_heads()
