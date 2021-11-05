@@ -45,6 +45,7 @@ def attach_model_arguments(parser):
     parser.add_argument('--max_length_seq', type=int, default=512, help='How to generate document embeddings.')
     parser.add_argument('--max_num_sentences', type=int, default=100, help='How to generate document embeddings.')
     parser.add_argument('--max_num_word_positions', type=int, default=1024, help="How many positional embeddings for GPT2.")
+    parser.add_argument('--sentence_embedding_method', type=str, default='attention', help="Values \in {'cls', 'attention'}.")
 
     # contextualizing layer
     parser.add_argument('--use_contextual_layers', action='store_true')

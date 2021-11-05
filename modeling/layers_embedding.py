@@ -108,7 +108,18 @@ class SentenceEmbeddingsLayer(nn.Module):
         if sequence_lens is not None:
             hidden = reshape_and_pad_sequence(hidden, sequence_lens)
 
-        return self.additive_attention(hidden, attention_mask)
+        if self.config.sentence_embedding_method == 'cls':
+            return self._cls_token(hidden, attention_mask)
+        elif self.config.sentence_embedding_method == 'attention':
+            return self.additive_attention(hidden, attention_mask)
+
+    def _cls_token(self, hidden, attention_mask):
+        if self.config.model_type == 'roberta':
+            cls_embeddings = hidden[:, 0, :]
+        elif self.config.model_type == 'gpt2':
+            seq_lengths = attention_mask.sum(-1).long() - 1
+            cls_embeddings = hidden[range(seq_lengths.size().numel()), seq_lengths, :]  # get hidden states of last input_ids in sequence
+        return cls_embeddings
 
 
 class DocEmbedding(nn.Module):
