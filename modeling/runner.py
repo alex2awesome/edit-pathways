@@ -8,7 +8,7 @@ from modeling.models_document import DocumentDiscriminator
 from modeling.dataset_document import DocumentEditsModule
 from modeling.dataset_sentence import SentenceEditsModule
 #
-from modeling.models_sentence import get_sentence_model, test
+from modeling.models_sentence import get_sentence_model
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning import loggers

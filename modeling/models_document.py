@@ -39,3 +39,4 @@ class DocumentDiscriminator(LightningStepsDoc, BaseDiscriminator):
         loss, pred = self.head(doc_embs, label.labels)
         predictions = DocPredRow(preds=pred)
         return loss, predictions
+
