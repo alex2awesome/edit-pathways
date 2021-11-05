@@ -28,6 +28,7 @@ __pycache__/
 *.json
 *.ckpt
 
+modeling/tensorboard
 
 # Distribution / packaging
 .Python

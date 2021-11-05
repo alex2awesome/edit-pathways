@@ -13,6 +13,7 @@ class DocumentEditsModule(BaseDataModule):
 
     def process_document(self, doc_s):
         sents = doc_s['sentences'].split('<SENT>')
+        num_sents = len(sents)
         sents = list(map(self.process_sentence, sents))
         labels = (
             doc_s

@@ -1,0 +1,15 @@
+contextual_layer_type: lstm
+dataset_size: 9500
+do_regression: false
+embedding_model_type: roberta
+experiment: document
+gradient_accumulation: 1
+learning_rate: 0.0001
+lstm_bidirectional: false
+lstm_num_hidden_layers: 2
+notes: Classification, Document Level, Docs < 15,> 5, downsampled 10,000
+num_sent_attn_heads: 2
+num_warmup_steps: 0
+use_doc_embs: true
+use_poisson_regression: false
+use_pos_embs: false

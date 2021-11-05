@@ -52,8 +52,8 @@ katie compute run \
         --do_train \
         --do_eval \
         --num_dataloader_cpus 0 \
-        --train_data_file_s3 training-data/doc_training_data_short_15__sampled_10000.csv \
-        --notes "Classification, Document Level, Docs < 15,> 5, downsampled 10,000" \
+        --train_data_file_s3 training-data/doc_training_data_short_15__sampled_30000.csv \
+        --notes "Classification, Document Level, Docs < 15,> 5, downsampled 30,000" \
         --freeze_encoder_layers $frozen_layers \
         --dropout .1 \
         --accumulate_grad_batches 1 \
@@ -62,3 +62,70 @@ katie compute run \
         --loss_weighting .25 .25 .25 .25 \
         --num_contextual_layers 2 \
         --num_sent_attn_heads 2 \
+
+
+katie compute run \
+        $APPROACH \
+        --compute-framework $DEFAULT_FRAMEWORK \
+        --node-size $DEFAULT_JOB_SIZE \
+        $worker_args \
+        --python-module modeling.runner \
+        --identities hadoop=$DEFAULT_HADOOP_IDENTITY bcs=$DEFAULT_BCS_IDENTITY git=$DEFAULT_GIT_IDENTIY \
+        --pip-packages $DEFAULT_PACKAGE \
+        --namespace s-ai-classification \
+        --tensorboard-log-dir hdfs:///projects/ai_classification/aspangher/edit-pathways/tensorboard \
+        --env NCCL_ASYNC_ERROR_HANDLING=1 NCCL_LL_THRESHOLD=0 NCCL_DEBUG=INFO env=$ENV \
+        -- \
+        --model_type $model_type \
+        --pretrained_files_s3 $pretrained_model \
+        --experiment document \
+        --batch_size 1 \
+        --num_train_epochs 3 \
+        --do_train \
+        --do_eval \
+        --num_dataloader_cpus 0 \
+        --train_data_file_s3 training-data/doc_training_data_short_15__sampled_30000.csv \
+        --notes "Normal Regression, Document Level, Docs < 15,> 5, downsampled 30,000" \
+        --freeze_encoder_layers $frozen_layers \
+        --dropout .1 \
+        --accumulate_grad_batches 1 \
+        --learning_rate 1e-4 \
+        --warmup_steps 0 \
+        --loss_weighting .25 .25 .25 .25 \
+        --num_contextual_layers 2 \
+        --num_sent_attn_heads 2 \
+        --do_regression
+
+
+katie compute run \
+        $APPROACH \
+        --compute-framework $DEFAULT_FRAMEWORK \
+        --node-size $DEFAULT_JOB_SIZE \
+        $worker_args \
+        --python-module modeling.runner \
+        --identities hadoop=$DEFAULT_HADOOP_IDENTITY bcs=$DEFAULT_BCS_IDENTITY git=$DEFAULT_GIT_IDENTIY \
+        --pip-packages $DEFAULT_PACKAGE \
+        --namespace s-ai-classification \
+        --tensorboard-log-dir hdfs:///projects/ai_classification/aspangher/edit-pathways/tensorboard \
+        --env NCCL_ASYNC_ERROR_HANDLING=1 NCCL_LL_THRESHOLD=0 NCCL_DEBUG=INFO env=$ENV \
+        -- \
+        --model_type $model_type \
+        --pretrained_files_s3 $pretrained_model \
+        --experiment document \
+        --batch_size 1 \
+        --num_train_epochs 3 \
+        --do_train \
+        --do_eval \
+        --num_dataloader_cpus 0 \
+        --train_data_file_s3 training-data/doc_training_data_short_15__sampled_30000.csv \
+        --notes "Poisson Regression, Document Level, Docs < 15,> 5, downsampled 30,000" \
+        --freeze_encoder_layers $frozen_layers \
+        --dropout .1 \
+        --accumulate_grad_batches 1 \
+        --learning_rate 1e-4 \
+        --warmup_steps 0 \
+        --loss_weighting .25 .25 .25 .25 \
+        --num_contextual_layers 2 \
+        --num_sent_attn_heads 2 \
+        --do_regression \
+        --use_poisson_regression

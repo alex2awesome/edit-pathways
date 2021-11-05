@@ -122,9 +122,6 @@ class ModelHeadBlank(nn.Module):
     def run(self, *args, **kwargs):
         pass
 
-class test(SentenceOps, ModelHeadBlank, SentenceDiscriminator):
-    pass
-
 
 def get_sentence_model(config):
     model_mixins = []
