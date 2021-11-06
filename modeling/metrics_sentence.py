@@ -28,7 +28,7 @@ class SentenceMetricsBase(nn.Module):
         return output
 
     def to_list(self, x):
-        return x.detach().numpy().tolist()
+        return x.cpu().detach().numpy().tolist()
 
 class SentenceMetricsRefactorRegression(SentenceMetricsBase):
     def __init__(self, *args, **kwargs):
