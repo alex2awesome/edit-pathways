@@ -138,18 +138,24 @@ class SentenceMetricsOperations(SentenceMetricsBase):
         self.metrics[self.keys[4]](pred.unchanged, target.unchanged)
         # F1 +1
         del_1 = torch.where(target.deleted == 1)
-        self.metrics[self.keys[5]](pred.deleted[del_1], target.deleted[del_1])
+        if len(del_1[0]) > 0:
+            self.metrics[self.keys[5]](pred.deleted[del_1], target.deleted[del_1])
         edit_1 = torch.where(target.edited == 1)
-        self.metrics[self.keys[6]](pred.edited[edit_1], target.edited[edit_1])
+        if len(edit_1[0]) > 0:
+            self.metrics[self.keys[6]](pred.edited[edit_1], target.edited[edit_1])
         unch_1 = torch.where(target.unchanged == 1)
-        self.metrics[self.keys[7]](pred.unchanged[unch_1], target.unchanged[unch_1])
+        if len(unch_1[0]) > 0:
+            self.metrics[self.keys[7]](pred.unchanged[unch_1], target.unchanged[unch_1])
         # F1 -1
         del_0 = torch.where(target.deleted == 0)
-        self.metrics[self.keys[8]](pred.deleted[del_0], target.deleted[del_0])
+        if len(del_0[0]) > 0:
+            self.metrics[self.keys[8]](pred.deleted[del_0], target.deleted[del_0])
         edit_0 = torch.where(target.edited == 0)
-        self.metrics[self.keys[9]](pred.edited[edit_0], target.edited[edit_0])
+        if len(edit_0[0]) > 0:
+            self.metrics[self.keys[9]](pred.edited[edit_0], target.edited[edit_0])
         unch_0 = torch.where(target.unchanged == 0)
-        self.metrics[self.keys[10]](pred.unchanged[unch_0], target.unchanged[unch_0])
+        if len(unch_0[0]) > 0:
+            self.metrics[self.keys[10]](pred.unchanged[unch_0], target.unchanged[unch_0])
         # Precision
         self.metrics[self.keys[11]](pred.deleted, target.deleted)
         self.metrics[self.keys[12]](pred.edited, target.edited)
