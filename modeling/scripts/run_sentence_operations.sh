@@ -61,7 +61,6 @@ katie compute run \
         --warmup_steps 0 \
         --use_positional \
         --use_doc_emb \
-        --doc_embed_arithmetic \
         --loss_weighting .25 .25 .25 .25 \
         --num_contextual_layers 2 \
         --num_sent_attn_heads 2 \
