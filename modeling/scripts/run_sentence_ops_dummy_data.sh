@@ -41,7 +41,7 @@ katie compute run \
         --identities hadoop=$DEFAULT_HADOOP_IDENTITY bcs=$DEFAULT_BCS_IDENTITY git=$DEFAULT_GIT_IDENTIY \
         --pip-packages $DEFAULT_PACKAGE \
         --namespace s-ai-classification \
-        --tensorboard-log-dir hdfs:///projects/ai_classification/aspangher/edit-pathways/tensorboard \
+        --tensorboard-log-dir hdfs:///projects/ai_classification/aspangher/edit-pathways/dummy \
         --env NCCL_ASYNC_ERROR_HANDLING=1 NCCL_LL_THRESHOLD=0 NCCL_DEBUG=INFO env=$ENV \
         -- \
         --model_type $model_type \
@@ -52,8 +52,8 @@ katie compute run \
         --do_train \
         --do_eval \
         --num_dataloader_cpus 0 \
-        --train_data_file_s3 training-data/training_data_short_15__sampled_50000.csv \
-        --notes "Sentence Operations, Sentence Level, Docs < 15,> 5, LR 1e-6, downsampled 50,000" \
+        --train_data_file_s3 training-data/dummy-discourse-data-in-edits-format.csv \
+        --notes "Dummy trial run, Sentence Ops Arch. on Discourse Data" \
         --freeze_encoder_layers $frozen_layers \
         --dropout .1 \
         --accumulate_grad_batches 1000 \
