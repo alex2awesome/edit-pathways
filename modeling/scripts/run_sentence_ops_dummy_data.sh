@@ -53,11 +53,11 @@ katie compute run \
         --do_eval \
         --num_dataloader_cpus 0 \
         --train_data_file_s3 training-data/dummy-discourse-data-in-edits-format.csv \
-        --notes "Dummy trial run, Sentence Ops Arch. on Discourse Data" \
+        --notes "Dummy trial run, Sentence Ops Arch. on Discourse Data, CLS token" \
         --freeze_encoder_layers $frozen_layers \
         --dropout .1 \
-        --accumulate_grad_batches 1000 \
-        --learning_rate 1e-6 \
+        --accumulate_grad_batches 1 \
+        --learning_rate 1e-4 \
         --warmup_steps 0 \
         --use_positional \
         --use_doc_emb \
@@ -65,3 +65,4 @@ katie compute run \
         --num_contextual_layers 2 \
         --num_sent_attn_heads 2 \
         --do_operations \
+        --sentence_embedding_method 'cls' \

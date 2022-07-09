@@ -1,0 +1,984 @@
+<HTMLQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2011-11-11/HTMLQuestion.xsd">
+<HTMLContent><![CDATA[
+
+<!-- YOUR HTML BEGINS -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
+<script type='text/javascript' src='https://s3.amazonaws.com/mturk-public/externalHIT_v1.js'></script>
+</head>
+<link type="text/css" href="https://getbootstrap.com/1.0.0/assets/css/bootstrap-1.0.0.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script src="https://creativecouple.github.io/jquery-timing/jquery-timing.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js"></script>
+<!-- ContextMenu -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.contextMenu.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.contextMenu.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.7.1/jquery.ui.position.js"></script>
+
+<!-- alertify -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/AlertifyJS/1.13.1/alertify.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/AlertifyJS/1.13.1/css/alertify.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/AlertifyJS/1.13.1/css/themes/bootstrap.min.css">
+<!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/AlertifyJS/1.13.1/css/themes/default.css"> -->
+
+<script src="https://cdn.jsdelivr.net/gh/qiao/difflib.js/dist/difflib-browser.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/musclesoft/jquery-connections/jquery.connections.js"></script>
+
+<style>
+
+.example{
+    background-color: #d7d7d7;
+    margin-left: 20px;
+    margin-right: 50px;
+    padding: 10px;
+    padding-bottom: 1px;
+    margin-bottom: 10px;
+}
+
+.highlighted {
+	background-color: yellow;
+}
+
+.text-mouseover{
+	border-style: solid;
+}
+
+.connection {
+	border: 8px double;
+    /*border-width: 2.5px;*/
+	z-index: 0;
+	/*display: table;*/
+	border-radius: 100%;
+	/*pointer-events:none;*/
+	color: rgb(200, 200, 200);
+	color: rgba(0, 0, 0, 0.7);
+}
+
+
+/* Handle the question text-boxes */
+.textblock {
+    border-radius: 4px;
+    color: black;
+    background: rgba(237, 245, 241, 0.87);
+    display: inline-block;
+    border: 2px solid Black;
+    padding: 6px 10px 6px 10px;
+    z-index: 1;
+    position: relative;
+}
+
+.textblock-row{
+    /*background-color: rgba(128, 128, 128, 0.56);*/
+    margin: 10px 10px 10px 10px;
+    border-radius: 4px;
+}
+
+.textblock-ref {
+    border-radius: 2px;
+    color: #363535;
+    background: #B6ACACAC;
+    display: inline-block;
+    border: 1px solid Black;
+    padding: 8px 10px 8px 10px;
+    z-index: 1;
+    position: relative;
+}
+
+.textblock-row-ref{
+    /*background-color: rgba(128, 128, 128, 0.56);*/
+    margin: 8px 10px 8px 10px;
+    border-radius: 4px;
+}
+
+.textblock_pool {
+	height: 200px;
+}
+
+.center-button{
+   display: -webkit-inline-flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: column;
+  -webkit-box-pack: center;
+  -webkit-flex-pack: center;
+  -webkit-justify-content: center;
+  -webkit-flex-align: center;
+  -webkit-align-items: center;
+  vertical-align: top;
+}
+
+
+ul{
+    padding: 0px;
+}
+
+li{
+    padding: 0px;
+    marging: 0px;
+}
+
+.textblock_span {
+	padding-right: 10px;
+}
+
+.shaded {
+	border-color: #55f;
+}
+
+#submitButton{
+    z-index: 5;
+}
+
+#feedback{
+    width: 100%;
+}
+
+hr.hr-medium{
+    border: 3px solid black;
+}
+
+body{
+    margin: 10px !important;
+}
+
+
+.color-none{
+    background-color: transparent;
+    color: transparent;
+}
+
+.hidden {
+    /*transition: opacity 1s ease-out;*/
+    /*opacity: 0;*/
+    /*height: 0;*/
+    /*overflow: hidden;*/
+    /*color: white;*/
+    visibility: hidden;
+}
+
+.hidden-none{
+    display: None;
+}
+
+
+.textblock-deleted{
+    background-color: rgba(222, 131, 132, 0.72);
+    border-color: gray;
+}
+
+.textblock-text-deleted{
+    color: gray;
+    text-decoration: line-through;
+}
+
+.textblock-text-edited{
+    color: gray;
+}
+
+.textblock-edited {
+    background-color: rgba(131, 183, 222, 0.72);
+}
+
+/*.hidden{*/
+/*    display: none;*/
+/*}*/
+
+
+</style>
+<!-- jquery connections -->
+<body>
+
+
+<form name='mturk_form' method='post' id='mturk_form' action='/mturk/externalSubmit'>
+<input type='hidden' value='' name='assignmentId' id='assignmentId'/>
+
+<div class="table table-hover container">
+    <div class="row instructions">
+        <div class="col-12">
+            <div id="accordion">
+              <div class="card">
+                <div class="card-header" id="hello_header">
+                  <h5 class="mb-0">
+                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#hello">
+                      Hello, about us, and thank you for your help!
+                    </button>
+                  </h5>
+                </div>
+                <div id="hello" class="collapse show" aria-labelledby="hello_header" data-parent="#accordion">
+                  <div class="card-body">
+                    Hello! We are small research lab in University of Southern California trying to build AI tools to help
+                    citizens better understand the work journalists do.
+                    <br><br>
+                    Our goal in this work is to study how articles unfold over time — ultimately we'd like to build tools to help local news rooms allocate resources for breaking stories. First, we need to study how seasoned editors go about restructuring stories.
+                    <br><br>
+                    We are calibrating our payment scheme <b>to meet a $25 per hour wage</b>. Apologies if at first it is miscalibrated, we're not sure at
+                      this moment how long the tasks will take.
+                      <br><br>
+                    Please take a moment to review some of the <b><u>Examples</u></b> and skim the <b><u>Instructions</u></b> in the sections below. If you've already watched the <b><u>Video</u></b> and have a good idea of the task, feel free to skip that section.
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-header" id="headingOne">
+                  <h5 class="mb-0">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" type="button" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                      Instructions
+                    </button>
+                  </h5>
+                </div>
+                <div id="collapseTwo" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+                    <div class="card-body">
+                        You will be adding, deleting and moving sentences around in a news article to anticipate what a future version looks like.
+                        <br><br>
+                        * <b><u>Add a sentence</u></b> either <i>below</i> or <i>above</i> the current sentence by pressing the <span style="background-color: rgba(0,160,0,0.63)">Add &uarr;</span> or <span style="background-color: rgba(0,160,0,0.63)">Add &darr;</span> buttons. Adding a sentence means that you feel there is substantially new information, a novel viewpoint or quote, or necessary background
+                        information that needs to be present.
+                        <br><br>
+                        * <b><u>Move a sentence</u></b> by dragging it around on the canvas. Moving a sentence,  (or what we're calling <b><i>refactoring</i></b>) means that the importance of a sentence should be either increased or decreased within the article. <b><u>Please note:</u></b> refactors are rare!
+                        <br><br>
+                        * <b><u>Delete a sentence</u></b> by hitting the <span style="background-color: rgba(0,160,0,0.63)">Delete</span> button. Deleting an <b>Added</b> sentence just reverses that action - we will not record this. Deleting a sentence that is present means you feel it needs to be (a) substantially rewritten (ergo: a new sentence should also be <b>Added</b>), or (b) the sentence no longer applies given new information that was added.
+                        <br><br>
+                        * <b><u>Edit a sentence</u></b> by hitting the <span style="background-color: rgba(0,160,0,0.63)">Edit</span> button. Editing a sentence means that the wording might change a little bit due to other changes happening around the sentence or events within the sentence being updated.
+                        <br><br>
+                        * <b><u>Leaving a sentence unchanged</u></b> means that you don't really expect the sentence to change at all in the next version of the article.
+                        <br><br>
+                        When you're ready to submit, please hit the <span style="background-color: rgba(0,160,0,0.63)">Submit</span> button and please check to see what the actual edits were so you can improve for next task!
+                    </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-header" id="headingOne">
+                  <h5 class="mb-0">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" type="button" data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                      Video
+                    </button>
+                  </h5>
+                </div>
+                <div id="collapseFour" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+                    <div class="card-body">
+                        Here is a video showing how to interact with our page and a demonstration of the thought process I think is appropriate for this task. However, you are professional journalists and you know better than I do!
+                        <br><br>
+                        Please note that this video is a little outdated: there is no edit button, and some aspects of the page design has been improved.
+                        <br><br>
+                        <iframe width="560" height="315" src="https://www.youtube.com/embed/nEF6uVoSZdE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-header" id="headingOne">
+                  <h5 class="mb-0">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" type="button" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                      Examples
+                    </button>
+                  </h5>
+                </div>
+                <div id="collapseThree" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+                    <div class="card-body">
+                        <h5>Local Crime</h5>
+                        <div class="example">
+                            <a target='_blank' rel='noopener noreferrer' href="https://news-edits-dot-usc-research.appspot.com/check_task?source=reuters&doc_id=2436&v_x=0&v_y=1">https://news-edits-dot-usc-research.appspot.com/check_task?source=reuters&doc_id=2436&v_x=0&v_y=1</a>
+                        </div>
+                        The above example is a good example of a local crime article where the phrase "...no mention of..." indicates that an upcoming draft will include deletions (of that sentence) and additions of new information.
+                        <hr>
+                        <!--                        -->
+                        <h5>Events update:</h5>
+                        <div class="example">
+                            <a target='_blank' rel='noopener noreferrer' href="">https://news-edits-dot-usc-research.appspot.com/check_task?source=independent&doc_id=1587638&v_x=1&v_y=2</a>
+                            <br>
+                            <a target='_blank' rel='noopener noreferrer' href="">https://news-edits-dot-usc-research.appspot.com/check_task?source=nyt&doc_id=1828967&v_x=1&v_y=2</a>
+                        </div>
+                        In both of these articles, an event is unfolding. They are both clearly breaking news, so as more information about the main event comes in, we will update the article.
+                        <hr>
+                        <!--                        -->
+                        <h5>More information about the main event</h5>
+                        <div class="example">
+                            <a target='_blank' rel='noopener noreferrer' href="">https://news-edits-dot-usc-research.appspot.com/check_task?source=nyt&doc_id=1870033&v_x=0&v_y=1</a>
+                        </div>
+                        The phrase "This is a developing story" is really a good clue in this example.
+                        <hr>
+                        <!--                        -->
+                        <h5>More background:</h5>
+                        <div class="example">
+                            <a target='_blank' rel='noopener noreferrer' href="">https://news-edits-dot-usc-research.appspot.com/check_task?source=wp&doc_id=1115575&v_x=0&v_y=1</a>
+                        </div>
+                        This article needed a lot more background.
+                        <hr>
+                        <!--                        -->
+                        <h5>More viewpoints:</h5>
+                        <div class="example">
+                            <a target='_blank' rel='noopener noreferrer' href="">https://news-edits-dot-usc-research.appspot.com/check_task?source=wp&doc_id=1125102&v_x=0&v_y=1</a>
+                        </div>
+                         This is a good example of a piece where we really need to hear from more voices, like parents, anonymous sources, etc.
+                        <hr>
+                        <h5>Article Rewrite</h5>
+                        <div class="example">
+                            <a target='_blank' rel='noopener noreferrer' href="">https://news-edits-dot-usc-research.appspot.com/check_task?source=ap&doc_id=220&v_x=2&v_y=3</a>
+                        </div>
+                        Good example of when the old article wasn't really written in a newsy style and needed to be updated.
+                        <hr>
+                        <!--                        -->
+                        <h5>Many Edits</h5>
+                        <div class="example">
+                            <a target='_blank' rel='noopener noreferrer' href="">https://news-edits-dot-usc-research.appspot.com/check_task?source=bbc&doc_id=1248390&v_x=1&v_y=2</a>
+                        </div>
+                        This article is really dense. There are a lot of time-dependent numbers here, so it's likely that a lot of them will be updated. Also, an additional viewpoint is added.
+                    </div>
+                </div>
+              </div>
+            </div>
+            </div>
+        </div>
+    <br>
+    <hr class="hr-medium">
+    <br>
+    <h2><u>Task:</u></h2>
+    <p><em>Right click and select "Remove" for all connections between sentences that do NOT match.
+       <br>Read above for more detailed instructions and examples.</em></p>
+    <br>
+<!--    <h4>Headline: </h4>-->
+    <p>Article Key: 372407</p>
+    <br>
+    <div class="row header" >
+        <div class="col-4" doc_id="372407" ><h3>Article</h3></div>
+        <div class="col-8" doc_id="372407" ></div>
+    </div>
+    <div class="row subheader" >
+        <div class="col-4" doc_id="372407" ><h4>Original Article</h4>
+            <div class="row"></div>
+        </div>
+        <div class="col-8" doc_id="372407" ><h4>Editing Sandbox</h4></div>
+    </div>
+    <div class="row text" >
+        <div class="col-3 textblock_pool_ref" doc_id="372407" ></div>
+        <div class="col-1 filler" doc_id="372407" ></div>
+        <div class="col-6 row" doc_id="372407" ><ul class="textblock_pool"></ul></div>
+    </div>
+    <div class="row annotation">
+	    <div class="error question col-4" doc_id="372407" error_type='error'>
+		  <p>
+    	  <h4>Does this article have errors?</h4>
+    	  <div id="error_btn_grp" class="btn-group-vertical btn-group-toggle" role="group" data-toggle="buttons">
+              <div class="btn-group">
+                <label class="btn btn-outline-success btn-sm active" label="legit">
+                    <input type="radio" name="options" autocomplete="off" checked>No errors</label>
+                <label class="btn btn-outline-danger btn-sm" label="incom_sentence">
+                 <input type="radio" name="options" autocomplete="off" checked>Incomplete Sentences</label>
+              </div>
+              <div class="btn-group">
+                <label class="btn btn-outline-danger btn-sm" label="other" id="otherbutton">
+                    <input type="radio" name="options" autocomplete="off" checked>Other</label>
+                <input id="otherform" type="text" class="form-control hidden"
+                       aria-label="Text input with radio button" placeholder="Specify...">
+              </div>
+		  </div>
+		  </p>
+		</div>
+	    <div class="error question col-4" doc_id="372407" error_type='confidence'>
+		  <p>
+    	  <h4>How confident are you in this tagging?</h4>
+    	  <div class="btn-group-vertical btn-group-toggle" role="group" data-toggle="buttons">
+              <div class="btn-group">
+                <label class="btn btn-outline-success btn-sm" label="redo">
+                    <input type="radio" name="options" autocomplete="off" checked>1 - Needs Redo</label>
+                <label class="btn btn-outline-success btn-sm" label="check">
+                    <input type="radio" name="options" autocomplete="off" checked>2 - Needs Check</label>
+                <label class="btn btn-outline-success btn-sm" label="glance">
+                    <input type="radio" name="options" autocomplete="off" checked>3 - Needs Glance</label>
+              </div>
+              <div class="btn-group">
+                <label class="btn btn-outline-success btn-sm active" label="ok">
+                    <input type="radio" name="options" autocomplete="off" checked>4 - Should be OK</label>
+                <label class="btn btn-outline-success btn-sm" label="perfect">
+                    <input type="radio" name="options" autocomplete="off" checked>5 - Confident</label>
+              </div>
+		  </div>
+		 </p>
+		</div>
+		 </p>
+      </div>
+    </div>
+
+<input type='hidden' value='' name='data' id='data'/>
+<div class="container">
+    <div class="row">
+        <input class="btn btn-outline-success" type='submit' id='submitButton' value='Submit'>
+    </div>
+<hr>
+    <div class="row">
+        <div class="col-12">
+        <h3>Optional Feedback:</h3>
+            <p>
+            We'd love to hear some feedback on this task: if any parts were confusing, or the task itself could
+            be formulated better, we'd love to hear any comments, ideas or suggestions. Please send an email through Mechanical Turk or to spangher@usc.edu. We read all of our emails and we really appreciate your help!
+            </p>
+        </div>
+        <hr>
+    </div>
+    <hr>
+    <br>
+    <div class="row">
+        <input class="btn btn-outline-danger" type='submit' id='revert' value='Revert'>
+    </div>
+</div>
+</form>
+
+<script language='Javascript'>
+
+    $('#otherbutton').on('click', function(d){
+        $('#otherform').removeClass('hidden')
+    })
+
+    $('#otherform').on('click', function(d){
+        $('#error_btn_grp').find('label').removeClass('active')
+        $('#otherbutton').addClass('active')
+    })
+
+    $('#otherbutton2').on('click', function(d){
+        $('#otherform2').removeClass('hidden')
+    })
+
+    $('#otherform2').on('click', function(d){
+        $('#law_type_btn_grp').find('label').removeClass('active')
+        $('#otherbutton2').addClass('active')
+    })
+
+    var window_height = $( window ).height();
+    String.prototype.replaceAll = function(search, replacement) {
+        var target = this;
+        return target.replace(new RegExp(search, 'g'), replacement);
+    };
+    String.prototype.toTitleCase = function() {
+        var target = this;
+        return target.replace(/(?:^|\s)\w/g, function(match) {
+            return match.toUpperCase();
+        });
+    };
+    Array.prototype.remove_duplicates = function() {
+        var arr = this;
+        let s = new Set(arr);
+        let it = s.values();
+        return Array.from(it);
+    };
+
+    (function(old) {
+      $.fn.attr = function() {
+        if(arguments.length === 0) {
+          if(this.length === 0) {
+            return null;
+          }
+
+          var obj = {};
+          $.each(this[0].attributes, function() {
+            if(this.specified) {
+              obj[this.name] = this.value;
+            }
+          });
+          return obj;
+        }
+
+        return old.apply(this, arguments);
+      };
+    })($.fn.attr);
+
+    // page handling
+    class PageManager {
+	constructor(
+	    textblock_dim,
+        demo,
+        check,
+        doc_key,
+        dropdown_buttons,
+        textblock_pool_min
+	) {
+		this.demo = demo
+		this.check = check
+		this.doc_key = doc_key
+		// dropdown buttons
+		this.dropdown_buttons = dropdown_buttons
+		// dimensions for textblock divs
+		this.textblock_pool_min = textblock_pool_min
+		this.textblock_dim = textblock_dim;
+		this.start_line_id = null
+		// z-index for dropdown needs to increase every click :/ maybe not the best implementation
+		this.curr_dropdown_zindex = 3
+	}
+
+	_get_new_connection_idx(){
+	    return $('.connection').length
+    }
+
+    // create a connection from input data (to re-create datapoints)
+    create_static_connection(left_textblock, right_textblock, diff_ratio, class_name){
+    	var line_selector = 'line-' + this._get_new_connection_idx()
+        var textblock_x_selector = 'sentence-ref-' + left_textblock
+        var textblock_y_selector = 'sentence-' + right_textblock
+
+        //
+        $('#' + textblock_x_selector).connections({
+			to: '#' + textblock_y_selector,
+			class: 'connection ' + line_selector
+		})
+
+		// make dropdown
+        return line_selector
+    }
+
+	create_reference_textblock(selected_text, block_type, block_id){
+        var that = this
+        // create textblock element for the righthand side
+        var textblock_pool = $('.textblock_pool_ref').filter(
+            function (d) {
+                return $(d).attr('doc_id') == this.doc_key
+            }
+        )
+        // create textblock div
+        var textblock_row = document.createElement('div')
+        $(textblock_row).addClass('textblock-row-ref row')
+        //
+        var textblock_div = document.createElement('div')
+        $(textblock_div)
+        	.addClass('textblock-ref row')
+        	.attr('doc_id', that.doc_key)
+	       	.attr('id', 'sentence-ref-' + block_id)
+
+        var textblock_text_div = document.createElement('div')
+        $(textblock_text_div).addClass('textblock-text-div col-12')
+
+        var textblock_span = document.createElement('span')
+        $(textblock_span).addClass('textblock_span')
+        textblock_span.textContent = selected_text
+        // append elements to the textblock
+        $(textblock_text_div).append(textblock_span)
+        $(textblock_div).append(textblock_text_div)
+
+        // append textblock to the pool of textblocks
+        $(textblock_row).append(textblock_div)
+    	$(textblock_row).appendTo(textblock_pool)
+		$(textblock_div) // .draggable();
+
+		// dynamically resize the height of the textblock pool
+        this.resize_textblock_pool(textblock_pool)
+    }
+
+    resize_textblock_pool(textblock_pool_class_sel){
+	    if (! textblock_pool_class_sel)
+	        textblock_pool_class_sel = '.textblock_pool'
+
+	    var that = this
+        var multiplier = 2
+	    var new_height = d3.sum(
+	        $(textblock_pool_class_sel).find('.textblock').map(function(i, d){
+     			return $(d).height() + multiplier * (
+ 	    		    that.textblock_dim.margin + that.textblock_dim.border + that.textblock_dim.padding
+                ) // 2 * (margin + border + padding)
+ 		}))
+       $(textblock_pool_class_sel).css('height', d3.max([this.textblock_pool_min, new_height]))
+
+    }
+
+    create_one_textblock(selected_text, block_type, is_new, block_id, textblock_pool_class_sel){
+        var that = this
+	    // slot
+        var textblock_row = document.createElement('li')
+        $(textblock_row)
+            .addClass('textblock-row')
+            .addClass('row')
+            // .addClass('d-inline-flex')
+
+
+        // draggable div
+        var textblock_div = document.createElement('div')
+        $(textblock_div)
+        	.addClass('col-12')
+            .addClass('d-inline-flex')
+            .addClass('textblock')
+        	.attr('doc_id', that.doc_key)
+	       	.attr('id', 'sentence-' + block_id)
+            .attr('orig-position', block_id)
+	       	.attr('label', block_type)
+            .attr('is_new', is_new)
+
+        var textblock_text_div = document.createElement('div')
+        $(textblock_text_div).addClass('col-6 textblock-text-div')
+
+        // text content
+        var textblock_span = document.createElement('span')
+        $(textblock_span).addClass('textblock_span')
+        textblock_span.textContent = selected_text
+        $(textblock_text_div).append(textblock_span)
+        $(textblock_div).append(textblock_text_div)
+
+        // add buttons
+        var button_div = document.createElement('div')
+        $(button_div).addClass('col-6 row')
+
+        var add_above_button_div = document.createElement('div')
+        $(add_above_button_div).addClass('col-3 add-above-button center-button')
+        var add_above_button = document.createElement('div')
+        add_above_button.innerHTML = 'Add &uarr;'
+        $(add_above_button).addClass('btn btn-outline-success')
+        $(add_above_button).on('click', function(d){
+            var new_textblock = that.create_one_textblock('[NEW SENTENCE]', 'NODE', true, textblock_pool_class_sel)
+            // update so we insert it below
+            $(this).parents('li').before(new_textblock)
+            $(textblock_pool_class_sel).sortable('refresh');
+            that.resize_textblock_pool(textblock_pool_class_sel)
+        })
+
+        $(add_above_button_div).append(add_above_button)
+        // $(textblock_div).append(add_above_button_div)
+        $(button_div).append(add_above_button_div)
+
+        var add_below_button_div = document.createElement('div')
+        $(add_below_button_div).addClass('col-3 add-below-button center-button')
+        var add_below_button = document.createElement('div')
+        $(add_below_button).addClass('btn btn-outline-success align-middle')
+        add_below_button.innerHTML = 'Add &darr;'
+        $(add_below_button).on('click', function(d){
+            var new_textblock = that.create_one_textblock('[NEW SENTENCE]', 'NODE', true, textblock_pool_class_sel)
+            // update so we insert it below
+            $(this).parents('li').after(new_textblock)
+            $(textblock_pool_class_sel).sortable('refresh');
+            that.resize_textblock_pool(textblock_pool_class_sel)
+        })
+        $(add_below_button_div).append(add_below_button)
+        // $(textblock_div).append(add_below_button_div)
+        $(button_div).append(add_below_button_div)
+
+        var delete_button_div = document.createElement('div')
+        $(delete_button_div).addClass('col-3 delete-button center-button')
+        var delete_button = document.createElement('div')
+        $(delete_button).addClass('btn btn-outline-success')
+        delete_button.textContent = 'Delete'
+        $(textblock_div).attr('delete-state', 'undeleted')
+        $(delete_button).on('click', function(d){
+            var textblock = $(this).parents('.textblock')
+            var is_new = textblock.attr('is_new')
+            if (is_new == 'true') {
+                $(this).parents('.textblock-row').remove();
+                $(textblock_pool_class_sel).sortable('refresh');
+                that.resize_textblock_pool(textblock_pool_class_sel)
+            }
+            else {
+                var state = textblock.attr('delete-state')
+                if (state == 'undeleted') {
+                    textblock.addClass('textblock-deleted')
+                    textblock.find('.textblock-text-div').addClass('textblock-text-deleted')
+                    textblock.attr('delete-state', 'deleted')
+                    $(this).text('Restore')
+                    textblock.find('.edit-button').addClass('hidden')
+                    // textblock.find('.add-above-button').addClass('hidden')
+                    // textblock.find('.add-below-button').addClass('hidden')
+                }
+                else {
+                    textblock.removeClass('textblock-deleted')
+                    textblock.find('.textblock-text-div').removeClass('textblock-text-deleted')
+                    textblock.attr('delete-state', 'undeleted')
+                    $(this).text('Delete')
+                    textblock.find('.edit-button').removeClass('hidden')
+                    // textblock.find('.add-above-button').removeClass('hidden')
+                    // textblock.find('.add-below-button').removeClass('hidden')
+                }
+            }
+        })
+        $(delete_button_div).append(delete_button)
+        // $(textblock_div).append(delete_button_div)
+        $(button_div).append(delete_button_div)
+
+        // edit button
+        if ($(textblock_div).attr('is_new') != 'true') {
+            var edit_button_div = document.createElement('div')
+            $(edit_button_div).addClass('col-3 edit-button center-button')
+            var edit_button = document.createElement('div')
+            $(edit_button).addClass('btn btn-outline-success')
+            edit_button.textContent = 'Edit'
+            $(textblock_div).attr('edit-state', 'unedited')
+            $(edit_button).on('click', function (d) {
+                var textblock = $(this).parents('.textblock')
+                var state = textblock.attr('edit-state')
+                if (state == 'unedited') {
+                    textblock.addClass('textblock-edited')
+                    textblock.find('.textblock-text-div').addClass('textblock-text-edited')
+                    textblock.attr('edit-state', 'edited')
+                    $(this).text('Unedit')
+                    textblock.find('.delete-button').addClass('hidden')
+                } else {
+                    textblock.removeClass('textblock-edited')
+                    textblock.find('.textblock-text-div').removeClass('textblock-text-edited')
+                    textblock.attr('edit-state', 'unedited')
+                    $(this).text('Edit')
+                    textblock.find('.delete-button').removeClass('hidden')
+                }
+            })
+            $(edit_button_div).append(edit_button)
+            $(button_div).append(edit_button_div)
+        }
+
+        // append elements to the textblock
+        // $(textblock_div).append(textblock_div_div)
+        $(textblock_div).append(button_div)
+    	$(textblock_row).append(textblock_div)
+        return textblock_row
+    }
+
+    create_sortable_textblock(selected_text, block_type, block_id){
+    	var that = this
+        // create textblock element for the righthand side
+        var textblock_pool = $('.textblock_pool').filter(
+            function (d) {
+                return $(d).attr('doc_id') == this.doc_key
+            }
+        )
+        var textblock_row = this.create_one_textblock(selected_text, block_type, false, block_id, '.textblock_pool')
+
+    	$(textblock_pool).append(textblock_row)
+        this.resize_textblock_pool('.textblock_pool')
+    }
+}
+
+    textblock_dims = {
+		'margin': 5,
+		'border': 2,
+		'padding': 10
+	}
+
+	textblock_pool_min_height = 200
+
+    buttons = [
+		['NODE', 'btn-outline-primary', 'node'],
+    ]
+    pm = new PageManager(
+		textblock_dims, false, false,
+		"372407", buttons,
+		textblock_pool_min_height
+	)
+
+    function render_page() {
+        data = JSON.parse('[{"sent_idx": 0, "sentence": "A car carrying Prince Charles and the Duchess of Cornwall was attacked by protesters but the couple were unharmed, Clarence House has said.", "version": 2}, {"sent_idx": 1, "sentence": "A spokeswoman said the couple were safe and attending the Royal Variety performance as scheduled.", "version": 2}, {"sent_idx": 2, "sentence": "The BBC has learned that protesters kicked, threw paint and smashed a window of the car which was travelling along Regent Street in central London.", "version": 2}, {"sent_idx": 3, "sentence": "The coalition government earlier voted to raise tuition fees in England.", "version": 2}, {"sent_idx": 4, "sentence": "Protesters have reacted badly to the vote which will see tuition fees increase to up to PS9,000 per year.", "version": 2}, {"sent_idx": 5, "sentence": "Scotland Yard says 12 police officers and 43 protesters have been hurt in clashes between police and students and that 22 people have been arrested.", "version": 2}, {"sent_idx": 6, "sentence": "One eyewitness told BBC News: \u0027\u0027I came forward and I saw him on the back seat. It was definitely Prince Charles, no doubt about it. \u0027\u0027They tried to protect him but there was too many of them.", "version": 2}, {"sent_idx": 7, "sentence": "\u0027\u0027 Scotland Yard has condemned the \u0027\u0027outrageous and increasing levels of violence\u0027\u0027.", "version": 2}, {"sent_idx": 8, "sentence": "A spokesman said: \u0027\u0027It has gone so far that a car in which the Prince of Wales and the Duchess of Cornwall were travelling through the West End was attacked. Police managed the situation and they were unharmed.\u0027\u0027", "version": 2}]'.replaceAll('NaN', 'null'))
+        $(data).each(function (i, d) {
+            pm.create_reference_textblock(d.sentence, 'NODE', d.sent_idx)
+            pm.create_sortable_textblock(d.sentence, 'NODE', d.sent_idx)
+            pm.create_static_connection(d.sent_idx, d.sent_idx)
+        })
+        $('.textblock_pool').sortable({
+            "update": function (event, ui) {
+                $(ui.item).find('.textblock').attr('touched', true)
+            }
+        })
+    }
+    render_page()
+
+    function delete_and_start_over(){
+        $('.textblock-row').remove()
+        $('.textblock-row-ref').remove()
+        $('.connection').remove()
+        render_page()
+    }
+
+    $('#revert').on('click', function(e){
+        e.preventDefault();
+        var confirmed = confirm('Are you sure you want to revert?')
+        if (confirmed){
+            delete_and_start_over()
+        }
+    })
+
+
+    $('.textblock')
+        .on('mouseover', function(){})
+        .on('mouseout',  function(){})
+
+     $.repeat().add('connection').each($).connections('update').wait(0);
+
+
+    //
+    // mturk
+    //
+    // handle data
+    //
+    var bool_to_int = {
+        true: 1,
+        false: 0
+    }
+    function _sum(arr) {
+        var r = 0;
+        $.each(arr, function(i, v) {
+            r += +v;
+        });
+        return r;
+    }
+
+    class SubmitHandler{
+        constructor() {
+            turkSetAssignmentID();
+            this.GENERIC_THANKS_MESSAGE = 'Thank you so much for your help with our task!'
+            this.completed_checks = false
+        }
+
+        _num_added(i){
+            return _sum(this.running_added_list.slice(0, i))
+        }
+        _num_deleted(i){
+            return _sum(this.running_deleted_list.slice(0, i))
+        }
+
+        _build_lists(d){
+            var is_deleted = $(d).attr('delete-state') == 'deleted'
+            var is_edited = $(d).attr('edit-state') == 'edited'
+            var is_added = !$(d).attr('orig-position')
+            this.running_edit_list.push(bool_to_int[is_edited])
+            this.running_added_list.push(bool_to_int[is_added])
+            this.running_deleted_list.push(bool_to_int[is_deleted])
+        }
+
+        _format_data(i, d, question_class){
+            var is_deleted = $(d).attr('delete-state') == 'deleted'
+            var is_edited = $(d).attr('edit-state') == 'edited'
+            var is_added = !$(d).attr('orig-position')
+            this.output['num-nodes-removed'] = this.output['num-nodes-removed'] + bool_to_int[is_deleted]
+            this.output['num-nodes-added'] = this.output['num-nodes-added'] + bool_to_int[is_added]
+            this.output['num-nodes-edited'] = this.output['num-nodes-edited'] + bool_to_int[is_edited]
+
+            var orig_position = parseInt($(d).attr('orig-position')) - this._num_deleted(i);
+            var new_position = i - this._num_deleted(i) - this._num_added(i);
+            var is_refactored = (new_position != orig_position) && ($(d).attr('touched') == 'true');
+            this.output['num-nodes-refactored'] = this.output['num-nodes-refactored'] + bool_to_int[is_refactored]
+
+            if (is_deleted)
+                var new_idx = 'undefined'
+            else
+                var new_idx = i - this._num_deleted(i)
+
+            return {
+                "doc_id": "372407",
+                "question_class": question_class,
+                "orig_sent_idx": $(d).attr('id').split('-')[1],
+                "new_sent_idx": new_idx,
+                "text": $(d).find('.textblock-text-div').text(),
+                "is_added": is_added,
+                'is_refactored': is_refactored,
+                'is_deleted': is_deleted,
+                'is_edited': is_edited
+            }
+        }
+
+        get_data_from_dom() {
+            var that = this
+            that.num_nodes = data.length
+            that.running_deleted_list = []
+            that.running_edit_list = []
+            that.running_added_list = []
+            that.output = {
+                'doc_id': "372407",
+                'final-list': [],
+                'nodes': data,
+                'num-nodes-removed': 0,
+                'num-nodes-added': 0,
+                'num-nodes-edited': 0,
+                'num-nodes-refactored': 0,
+            }
+
+            // build lists
+            $('.textblock_pool')
+                .find('.textblock')
+                .each(function (i, d) {
+                    that._build_lists(d);
+            })
+
+
+            $('.textblock_pool')
+                .find('.textblock')
+                .each(function (i, d) {
+                    var datum = that._format_data(i, d, 'final ordering');
+                    that.output['final-list'].push(datum)
+            })
+        }
+
+        gather_and_submit_data(submit_button, submit_click_event) {
+            this.submit_button = submit_button
+            this.submit_click_event = submit_click_event
+            this.get_data_from_dom()
+            this.first_check() // -> second_confirm -> third_confirm -> submit_data
+        }
+
+        first_check(){
+            var that = this
+            alertify.confirm(
+                    "You\'ve added " + this.output['num-nodes-added'] + " nodes," +
+                    " deleted " + this.output['num-nodes-removed'] + "," +
+                    " edited " + this.output['num-nodes-edited'] + "," +
+                    " and refactored (roughly) " + this.output['num-nodes-refactored'] + ". Does that look correct?",
+            ).set('header', '<em>Checking number of nodes drawn...</em>')
+             .set('labels', {
+                        ok: "Continue, submit!",
+                        cancel: "Let me recheck..."
+                    })
+                 .set('onok', function () {
+                        that.third_check()
+                    })
+                 .set('oncancel', function() {
+                        alertify.error('Thanks for being diligent! Please recheck and resubmit!')
+                    })
+        }
+
+        third_check(){
+            var that = this
+            setTimeout(function() {
+                alertify.confirm(
+                    "Great! Your submission is valid. Please take a moment to check out the real edits that were performed to the article you just looked at, here:" +
+                    "<br><br>" +
+                    "<a target='_blank' rel='noopener noreferrer' href='https://news-edits-dot-usc-research.appspot.com/check_task?source=bbc&doc_id=372407&v_x=2&v_y=3'>https://news-edits-dot-usc-research.appspot.com/check_task?source=bbc&doc_id=372407&v_x=2&v_y=3</a>" +
+                    "<br><br>" +
+                    "But please do not update your answers here after you've looked at the real edits. The purpose of this is to help guide you for future tasks." +
+                    "<br><br>" +
+                    "When you're done, please hit submit to record the task!"
+                ).set('header', '<em>Looks good! Ready to Submit?</em>')
+                    .set('labels', {
+                        ok: "Continue, submit!",
+                        cancel: "Let me recheck..."
+                    })
+                    .set('onok', function () {
+                        alertify.success('Ok! Submitting...')
+                        alertify.success(that.GENERIC_THANKS_MESSAGE)
+                        that.record_data()
+                    })
+                    .set('oncancel', function () {
+                        alertify.error('Thanks for being diligent! Please recheck and resubmit!')
+                    })
+            }, 700)
+        }
+        record_data(){
+            
+            // submit mturk
+            $('#data').attr('value', JSON.stringify(this.output))
+            this.completed_checks = true
+            $(this.submit_button).trigger(this.submit_click_event.type);
+            
+        }
+    }
+
+    // submit button click
+    var sh = new SubmitHandler()
+    $('#submitButton').on('click', function(submit_click_event){
+        var submit_button = this
+        if (! sh.completed_checks) {
+            submit_click_event.preventDefault();
+            sh.gather_and_submit_data(submit_button, submit_click_event);
+        }
+    })
+
+</script>
+</body></html>
+<!-- YOUR HTML ENDS -->
+
+]]>
+</HTMLContent>
+<FrameHeight>600</FrameHeight>
+</HTMLQuestion>
