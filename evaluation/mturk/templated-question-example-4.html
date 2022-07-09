@@ -10,7 +10,7 @@
 </head>
 <link type="text/css" href="https://getbootstrap.com/1.0.0/assets/css/bootstrap-1.0.0.min.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
-<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 <script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
@@ -179,6 +179,14 @@ body{
     text-decoration: line-through;
 }
 
+.textblock-text-edited{
+    color: gray;
+}
+
+.textblock-edited {
+    background-color: rgba(131, 183, 222, 0.72);
+}
+
 /*.hidden{*/
 /*    display: none;*/
 /*}*/
@@ -209,12 +217,12 @@ body{
                     Hello! We are small research lab in University of Southern California trying to build AI tools to help
                     citizens better understand the work journalists do.
                     <br><br>
-                    We are calibrating our payment scheme <b>to meet a $15 per hour wage and will reward workers who take time
-                    to give correct answers</b>.
+                    Our goal in this work is to study how articles unfold over time — ultimately we'd like to build tools to help local news rooms allocate resources for breaking stories. First, we need to study how seasoned editors go about restructuring stories.
                     <br><br>
-                    If you perform well, we will invite you to participate in future, well-paying trials. If you speed through and give nonsense
-                    answers, <b>we will block you and report to Mechanical Turk</b>. We understand the pressures of Mechanical Turk, but we are a
-                    small lab and cannot afford to throw out too much data.
+                    We are calibrating our payment scheme <b>to meet a $25 per hour wage</b>. Apologies if at first it is miscalibrated, we're not sure at
+                      this moment how long the tasks will take.
+                      <br><br>
+                    Please take a moment to review some of the <b><u>Examples</u></b> and skim the <b><u>Instructions</u></b> in the sections below. If you've already watched the <b><u>Video</u></b> and have a good idea of the task, feel free to skip that section.
                   </div>
                 </div>
               </div>
@@ -228,81 +236,20 @@ body{
                 </div>
                 <div id="collapseTwo" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
                     <div class="card-body">
-                        <h2>Goals and Overview</h2>
-                        <p>The goal of this exercise is to help us identify sentences in an article-rewrite that contain substantially new information.</p>
-                        <p>To do this, you will identiy which sentences <b><i>match</i></b> between two versions of an article.</p>
-                        <p>
-                        <h4>Two sentences <b><i>match</i></b> if:</h4>
-                            <ul>
-                                <li><b><i>Option 1:</i></b> They are nearly the same, word-for-word.</li>
-                                <li><b><i>Option 2:</i></b> They convey the same information but are <u>stylistically different.</u></li>
-                                <li><b><i>Option 3:</i></b> They have slightly different information but have <u>substantial overlap in meaning</u> and <u>narrative function.</u></li>
-                            </ul>
-                        </p>
-
-                        Examples of <b><i>Option 3</i></b> include (please see the "Examples" section for real examples):
-                        <ul>
-                            <li>Updating events.
-                                <ul>
-                                    <li>(Ex) <i>The man was presumed missing. &rarr; The man was found in his home.</i></li>
-                                    <li>(Ex) <i>The death count was at 23. &rarr; 50 were found dead.</i></li>
-                                    <li>(Ex) <i>The senators are still negotiating the details. &rarr; The senators have reached a deal.</i></li>
-                                </ul>
-                            </li>
-                            <li>An improved analysis.
-                                <ul>
-                                    <li>(Ex) <i>The president is likely seeking improved relations. &rarr; The president is likely hoping that hard-liners will give way to moderates, improving relations.</i></li>
-                                    <li>(Ex) <i>The storm, a Category IV, is expected to hit Texas. &rarr; The storm, downgraded to Category III, is projected to stay mainly in the Gulf.</i></li>
-                                    <li>(Ex) <i>Analysts widely think the shock will be temporary. &rarr; The shock, caused by widespread shipping delays, might last into December, but will ultimately subside.</i></li>
-                                </ul>
-                            </li>
-                            <li>A quote that is very similar or serves the same purpose.
-                                <ul>
-                                    <li>(Ex) <i>"We knew we had to get it done." said Senator Murphy. &rarr; "At the end of the day, no one could leave until we had a deal" said Senator Harris.</i></li>
-                                    <li>(Ex) <i>"It was gripping." said the bystander. &rarr; "I couldn't stop watching." said a moviegoer.</i></li>
-                                </ul>
-                            </li>
-                        </ul>
-
-                        <p>
-                        <h4>Two sentences <b><i>do not match</i></b> if:</h4>
-                            <ul>
-                                <li>They contain substantially different information.</li>
-                                <li>They serve different narrative functions.</li>
-                                <li>There is a much better match for one sentence somewhere else in the document.</li>
-                            </ul>
-                        </p>
-                        <p>
-                        <h4>Things to keep in mind:</h4>
-                            <ul>
-                                <li>Two sentences might match <u>even if they are in different parts of the document.</u></li>
-                                <li>One sentence can match <u>with multiple other sentences</u>, because that sentence might be split up into multiple sentences, each with similar information as parts of the original.</li>
-                                <li>Sentences <i>don't have to match</i>.
-                                    <ul>
-                                        <li>Substantially new information, perspectives or narrative tools might be added in a new version.</li>
-                                        <li>Substantially old information, perspectives or narrative tools might be removed from an old version.</li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </p>
-
-                        <h4>Steps to completing the task:</h4>
-                        <ol>
-                            <li>For each sentence in the left-hand column, determine if its <b><i>matches</i></b> with a sentence on the right.
-                                <ul>
-                                    <li>By mousing over the sentence block, you will see word-overlaps between the moused-over block and all blocks in the opposite column.
-                                        <b>THIS IS MEANT TO BE HELPFUL BUT NOT COMPLETE.</b> Please do not rely on this alone.
-                                        We expect that many sentences with high word-overlap still might convey different information.
-                                        <i>We will be checking answers for completeness!!</i></li>
-                                    <li>If you find two blocks that look very similar but are not exactly the same, ask yourself: is there substantially new information included?
-                                        Or is the edit merely cosmetic?</li>
-                                </ul>
-                            </li>
-                            <li>When you find blocks that you think should match - i.e. they contain the same, or substantially similar information - connect them by:
-                                (a) right-clicking on the first block and (b) right clicking on it's matching block</li>
-                            <li>If you right-click on a block accidentally, you may right-click on the same block to remove the line.</li>
-                            <li>Please note, <i>there may be blocks that do not match!!</i> This is OK.</li>
-                        </ol>
+                        You will be adding, deleting and moving sentences around in a news article to anticipate what a future version looks like.
+                        <br><br>
+                        * <b><u>Add a sentence</u></b> either <i>below</i> or <i>above</i> the current sentence by pressing the <span style="background-color: rgba(0,160,0,0.63)">Add &uarr;</span> or <span style="background-color: rgba(0,160,0,0.63)">Add &darr;</span> buttons. Adding a sentence means that you feel there is substantially new information, a novel viewpoint or quote, or necessary background
+                        information that needs to be present.
+                        <br><br>
+                        * <b><u>Move a sentence</u></b> by dragging it around on the canvas. Moving a sentence,  (or what we're calling <b><i>refactoring</i></b>) means that the importance of a sentence should be either increased or decreased within the article. <b><u>Please note:</u></b> refactors are rare!
+                        <br><br>
+                        * <b><u>Delete a sentence</u></b> by hitting the <span style="background-color: rgba(0,160,0,0.63)">Delete</span> button. Deleting an <b>Added</b> sentence just reverses that action - we will not record this. Deleting a sentence that is present means you feel it needs to be (a) substantially rewritten (ergo: a new sentence should also be <b>Added</b>), or (b) the sentence no longer applies given new information that was added.
+                        <br><br>
+                        * <b><u>Edit a sentence</u></b> by hitting the <span style="background-color: rgba(0,160,0,0.63)">Edit</span> button. Editing a sentence means that the wording might change a little bit due to other changes happening around the sentence or events within the sentence being updated.
+                        <br><br>
+                        * <b><u>Leaving a sentence unchanged</u></b> means that you don't really expect the sentence to change at all in the next version of the article.
+                        <br><br>
+                        When you're ready to submit, please hit the <span style="background-color: rgba(0,160,0,0.63)">Submit</span> button and please check to see what the actual edits were so you can improve for next task!
                     </div>
                 </div>
               </div>
@@ -316,13 +263,11 @@ body{
                 </div>
                 <div id="collapseFour" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
                     <div class="card-body">
-
-                                        <p>
-                            <video width="320" height="240" controls>
-                              <source src="https://storage.googleapis.com/public-mturk-resources/sped-up-2.mov" type="video/mp4">
-                            Your browser does not support the video tag.
-                            </video>
-                        </p>
+                        Here is a video showing how to interact with our page and a demonstration of the thought process I think is appropriate for this task. However, you are professional journalists and you know better than I do!
+                        <br><br>
+                        Please note that this video is a little outdated: there is no edit button, and some aspects of the page design has been improved.
+                        <br><br>
+                        <iframe width="560" height="315" src="https://www.youtube.com/embed/nEF6uVoSZdE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                     </div>
                 </div>
               </div>
@@ -336,45 +281,54 @@ body{
                 </div>
                 <div id="collapseThree" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
                     <div class="card-body">
-                        In the examples below, we'll show sentence pairs that we consider matches. The sentence(s) from the old version will occur first, followed by the sentence(s) from the new version. Green text is text that has been added (i.e. it is specific the new version) and red text is text that has been remove (i.e. it is specific to the old version).
-
-                        <h4>Sentences that contain the same information:</h4>
-                        <p>The following sentences convey the same information, however, they are cosmetically different.</p>
-
-
-                        <h5>Example 1</h5>
-                        <p><i>This is a sentence pair where only a few style edits have been made.</i></p>
-
+                        <h5>Local Crime</h5>
                         <div class="example">
-                            <p>ZABUL , Afghanistan — A complex attack on a military base in southern Afghanistan Monday <span style="background-color:rgba(255,0,0,0.3)">left</span>  at least one member of  U.S.-led coalition forces <span style="background-color:rgba(255,0,0,0.3)">dead</span>. &rarr;</p>
-                            <hr>
-                            <p>ZABUL , Afghanistan — A complex attack on a military base in southern Afghanistan Monday  <span style="background-color:rgba(0,255,0,0.3)">killed </span> at least one member of <span style="background-color:rgba(0,255,0,0.3)">the </span> U.S.-led coalition forces.</p>
+                            <a target='_blank' rel='noopener noreferrer' href="https://news-edits-dot-usc-research.appspot.com/check_task?source=reuters&doc_id=2436&v_x=0&v_y=1">https://news-edits-dot-usc-research.appspot.com/check_task?source=reuters&doc_id=2436&v_x=0&v_y=1</a>
                         </div>
-
-                        <h4>Sentences that match in meaning/purpose:</h4>
-                        <h5>Example 1</h5>
-                        <p><i>This is a sentence pair where an <u>event update</u> has occurred. The man went from being "suspected" of a crime to being confirmed as committing it.</i></p>
-
+                        The above example is a good example of a local crime article where the phrase "...no mention of..." indicates that an upcoming draft will include deletions (of that sentence) and additions of new information.
+                        <hr>
+                        <!--                        -->
+                        <h5>Events update:</h5>
                         <div class="example">
-                            <p>TAIPEI , Taiwan —  <span style="background-color:rgba(255,0,0,0.3)">Police</span> <span style="background-color:rgba(255,0,0,0.3)">officials</span> <span style="background-color:rgba(255,0,0,0.3)">in</span> <span style="background-color:rgba(255,0,0,0.3)">China</span> <span style="background-color:rgba(255,0,0,0.3)">said</span> <span style="background-color:rgba(255,0,0,0.3)">Thursday</span> <span style="background-color:rgba(255,0,0,0.3)">that</span> <span style="background-color:rgba(255,0,0,0.3)">they</span> <span style="background-color:rgba(255,0,0,0.3)">arrested</span> <span style="background-color:rgba(255,0,0,0.3)">a</span> man   <span style="background-color:rgba(255,0,0,0.3)">suspected</span> <span style="background-color:rgba(255,0,0,0.3)">of</span> <span style="background-color:rgba(255,0,0,0.3)">stabbing</span> <span style="background-color:rgba(255,0,0,0.3)">to</span> <span style="background-color:rgba(255,0,0,0.3)">death</span> six nurses and a manager   at a Chinese military <span style="background-color:rgba(255,0,0,0.3)">sanitarium</span>  in a seaside area famous for gatherings of Communist Party leaders.&rarr;</p>
-                            <hr>
-                            <p>TAIPEI , Taiwan — <span style="background-color:rgba(0,255,0,0.3)">A </span>           man <span style="background-color:rgba(0,255,0,0.3)">fatally </span> <span style="background-color:rgba(0,255,0,0.3)">stabbed </span>      six nurses and a manager <span style="background-color:rgba(0,255,0,0.3)">on </span> <span style="background-color:rgba(0,255,0,0.3)">Thursday </span> at a Chinese military  <span style="background-color:rgba(0,255,0,0.3)">hospital </span> in a seaside area famous for gatherings of Communist Party leaders <span style="background-color:rgba(0,255,0,0.3)">, </span> <span style="background-color:rgba(0,255,0,0.3)">police </span> <span style="background-color:rgba(0,255,0,0.3)">officials </span> <span style="background-color:rgba(0,255,0,0.3)">in </span> <span style="background-color:rgba(0,255,0,0.3)">China </span> <span style="background-color:rgba(0,255,0,0.3)">said </span> .</p>
+                            <a target='_blank' rel='noopener noreferrer' href="">https://news-edits-dot-usc-research.appspot.com/check_task?source=independent&doc_id=1587638&v_x=1&v_y=2</a>
+                            <br>
+                            <a target='_blank' rel='noopener noreferrer' href="">https://news-edits-dot-usc-research.appspot.com/check_task?source=nyt&doc_id=1828967&v_x=1&v_y=2</a>
                         </div>
-
-                        <h5>Example 2</h5>
-                        <p><i>This is a sentence group where one long sentence has been split into multiple sentences. While there is extra information added (e.g. one sentence adds "about 180 miles east of Beijing"), it is mainly
-                        descriptive and the purpose of the sentences (i.e. to describe the crime further and give background for the reader) are the same.
-                        </i></p>
+                        In both of these articles, an event is unfolding. They are both clearly breaking news, so as more information about the main event comes in, we will update the article.
+                        <hr>
+                        <!--                        -->
+                        <h5>More information about the main event</h5>
                         <div class="example">
-                            <p>The <span style="background-color:rgba(255,0,0,0.3)">police</span>                           said <span style="background-color:rgba(255,0,0,0.3)">the</span> <span style="background-color:rgba(255,0,0,0.3)">suspect</span> in <span style="background-color:rgba(255,0,0,0.3)">the</span> <span style="background-color:rgba(255,0,0,0.3)">killings</span>         Thursday morning in Beidaihe , a resort area in the Hebei Province city of Qinhuangdao ,                  is  <span style="background-color:rgba(255,0,0,0.3)">a</span> <span style="background-color:rgba(255,0,0,0.3)">sanitarium</span> employee <span style="background-color:rgba(255,0,0,0.3)">,</span> <span style="background-color:rgba(255,0,0,0.3)">indicating</span>   the attack was <span style="background-color:rgba(255,0,0,0.3)">likely</span>  not the result of a dispute over a patient ’s <span style="background-color:rgba(255,0,0,0.3)">treatment--</span>   <span style="background-color:rgba(255,0,0,0.3)">the</span> <span style="background-color:rgba(255,0,0,0.3)">suspect</span> <span style="background-color:rgba(255,0,0,0.3)">,</span> <span style="background-color:rgba(255,0,0,0.3)">a</span> <span style="background-color:rgba(255,0,0,0.3)">27-year</span> <span style="background-color:rgba(255,0,0,0.3)">-</span> <span style="background-color:rgba(255,0,0,0.3)">old</span> <span style="background-color:rgba(255,0,0,0.3)">man</span> <span style="background-color:rgba(255,0,0,0.3)">,</span> <span style="background-color:rgba(255,0,0,0.3)">had</span> <span style="background-color:rgba(255,0,0,0.3)">no</span> <span style="background-color:rgba(255,0,0,0.3)">known</span> <span style="background-color:rgba(255,0,0,0.3)">conflict</span> <span style="background-color:rgba(255,0,0,0.3)">with</span> <span style="background-color:rgba(255,0,0,0.3)">the</span> victims <span style="background-color:rgba(255,0,0,0.3)">,</span> <span style="background-color:rgba(255,0,0,0.3)">who</span> were killed in a women ’s dormitory at the hospital               , the  <span style="background-color:rgba(255,0,0,0.3)">Qinhuangdao</span> <span style="background-color:rgba(255,0,0,0.3)">City</span> <span style="background-color:rgba(255,0,0,0.3)">Public</span> <span style="background-color:rgba(255,0,0,0.3)">Security</span> <span style="background-color:rgba(255,0,0,0.3)">Bureau</span> said <span style="background-color:rgba(255,0,0,0.3)">in</span> <span style="background-color:rgba(255,0,0,0.3)">a</span> <span style="background-color:rgba(255,0,0,0.3)">statement</span> <span style="background-color:rgba(255,0,0,0.3)">online</span> . &rarr;</p>
-                            <hr>
-                            <p>The                                              suspect , a 27-year - old   <span style="background-color:rgba(0,255,0,0.3)">hospital </span> <span style="background-color:rgba(0,255,0,0.3)">employee </span> <span style="background-color:rgba(0,255,0,0.3)">who </span> had no known   <span style="background-color:rgba(0,255,0,0.3)">motive </span> <span style="background-color:rgba(0,255,0,0.3)">, </span> <span style="background-color:rgba(0,255,0,0.3)">was </span> <span style="background-color:rgba(0,255,0,0.3)">arrested </span> <span style="background-color:rgba(0,255,0,0.3)">after </span> the <span style="background-color:rgba(0,255,0,0.3)">attacks </span>              , the Qinhuangdao City Public Security Bureau said in a statement online .</p>
-                            <p>The <span style="background-color:rgba(0,255,0,0.3)">stabbings </span> <span style="background-color:rgba(0,255,0,0.3)">took </span> <span style="background-color:rgba(0,255,0,0.3)">place </span>        Thursday morning in Beidaihe , a resort area in the Hebei Province city of Qinhuangdao , <span style="background-color:rgba(0,255,0,0.3)">about </span> <span style="background-color:rgba(0,255,0,0.3)">180 </span> <span style="background-color:rgba(0,255,0,0.3)">miles </span> <span style="background-color:rgba(0,255,0,0.3)">east </span>              of <span style="background-color:rgba(0,255,0,0.3)">Beijing </span>                                                .</p>
-                            <p>   <span style="background-color:rgba(0,255,0,0.3)">But </span> <span style="background-color:rgba(0,255,0,0.3)">the </span> <span style="background-color:rgba(0,255,0,0.3)">fact </span> <span style="background-color:rgba(0,255,0,0.3)">that </span> the suspect in the     Beidaihe <span style="background-color:rgba(0,255,0,0.3)">case </span>             is <span style="background-color:rgba(0,255,0,0.3)">an </span>   employee   <span style="background-color:rgba(0,255,0,0.3)">indicates </span> <span style="background-color:rgba(0,255,0,0.3)">that </span> the attack was  <span style="background-color:rgba(0,255,0,0.3)">probably </span> not the result of a dispute over a patient ’s <span style="background-color:rgba(0,255,0,0.3)">treatment </span>                                         .</p>
-                            <p>The                                                            victims   were killed in a women ’s dormitory at the hospital <span style="background-color:rgba(0,255,0,0.3)">for </span> <span style="background-color:rgba(0,255,0,0.3)">elderly </span> <span style="background-color:rgba(0,255,0,0.3)">military </span> <span style="background-color:rgba(0,255,0,0.3)">personnel </span> <span style="background-color:rgba(0,255,0,0.3)">, </span> <span style="background-color:rgba(0,255,0,0.3)">also </span> <span style="background-color:rgba(0,255,0,0.3)">known </span> <span style="background-color:rgba(0,255,0,0.3)">as </span> <span style="background-color:rgba(0,255,0,0.3)">People </span> <span style="background-color:rgba(0,255,0,0.3)">’s </span> <span style="background-color:rgba(0,255,0,0.3)">Liberation </span> <span style="background-color:rgba(0,255,0,0.3)">Army </span> <span style="background-color:rgba(0,255,0,0.3)">Hospital </span> <span style="background-color:rgba(0,255,0,0.3)">281 </span> , the <span style="background-color:rgba(0,255,0,0.3)">statement </span>      said     .</p>
+                            <a target='_blank' rel='noopener noreferrer' href="">https://news-edits-dot-usc-research.appspot.com/check_task?source=nyt&doc_id=1870033&v_x=0&v_y=1</a>
                         </div>
-
-
+                        The phrase "This is a developing story" is really a good clue in this example.
+                        <hr>
+                        <!--                        -->
+                        <h5>More background:</h5>
+                        <div class="example">
+                            <a target='_blank' rel='noopener noreferrer' href="">https://news-edits-dot-usc-research.appspot.com/check_task?source=wp&doc_id=1115575&v_x=0&v_y=1</a>
+                        </div>
+                        This article needed a lot more background.
+                        <hr>
+                        <!--                        -->
+                        <h5>More viewpoints:</h5>
+                        <div class="example">
+                            <a target='_blank' rel='noopener noreferrer' href="">https://news-edits-dot-usc-research.appspot.com/check_task?source=wp&doc_id=1125102&v_x=0&v_y=1</a>
+                        </div>
+                         This is a good example of a piece where we really need to hear from more voices, like parents, anonymous sources, etc.
+                        <hr>
+                        <h5>Article Rewrite</h5>
+                        <div class="example">
+                            <a target='_blank' rel='noopener noreferrer' href="">https://news-edits-dot-usc-research.appspot.com/check_task?source=ap&doc_id=220&v_x=2&v_y=3</a>
+                        </div>
+                        Good example of when the old article wasn't really written in a newsy style and needed to be updated.
+                        <hr>
+                        <!--                        -->
+                        <h5>Many Edits</h5>
+                        <div class="example">
+                            <a target='_blank' rel='noopener noreferrer' href="">https://news-edits-dot-usc-research.appspot.com/check_task?source=bbc&doc_id=1248390&v_x=1&v_y=2</a>
+                        </div>
+                        This article is really dense. There are a lot of time-dependent numbers here, so it's likely that a lot of them will be updated. Also, an additional viewpoint is added.
                     </div>
                 </div>
               </div>
@@ -389,51 +343,25 @@ body{
        <br>Read above for more detailed instructions and examples.</em></p>
     <br>
 <!--    <h4>Headline: </h4>-->
-    <p>Article Key: ('ap', 9738, 0, 1)</p>
+    <p>Article Key: 1189817</p>
     <br>
     <div class="row header" >
-        <div class="col-4" doc_id="('ap', 9738, 0, 1)" ><h3>Article</h3></div>
-        <div class="col-8" doc_id="('ap', 9738, 0, 1)" ></div>
+        <div class="col-4" doc_id="1189817" ><h3>Article</h3></div>
+        <div class="col-8" doc_id="1189817" ></div>
     </div>
     <div class="row subheader" >
-        <div class="col-4" doc_id="('ap', 9738, 0, 1)" ><h4>Original Article</h4>
+        <div class="col-4" doc_id="1189817" ><h4>Original Article</h4>
             <div class="row"></div>
         </div>
-        <div class="col-8" doc_id="('ap', 9738, 0, 1)" ><h4>Editing Sandbox</h4></div>
+        <div class="col-8" doc_id="1189817" ><h4>Editing Sandbox</h4></div>
     </div>
-    <!--    <div class="test row">-->
-    <!--        &lt;!&ndash; reference       &ndash;&gt;-->
-    <!--        <div class="col-4" doc_id="('ap', 9738, 0, 1)" >-->
-    <!--            <div class="textblock-row row">-->
-    <!--                <div class="textblock row ui-draggable ui-draggable-handle" id="sentence-ref-100">-->
-    <!--                    <div class="col-12 textblock-text-div">-->
-    <!--                        <span class="textblock_span">Hundreds of university students in Kabul have held protests over US airstrikes which reportedly killed more than 100 civilians last week.</span>-->
-    <!--                    </div>-->
-    <!--                </div>-->
-    <!--            </div>-->
-    <!--        </div>-->
-    <!--        <div class="col-8" doc_id="('ap', 9738, 0, 1)" >-->
-    <!--            <ul>-->
-    <!--                <li class="textblock-row ui-sortable-handle">-->
-    <!--                    <div class="row d-inline-flex textblock" id="sentence-100" label="NODE">-->
-    <!--                        <div class="col-6 textblock-text-div">-->
-    <!--                            <span class="textblock_span">Hundreds of university students in Kabul have held protests over US airstrikes which reportedly killed more than 100 civilians last week.</span>-->
-    <!--                        </div>-->
-    <!--                        <div class="col-2 add-above-button"><div class="btn btn-outline-success">Add Above</div></div>-->
-    <!--                        <div class="col-2 add-below-button"><div class="btn btn-outline-success">Add Below</div></div>-->
-    <!--                        <div class="col-2 delete-button"><div class="btn btn-outline-success">Delete</div></div></div>-->
-    <!--                </li>-->
-    <!--            </ul>-->
-    <!--        </div>-->
-    <!--    </div>-->
-
     <div class="row text" >
-        <div class="col-3 textblock_pool_ref" doc_id="('ap', 9738, 0, 1)" ></div>
-        <div class="col-1 filler" doc_id="('ap', 9738, 0, 1)" ></div>
-        <div class="col-6 row" doc_id="('ap', 9738, 0, 1)" ><ul class="textblock_pool"></ul></div>
+        <div class="col-3 textblock_pool_ref" doc_id="1189817" ></div>
+        <div class="col-1 filler" doc_id="1189817" ></div>
+        <div class="col-6 row" doc_id="1189817" ><ul class="textblock_pool"></ul></div>
     </div>
     <div class="row annotation">
-	    <div class="error question col-4" doc_id="('ap', 9738, 0, 1)" error_type='error'>
+	    <div class="error question col-4" doc_id="1189817" error_type='error'>
 		  <p>
     	  <h4>Does this article have errors?</h4>
     	  <div id="error_btn_grp" class="btn-group-vertical btn-group-toggle" role="group" data-toggle="buttons">
@@ -452,7 +380,7 @@ body{
 		  </div>
 		  </p>
 		</div>
-	    <div class="error question col-4" doc_id="('ap', 9738, 0, 1)" error_type='confidence'>
+	    <div class="error question col-4" doc_id="1189817" error_type='confidence'>
 		  <p>
     	  <h4>How confident are you in this tagging?</h4>
     	  <div class="btn-group-vertical btn-group-toggle" role="group" data-toggle="buttons">
@@ -488,7 +416,7 @@ body{
         <h3>Optional Feedback:</h3>
             <p>
             We'd love to hear some feedback on this task: if any parts were confusing, or the task itself could
-            be formulated better, we'd love to hear any comments, ideas or suggestions. Please send an email through Mechanical Turk! We read all of our emails. We really appreciate your help!
+            be formulated better, we'd love to hear any comments, ideas or suggestions. Please send an email through Mechanical Turk or to spangher@usc.edu. We read all of our emails and we really appreciate your help!
             </p>
         </div>
         <hr>
@@ -685,15 +613,16 @@ body{
         $(textblock_span).addClass('textblock_span')
         textblock_span.textContent = selected_text
         $(textblock_text_div).append(textblock_span)
-        // $(textblock_row).append(textblock_text_div)
         $(textblock_div).append(textblock_text_div)
-        // $(textblock_div_div).append(textblock_text_div)
 
-        // add button
+        // add buttons
+        var button_div = document.createElement('div')
+        $(button_div).addClass('col-6 row')
+
         var add_above_button_div = document.createElement('div')
-        $(add_above_button_div).addClass('col-2 add-above-button center-button')
+        $(add_above_button_div).addClass('col-3 add-above-button center-button')
         var add_above_button = document.createElement('div')
-        add_above_button.textContent = 'Add Above'
+        add_above_button.innerHTML = 'Add &uarr;'
         $(add_above_button).addClass('btn btn-outline-success')
         $(add_above_button).on('click', function(d){
             var new_textblock = that.create_one_textblock('[NEW SENTENCE]', 'NODE', true, textblock_pool_class_sel)
@@ -704,15 +633,14 @@ body{
         })
 
         $(add_above_button_div).append(add_above_button)
-        // $(textblock_row).append(add_above_button_div)
-        $(textblock_div).append(add_above_button_div)
-        // $(textblock_div_div).append(add_above_button_div)
+        // $(textblock_div).append(add_above_button_div)
+        $(button_div).append(add_above_button_div)
 
         var add_below_button_div = document.createElement('div')
-        $(add_below_button_div).addClass('col-2 add-below-button center-button')
+        $(add_below_button_div).addClass('col-3 add-below-button center-button')
         var add_below_button = document.createElement('div')
         $(add_below_button).addClass('btn btn-outline-success align-middle')
-        add_below_button.textContent = 'Add Below'
+        add_below_button.innerHTML = 'Add &darr;'
         $(add_below_button).on('click', function(d){
             var new_textblock = that.create_one_textblock('[NEW SENTENCE]', 'NODE', true, textblock_pool_class_sel)
             // update so we insert it below
@@ -721,17 +649,15 @@ body{
             that.resize_textblock_pool(textblock_pool_class_sel)
         })
         $(add_below_button_div).append(add_below_button)
-        // $(textblock_row).append(add_below_button_div)
-        $(textblock_div).append(add_below_button_div)
-        // $(textblock_div_div).append(add_below_button_div)
-
+        // $(textblock_div).append(add_below_button_div)
+        $(button_div).append(add_below_button_div)
 
         var delete_button_div = document.createElement('div')
-        $(delete_button_div).addClass('col-2 delete-button center-button')
+        $(delete_button_div).addClass('col-3 delete-button center-button')
         var delete_button = document.createElement('div')
         $(delete_button).addClass('btn btn-outline-success')
         delete_button.textContent = 'Delete'
-        $(textblock_div).attr('state', 'undeleted')
+        $(textblock_div).attr('delete-state', 'undeleted')
         $(delete_button).on('click', function(d){
             var textblock = $(this).parents('.textblock')
             var is_new = textblock.attr('is_new')
@@ -741,33 +667,63 @@ body{
                 that.resize_textblock_pool(textblock_pool_class_sel)
             }
             else {
-                var state = textblock.attr('state')
+                var state = textblock.attr('delete-state')
                 if (state == 'undeleted') {
                     textblock.addClass('textblock-deleted')
                     textblock.find('.textblock-text-div').addClass('textblock-text-deleted')
-                    textblock.attr('state', 'deleted')
+                    textblock.attr('delete-state', 'deleted')
                     $(this).text('Restore')
-                    textblock.find('.add-above-button').addClass('hidden')
-                    textblock.find('.add-below-button').addClass('hidden')
+                    textblock.find('.edit-button').addClass('hidden')
+                    // textblock.find('.add-above-button').addClass('hidden')
+                    // textblock.find('.add-below-button').addClass('hidden')
                 }
                 else {
                     textblock.removeClass('textblock-deleted')
                     textblock.find('.textblock-text-div').removeClass('textblock-text-deleted')
-                    textblock.attr('state', 'undeleted')
+                    textblock.attr('delete-state', 'undeleted')
                     $(this).text('Delete')
-                    textblock.find('.add-above-button').removeClass('hidden')
-                    textblock.find('.add-below-button').removeClass('hidden')
+                    textblock.find('.edit-button').removeClass('hidden')
+                    // textblock.find('.add-above-button').removeClass('hidden')
+                    // textblock.find('.add-below-button').removeClass('hidden')
                 }
             }
         })
         $(delete_button_div).append(delete_button)
-        $(textblock_div).append(delete_button_div)
-        // $(textblock_div_div).append(delete_button_div)
-        // $(textblock_row).append(delete_button_div)
+        // $(textblock_div).append(delete_button_div)
+        $(button_div).append(delete_button_div)
 
+        // edit button
+        if ($(textblock_div).attr('is_new') != 'true') {
+            var edit_button_div = document.createElement('div')
+            $(edit_button_div).addClass('col-3 edit-button center-button')
+            var edit_button = document.createElement('div')
+            $(edit_button).addClass('btn btn-outline-success')
+            edit_button.textContent = 'Edit'
+            $(textblock_div).attr('edit-state', 'unedited')
+            $(edit_button).on('click', function (d) {
+                var textblock = $(this).parents('.textblock')
+                var state = textblock.attr('edit-state')
+                if (state == 'unedited') {
+                    textblock.addClass('textblock-edited')
+                    textblock.find('.textblock-text-div').addClass('textblock-text-edited')
+                    textblock.attr('edit-state', 'edited')
+                    $(this).text('Unedit')
+                    textblock.find('.delete-button').addClass('hidden')
+                } else {
+                    textblock.removeClass('textblock-edited')
+                    textblock.find('.textblock-text-div').removeClass('textblock-text-edited')
+                    textblock.attr('edit-state', 'unedited')
+                    $(this).text('Edit')
+                    textblock.find('.delete-button').removeClass('hidden')
+                }
+            })
+            $(edit_button_div).append(edit_button)
+            $(button_div).append(edit_button_div)
+        }
 
         // append elements to the textblock
         // $(textblock_div).append(textblock_div_div)
+        $(textblock_div).append(button_div)
     	$(textblock_row).append(textblock_div)
         return textblock_row
     }
@@ -800,13 +756,13 @@ body{
     ]
     pm = new PageManager(
 		textblock_dims, false, false,
-		"('ap', 9738, 0, 1)", buttons,
+		"1189817", buttons,
 		textblock_pool_min_height
 	)
 
     function render_page() {
-        data = JSON.parse('{"arcs": [{"avg_sentence_distance_x": NaN, "avg_sentence_distance_y": NaN, "sent_idx_x": 2.0, "sent_idx_y": NaN, "version_x": 0, "version_y": 1}, {"avg_sentence_distance_x": NaN, "avg_sentence_distance_y": NaN, "sent_idx_x": 3.0, "sent_idx_y": NaN, "version_x": 0, "version_y": 1}, {"avg_sentence_distance_x": 0.4283849399096629, "avg_sentence_distance_y": 0.4283849399096629, "sent_idx_x": 0.0, "sent_idx_y": 0.0, "version_x": 0, "version_y": 1}, {"avg_sentence_distance_x": NaN, "avg_sentence_distance_y": NaN, "sent_idx_x": NaN, "sent_idx_y": 2.0, "version_x": 0, "version_y": 1}, {"avg_sentence_distance_x": NaN, "avg_sentence_distance_y": NaN, "sent_idx_x": 4.0, "sent_idx_y": NaN, "version_x": 0, "version_y": 1}, {"avg_sentence_distance_x": NaN, "avg_sentence_distance_y": NaN, "sent_idx_x": 1.0, "sent_idx_y": NaN, "version_x": 0, "version_y": 1}, {"avg_sentence_distance_x": NaN, "avg_sentence_distance_y": NaN, "sent_idx_x": NaN, "sent_idx_y": 4.0, "version_x": 0, "version_y": 1}, {"avg_sentence_distance_x": NaN, "avg_sentence_distance_y": NaN, "sent_idx_x": NaN, "sent_idx_y": 1.0, "version_x": 0, "version_y": 1}], "nodes": [{"sent_idx": 0, "sentence": "MOSCOW (AP) -- Russia\u0027s domestic security agency says two border guards got lost and ended up in Ukraine.", "version": 0}, {"sent_idx": 1, "sentence": "The border guard branch of the Federal Security Service in Crimea said the incident happened early Friday during an exercise in Crimea.", "version": 0}, {"sent_idx": 2, "sentence": "The agency added that it expects Ukraine to quickly return the two men back to Russia.", "version": 0}, {"sent_idx": 3, "sentence": "A Ukrainian court has arrested the two men for 15 days pending an official probe.", "version": 0}, {"sent_idx": 4, "sentence": "Russia and Ukraine have been in a tug-of-war following Moscow\u0027s annexation of Crimea in 2014 and its support for pro-Russia insurgents in eastern Ukraine.", "version": 0}, {"sent_idx": 5, "sentence": "The fighting in eastern Ukraine has left over 10,000 people dead since April 2014.", "version": 0}]}'.replaceAll('NaN', 'null'))
-        $(data.nodes).each(function (i, d) {
+        data = JSON.parse('[{"sent_idx": 0, "sentence": "A popular theme park outside of Washington, DC, Six Flags America, has reported an apparent bomb threat.", "version": 1}, {"sent_idx": 1, "sentence": "Officials from the park tweeted that they are working with authorities and the park will remained closed until the area is secured.", "version": 1}, {"sent_idx": 2, "sentence": "Prince George\u0027s County Fire Department spokesperson Mark Brady said both fire and police departments were investigating at least two \u0027\u0027suspicious packages\u0027\u0027 found before the park was opened.", "version": 1}, {"sent_idx": 3, "sentence": "Investigators were first on the scene at approximately 10am local time.", "version": 1}, {"sent_idx": 4, "sentence": "\u0027\u0027The initial suspicious package has been cleared as non-explosive,\u0027\u0027 Mr Brady updated in a tweet.", "version": 1}, {"sent_idx": 5, "sentence": "\u0027\u0027A 2nd suspicious package is now being investigated.", "version": 1}, {"sent_idx": 6, "sentence": "\u0027\u0027 More to follow.", "version": 1}, {"sent_idx": 7, "sentence": ".", "version": 1}, {"sent_idx": 8, "sentence": ".", "version": 1}]'.replaceAll('NaN', 'null'))
+        $(data).each(function (i, d) {
             pm.create_reference_textblock(d.sentence, 'NODE', d.sent_idx)
             pm.create_sortable_textblock(d.sentence, 'NODE', d.sent_idx)
             pm.create_static_connection(d.sent_idx, d.sent_idx)
@@ -874,17 +830,21 @@ body{
         }
 
         _build_lists(d){
-            var is_deleted = $(d).attr('state') == 'deleted'
+            var is_deleted = $(d).attr('delete-state') == 'deleted'
+            var is_edited = $(d).attr('edit-state') == 'edited'
             var is_added = !$(d).attr('orig-position')
+            this.running_edit_list.push(bool_to_int[is_edited])
             this.running_added_list.push(bool_to_int[is_added])
             this.running_deleted_list.push(bool_to_int[is_deleted])
         }
 
         _format_data(i, d, question_class){
-            var is_deleted = $(d).attr('state') == 'deleted'
+            var is_deleted = $(d).attr('delete-state') == 'deleted'
+            var is_edited = $(d).attr('edit-state') == 'edited'
             var is_added = !$(d).attr('orig-position')
             this.output['num-nodes-removed'] = this.output['num-nodes-removed'] + bool_to_int[is_deleted]
             this.output['num-nodes-added'] = this.output['num-nodes-added'] + bool_to_int[is_added]
+            this.output['num-nodes-edited'] = this.output['num-nodes-edited'] + bool_to_int[is_edited]
 
             var orig_position = parseInt($(d).attr('orig-position')) - this._num_deleted(i);
             var new_position = i - this._num_deleted(i) - this._num_added(i);
@@ -897,28 +857,31 @@ body{
                 var new_idx = i - this._num_deleted(i)
 
             return {
-                "doc_id": "('ap', 9738, 0, 1)",
+                "doc_id": "1189817",
                 "question_class": question_class,
                 "orig_sent_idx": $(d).attr('id').split('-')[1],
                 "new_sent_idx": new_idx,
                 "text": $(d).find('.textblock-text-div').text(),
                 "is_added": is_added,
                 'is_refactored': is_refactored,
-                'is_deleted': is_deleted
+                'is_deleted': is_deleted,
+                'is_edited': is_edited
             }
         }
 
         get_data_from_dom() {
             var that = this
-            that.num_nodes = data.nodes.length
+            that.num_nodes = data.length
             that.running_deleted_list = []
+            that.running_edit_list = []
             that.running_added_list = []
             that.output = {
-                'doc_id': "('ap', 9738, 0, 1)",
+                'doc_id': "1189817",
                 'final-list': [],
-                'nodes': data.nodes,
+                'nodes': data,
                 'num-nodes-removed': 0,
                 'num-nodes-added': 0,
+                'num-nodes-edited': 0,
                 'num-nodes-refactored': 0,
             }
 
@@ -948,7 +911,10 @@ body{
         first_check(){
             var that = this
             alertify.confirm(
-                    "You\'ve added " + this.output['num-nodes-added'] + " nodes, deleted " + this.output['num-nodes-removed'] + " and refactored (roughly) " + this.output['num-nodes-refactored'] + ". Does that look correct?",
+                    "You\'ve added " + this.output['num-nodes-added'] + " nodes," +
+                    " deleted " + this.output['num-nodes-removed'] + "," +
+                    " edited " + this.output['num-nodes-edited'] + "," +
+                    " and refactored (roughly) " + this.output['num-nodes-refactored'] + ". Does that look correct?",
             ).set('header', '<em>Checking number of nodes drawn...</em>')
              .set('labels', {
                         ok: "Continue, submit!",
@@ -968,7 +934,7 @@ body{
                 alertify.confirm(
                     "Great! Your submission is valid. Please take a moment to check out the real edits that were performed to the article you just looked at, here:" +
                     "<br><br>" +
-                    "<a target='_blank' rel='noopener noreferrer' href='https://news-edits-dot-usc-research.appspot.com/check_task?source=ap&doc_id=9738&v_x=0&v_y=1'>https://news-edits-dot-usc-research.appspot.com/check_task?source=ap&doc_id=9738&v_x=0&v_y=1</a>" +
+                    "<a target='_blank' rel='noopener noreferrer' href='https://news-edits-dot-usc-research.appspot.com/check_task?source=independent&doc_id=1189817&v_x=1&v_y=2'>https://news-edits-dot-usc-research.appspot.com/check_task?source=independent&doc_id=1189817&v_x=1&v_y=2</a>" +
                     "<br><br>" +
                     "But please do not update your answers here after you've looked at the real edits. The purpose of this is to help guide you for future tasks." +
                     "<br><br>" +

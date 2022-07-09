@@ -10,6 +10,8 @@ media-files/
 notebooks/.ipynb_checkpoints/
 notebooks/cache
 notebooks/tmp
+eda/EventPlus
+eda
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

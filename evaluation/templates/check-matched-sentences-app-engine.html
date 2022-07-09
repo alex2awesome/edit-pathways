@@ -83,8 +83,8 @@
 }
 
 .subset-subj {
-	background: #76FF84;
-	background-color: #76FF84;
+	background: rgba(175, 255, 141, 0.6);
+	background-color: rgba(175, 255, 141, 0.6);
 }
 
 /* handle line styles*/
@@ -110,6 +110,14 @@
     z-index: 100;
 }
 
+
+.deleted{
+    background-color:rgba(241,114,114,0.68)
+}
+
+.added{
+    background-color:rgba(175, 255, 141, 0.6);
+}
 
 .annotation{
     height: 50%;
@@ -178,9 +186,9 @@ body{
         <div class="col-5"><h4>Actual next version:</h4></div>
     </div>
     <div class="row text" >
-        <div class="col-5 textblock_pool_version_x" doc_id="{{ doc_id }}" ></div>
-        <div class="col-2 filler" doc_id="{{ doc_id }}" ></div>
-        <div class="col-5 textblock_pool_version_y" doc_id="{{ doc_id }}" ></div>
+        <div class="col-4 textblock_pool_version_x" doc_id="{{ doc_id }}" ></div>
+        <div class="col-1 filler" doc_id="{{ doc_id }}" ></div>
+        <div class="col-4 textblock_pool_version_y" doc_id="{{ doc_id }}" ></div>
     </div>
 
 <script language='Javascript'>
@@ -277,12 +285,12 @@ body{
             var w_old = old_sent[idx]
             var w_new = new_sent[idx]
             if (w_old['tag'] == '-') {
-                old_html.push('<span style="background-color:rgba(255,0,0,0.3)">' + w_old['text'] + '</span>')
+                old_html.push('<span class="deleted">' + w_old['text'] + '</span>')
             } else {
                 old_html.push(w_old['text'])
             }
             if (w_new['tag'] == '+') {
-                new_html.push('<span style="background-color:rgba(0,255,0,0.3)">' + w_new['text'] + ' </span>')
+                new_html.push('<span class="added">' + w_new['text'] + ' </span>')
             } else {
                 new_html.push(w_new['text'])
             }
@@ -331,6 +339,16 @@ body{
         return Array.from(it);
     };
 
+    Array.prototype.remove_by_value = function(val) {
+      for (var i = 0; i < this.length; i++) {
+        if (this[i] === val) {
+          this.splice(i, 1);
+          i = i - 1;
+        }
+      }
+      return this;
+    };
+
     (function(old) {
       $.fn.attr = function() {
         if(arguments.length === 0) {
@@ -361,25 +379,25 @@ body{
     }
 
      function connection_mouseover(){
-        var left = $(this).attr('left')
-        var right = $(this).attr('right')
-        var new_html_x = $(this).attr('hidden-html-left')
-        var new_html_y = $(this).attr('hidden-html-right')
+        // var left = $(this).attr('left')
+        // var right = $(this).attr('right')
+        // var new_html_x = $(this).attr('hidden-html-left')
+        // var new_html_y = $(this).attr('hidden-html-right')
         // update
         $(this).addClass('shaded')
-        $('#' + left).addClass('shaded').html(new_html_x)
-        $('#' + right).addClass('shaded').html(new_html_y)
+        $('#' + left).addClass('shaded')//.html(new_html_x)
+        $('#' + right).addClass('shaded')//.html(new_html_y)
     }
 
     function connection_mouseout(){
-        var left = $(this).attr('left')
-        var right = $(this).attr('right')
-        var old_html_x = $('#' + left).attr('orig-html')
-        var old_html_y = $('#' + right).attr('orig-html')
+        // var left = $(this).attr('left')
+        // var right = $(this).attr('right')
+        // var old_html_x = $('#' + left).attr('orig-html')
+        // var old_html_y = $('#' + right).attr('orig-html')
         // update
         $(this).removeClass('shaded')
-        $('#' + left).removeClass('shaded').html(old_html_x)
-        $('#' + right).removeClass('shaded').html(old_html_y)
+        $('#' + left).removeClass('shaded')//.html(old_html_x)
+        $('#' + right).removeClass('shaded')//.html(old_html_y)
     }
 
     // page handling
@@ -444,7 +462,8 @@ body{
         })
         htmls = html_compare_sentences(text_x, all_y_text_leading_to_x.join(' '))
         var x_html_all = htmls[0]
-        $('#' + textblock_x_selector).attr('html-all', x_html_all)
+        // $('#' + textblock_x_selector).attr('html-all', x_html_all)
+        $('#' + textblock_x_selector).html(x_html_all)
 
 
         $('#' + textblock_y_selector).attr('arc-' + y_arc_index, line_selector)
@@ -459,7 +478,8 @@ body{
         })
         htmls = html_compare_sentences(all_x_text_leading_to_y.join(' '), text_y)
         var y_html_all = htmls[1]
-        $('#' + textblock_y_selector).attr('html-all', y_html_all)
+        // $('#' + textblock_y_selector).attr('html-all', y_html_all)
+        $('#' + textblock_y_selector).html(y_html_all)
     }
 
     // create a connection from input data (to re-create datapoints)
@@ -475,113 +495,9 @@ body{
 		})
 
 		// make dropdown
-		this._make_right_click_line_dropdown(line_selector, textblock_x_selector, textblock_y_selector)
+		// this._make_right_click_line_dropdown(line_selector, textblock_x_selector, textblock_y_selector)
         this._update_node_data_with_new_connection(textblock_x_selector, textblock_y_selector, line_selector)
         return line_selector
-    }
-
-    //
-    // handle the right-click dropdown for the line
-    _make_right_click_line_dropdown(line_selector, textblock_x_selector, textblock_y_selector){
-        var label_left  = $('#' + textblock_x_selector).attr('label')
-        var label_right = $('#' + textblock_y_selector).attr('label')
-
-		var that = this
-		var menu_options = {}
-		var default_options = d3.values(this.dropdown_arcs)
-								.map(function(d){return d3.values(d)})
-								.flat()
-                                .flat()
-								.remove_duplicates()
-		var options = (this.dropdown_arcs[label_left] || {})[label_right] || default_options
-		if (options.length == 1){
-			$('.' + line_selector).html(options[0])
-		}
-		else{
-			options.forEach(function(d){menu_options[d] =  {'name': d }})
-			menu_options["sep1"] = "---------"
-		}
-		menu_options['remove'] = {
-			name: "Remove",
-			icon: function(){ return 'context-menu-icon context-menu-icon-quit';
-		}}
-
-		// handle right-click event. (old: if person right-clicks on the line, remove it.)
-	    $.contextMenu({
-	        selector: '.' + line_selector,
-	        callback: function(key, options) {
-	        	var this_line = this
-	        	$(this_line).html(key)
-	        	$(this_line).addClass('line-type-' + key)
-	        	$(this_line).attr('label', key)
-				$(this_line).css('z-index', 0)
-	            if (key == 'remove'){
-				  $(this_line).remove();
-	            }
-	        },
-	        items: menu_options,
-			hide: function(){
-				$(this).css('z-index', 0)
-			}
-	    });
-
-		$('.' + line_selector).on('contextmenu', function(e){
-            $(this).css('z-index', that.curr_dropdown_zindex)
-			that.curr_dropdown_zindex = that.curr_dropdown_zindex + 1
-        })
-
-		$(document).click(function() {
-			$('.connection').css('z-index', 0)
-		});
-		$(document.body).on("contextmenu:hide",	function(e){
-			$('.connection').css('z-index', 0)
-		});
-    }
-
-    //
-    handle_connection(this_div){
-	    // this_div
-    	// e is the textblock's contextmenu event.
-    	var this_class = this
-        var exists = $('.moving_line').length
-        if (exists){
-            if (this_class.start_line_id.indexOf('x') != -1){
-                var textblock_x_selector = this_class.start_line_id
-                var textblock_y_selector = this_div.id
-            }
-            else{
-                var textblock_x_selector = this_div.id
-                var textblock_y_selector = this_class.start_line_id
-            }
-   			var line_selector = 'line-' + this._get_new_connection_idx()
-
-        	// close and make a connection
-            // 1. remove floating arrow
-            $('.moving_line').remove()
-            // 2. make permanent arrow
-            $('#' + textblock_x_selector).connections({
-				to: '#' + textblock_y_selector,
-				class: 'connection annotated ' + line_selector
-   			})
-
-   			// 3. make right-click dropdown menu
-	        this._make_right_click_line_dropdown(line_selector, textblock_x_selector, textblock_y_selector)
-            this._update_node_data_with_new_connection(textblock_x_selector, textblock_y_selector, line_selector)
-			// 4. bind data to the line
-			$('.' + line_selector)
-				.attr('left', textblock_x_selector)
-				.attr('right', textblock_y_selector)
-				.attr('doc_id', this_class.doc_key)
-                .on('mouseover', connection_mouseover)
-                .on('mouseout', connection_mouseout)
-        } else {
-        	// make a floating arrow.
-            $(this_div).connections({
-                to:'#moving_div',
-                class: 'moving_line'
-            })
-           this.start_line_id = this_div.id
-        }
     }
 
     create_textblock(selected_text, version, block_type, block_id){
@@ -616,7 +532,7 @@ body{
             // handle line-drawing
             $(textblock_div).bind('contextmenu', function(e) {
     	        e.preventDefault();
-            	that.handle_connection(this)
+            	// that.handle_connection(this)
             })
         }
 
@@ -658,15 +574,19 @@ body{
 		textblock_pool_min_height
 	)
 
-    data = JSON.parse('{{ data | tojson | safe }}'.replaceAll('NaN', 'null'))
-    versions = data['nodes'].map(function(d){return d['version']})
-    x_vers = d3.min(versions)
-    y_vers = d3.max(versions)
+    var data = JSON.parse('{{ data | tojson | safe }}'.replaceAll('NaN', 'null'))
+    var versions = data['nodes'].map(function(d){return d['version']})
+    var x_vers = d3.min(versions)
+    var y_vers = d3.max(versions)
+    var x_versions = []
+    var y_versions = []
     $(data.nodes).each(function (i, d) {
        if(d.version == x_vers) {
            pm.create_textblock(d.sentence, 'x', 'NODE', d.sent_idx)
+           x_versions.push(d.sent_idx)
        } else {
            pm.create_textblock(d.sentence, 'y', 'NODE', d.sent_idx)
+           y_versions.push(d.sent_idx)
        }
     })
 
@@ -674,8 +594,31 @@ body{
         if ((d.sent_idx_x != null ) && (d.sent_idx_y != null)){
             var sel = pm.create_static_connection(d.sent_idx_x, d.sent_idx_y, null)
             d.line_selector = sel
+            x_versions.remove_by_value(d.sent_idx_x)
+            y_versions.remove_by_value(d.sent_idx_y)
+        }
+        // sentence is added (exists in y)
+        if (d.sent_idx_x == null){
+            var textblock_sel = '#sentence-y-' + d.sent_idx_y
+            $(textblock_sel).addClass('added')
+            y_versions.remove_by_value(d.sent_idx_y)
+        }
+        // sentence is removed (exists in x)
+        if (d.sent_idx_y == null){
+            var textblock_sel = '#sentence-x-' + d.sent_idx_x
+            $(textblock_sel).addClass('deleted')
+            x_versions.remove_by_value(d.sent_idx_x)
         }
     })
+    $(x_versions).each(function(i, d){
+        $('#sentence-x-' + d).addClass('deleted')
+    })
+    $(y_versions).each(function(i, d){
+        $('#sentence-y-' + d).addClass('added')
+    })
+
+
+
 
      // make lines follow the main
      $.repeat().add('connection').each($).connections('update').wait(0);
@@ -711,8 +654,8 @@ body{
             }
 
             // update the current node.
-            var our_html = $(this).attr('html-all')
-            $(this).addClass('shaded').html('<span class="textblock_span">' + our_html + '</span>')
+            // var our_html = $(this).attr('html-all')
+            $(this).addClass('shaded')//.html('<span class="textblock_span">' + our_html + '</span>')
 
             // update all the nodes on the other side as this node.
             var node_arcs = get_arcs(this)
@@ -721,18 +664,18 @@ body{
                 $('.' + d).addClass('shaded')
                 // get other textblock and the html that it should update to.
                 var other_textblock = $('.' + d).attr(other_side)
-                var other_new_html = $('.' + d).attr('hidden-html-' + other_side)
+                // var other_new_html = $('.' + d).attr('hidden-html-' + other_side)
                 // shade the other textblock that the arc connects
-                $('#' + other_textblock).addClass('shaded').html(other_new_html)
+                $('#' + other_textblock).addClass('shaded')//.html(other_new_html)
             })
         })
         .on('mouseout', function(d) {
             $('.connection').removeClass('shaded')
             $('.textblock').removeClass('shaded')
-            $('.textblock').each(function (i, d) {
-                var orig_html = $(d).attr('orig-html')
-                $(d).html(orig_html)
-            })
+            // $('.textblock').each(function (i, d) {
+            //     var orig_html = $(d).attr('orig-html')
+            //     $(d).html(orig_html)
+            // })
         })
 
     //

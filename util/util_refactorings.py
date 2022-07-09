@@ -98,7 +98,6 @@ def symmetrize_crossings(crossings):
     return crossings
 
 
-
 def find_refactors_for_doc(one_doc=None, sents_old=None, sents_new=None):
     """
     Method to find refactorings (i.e. whether pairs of sentences cross each other in a bipartite graph)

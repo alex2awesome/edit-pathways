@@ -9,7 +9,7 @@ import os, glob
 app = Flask(__name__, template_folder='.')
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-data_file = os.path.join(basedir, 'data/sample_ap_data.json')
+data_file = os.path.join(basedir, 'data/data-downsampled.json')
 with open(data_file) as f:
     input_data = json.load(f)
 
@@ -42,7 +42,9 @@ def render_task():
     if doc_id is not None and v_x is not None and v_y is not None:
         k = str((source, int(doc_id), int(v_x), int(v_y)))
     else:
+        import random
         keys = list(input_data.keys())
+        random.shuffle(keys)
         for k in keys:
             if input_data[k].get('completed', False) == False:
                 break
@@ -99,15 +101,23 @@ def match_sentences():
 
 @app.route('/view_task_edit', methods=['GET'])
 def edit_old_version():
+    source = request.args.get('source')
     doc_id = request.args.get('doc_id')
     v_x = request.args.get('v_x')
     v_y = request.args.get('v_y')
     if doc_id is not None and v_x is not None and v_y is not None:
-        k = str((int(doc_id), int(v_x), int(v_y)))
+        k = str((source, int(doc_id), int(v_x), int(v_y)))
     else:
         keys = list(input_data.keys())
+        import random
+        random.shuffle(keys)
         for k in keys:
             if input_data[k].get('completed', False) == False:
+                if isinstance(k, str):
+                    import ast
+                    k = ast.literal_eval(k)
+                source, doc_id, v_x, v_y = k
+                k = str(k)
                 break
 
     # get data
@@ -117,14 +127,17 @@ def edit_old_version():
     nodes = list(filter(lambda x: x['version'] == v_x, nodes))
     for n in nodes:
         n['sentence'] = n['sentence'].replace('"', '')
-    datum['nodes'] = nodes
 
     return render_template(
         'templates/edit-sentences.html',
-        data=datum,
+        data=nodes,
         doc_id=k,
         do_mturk=False,
         start_time=str(datetime.datetime.now()),
+        source=source,
+        entry_id=doc_id,
+        v_x=v_x,
+        v_y=v_y,
     )
 
 

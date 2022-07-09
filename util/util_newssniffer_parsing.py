@@ -8,16 +8,17 @@ import pycountry
 import pandas as pd
 
 nlp = None
+spacy_package = 'en_core_web_sm'
 def get_nlp():
     global nlp
     if not nlp:
         try:
-            nlp = spacy.load("en_core_web_lg", disable=["tagger" "ner"])
+            nlp = spacy.load(spacy_package, disable=["tagger" "ner"])
         except:
             import subprocess
             print('downloading spacy...')
-            subprocess.run("python3 -m spacy download en_core_web_lg", shell=True)
-            nlp = spacy.load("en_core_web_lg", disable=["tagger" "ner"])
+            subprocess.run("python3 -m spacy download %s" % spacy_package, shell=True)
+            nlp = spacy.load(spacy_package, disable=["tagger" "ner"])
     return nlp
 
 
@@ -25,7 +26,7 @@ nlp_ner = None
 def get_nlp_ner():
     global nlp_ner
     if not nlp_ner:
-        nlp_ner = spacy.load("en_core_web_lg", disable=["tagger"])  # just the parser
+        nlp_ner = spacy.load(spacy_package, disable=["tagger"])  # just the parser
     return nlp_ner
 
 
@@ -742,32 +743,60 @@ def is_none_or_nan(x):
     else:
         return False
 
-def html_compare_sentences(old_sent, new_sent, split_method='spacy', return_dict=False):
+def compare_sentences_output(old_sent, new_sent, old_tag_front, new_tag_front, old_tag_back=None, new_tag_back=None, split_method='spacy'):
+    if new_tag_back is None:
+        new_tag_back = old_tag_back
+
+    if old_tag_back is None:
+        old_tag_back = new_tag_back
+
     if isinstance(old_sent, str) and isinstance(new_sent, str):
         old_sent, new_sent = get_word_diffs(old_sent, new_sent, split_method=split_method)
 
     elif isinstance(old_sent, str) and is_none_or_nan(new_sent):
-        if return_dict:
-            return {'sentence_x_html': old_sent, 'sentence_y_html': None}
         return old_sent, None
 
     elif is_none_or_nan(old_sent) and isinstance(new_sent, str):
-        if return_dict:
-            return {'sentence_x_html': None, 'sentence_y_html': new_sent}
         return None, new_sent
 
-    new_html, old_html = [], []
+    new_output, old_output = [], []
     for w_old, w_new in zip(old_sent, new_sent):
         if w_old['tag'] == '-':
-            old_html.append('<span style="background-color:rgba(255,0,0,0.3)">' + w_old['text'] + '</span>')
+            old_output.append(old_tag_front + w_old['text'] + old_tag_back)
         else:
-            old_html.append(w_old['text'])
+            old_output.append(w_old['text'])
         if w_new['tag'] == '+':
-            new_html.append('<span style="background-color:rgba(0,255,0,0.3)">' + w_new['text'] + ' </span>')
+            new_output.append(new_tag_front + w_new['text'] + new_tag_back)
         else:
-            new_html.append(w_new['text'])
+            new_output.append(w_new['text'])
+
+    return ' '.join(old_output), ' '.join(new_output)
+
+
+def html_compare_sentences(old_sent, new_sent, split_method='spacy', return_dict=False):
+    old_html, new_html = compare_sentences_output(
+        old_sent, new_sent,
+        old_tag_front='<span style="background-color:rgba(255,0,0,0.3)">',
+        old_tag_back='</span>',
+        new_tag_front='<span style="background-color:rgba(0,255,0,0.3)">',
+        new_tag_back='</span>',
+        split_method=split_method,
+    )
+
     if return_dict:
-        return {'sentence_x_html': ' '.join(old_html), 'sentence_y_html': ' '.join(new_html)}
-    return ' '.join(old_html), ' '.join(new_html)
+        return {'sentence_x_html': old_html, 'sentence_y_html': new_html}
+    return old_html, new_html
 
+def latex_compare_sentences(old_sent, new_sent, split_method='spacy', return_dict=False):
+    old_latex, new_latex = compare_sentences_output(
+        old_sent, new_sent,
+        old_tag_front='\hlpink{',
+        old_tag_back='}',
+        new_tag_front='\hlgreen{',
+        new_tag_back='}',
+        split_method=split_method,
+    )
 
+    if return_dict:
+        return {'sentence_x_latex': old_latex, 'sentence_y_html': new_latex}
+    return old_latex,  new_latex
