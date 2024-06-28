@@ -1227,6 +1227,7 @@ body{
         record_data(){
             {% if do_mturk %}
             // submit mturk
+            // console.log(JSON.stringify(this.output))
             $('#data').attr('value', JSON.stringify(this.output))
             this.completed_checks = true
             $(this.submit_button).trigger(this.submit_click_event.type);
@@ -1239,7 +1240,7 @@ body{
                 contentType: 'application/json',
                 data: JSON.stringify(this.output),
                 success: function (result) {
-                    if (result === "success") location.href = "/view_task_scratch"
+                    if (result === "success") location.href = "/view_task_match"
                 }
             })
             {% endif %}

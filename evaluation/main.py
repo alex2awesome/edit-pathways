@@ -13,16 +13,19 @@ data_file = os.path.join(basedir, 'data/data-downsampled.json')
 with open(data_file) as f:
     input_data = json.load(f)
 
-if False:
-    output_dir = 'data/output_data'
-    if not os.path.exists(output_dir):
-        os.mkdir(output_dir)
-    else:
-        for f in glob.glob(os.path.join(output_dir, 'output-annotation-*.json')):
-            previous_output = json.load(open(f))
-            doc_id = previous_output['doc_id']
-            if doc_id in input_data:
-                input_data[doc_id]['completed'] = True
+output_dir = 'data/output_data'
+if not os.path.exists(output_dir):
+    os.mkdir(output_dir)
+
+if True:
+    for f in glob.glob(os.path.join(output_dir, 'output-annotation-*.json')):
+        previous_output = json.load(open(f))
+        doc_id = previous_output['doc_id']
+        if doc_id in input_data:
+            input_data[doc_id]['completed'] = True
+
+def update_internal_data_dict():
+    pass 
 
 
 @app.route('/hello', methods=['GET'])
@@ -147,7 +150,10 @@ def post_data():
     output_data = request.get_json()
     output_data['end_time'] = str(datetime.datetime.now())
 
+    # source, doc_id, v_x, v_y = doc_id
     doc_id = output_data['doc_id']
+    doc_id = doc_id.replace('&#39;', "'")
+
     input_data[doc_id]['completed'] = True
 
     ##
