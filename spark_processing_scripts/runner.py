@@ -55,8 +55,9 @@ def main():
         findspark.init()
         spark = (
             SparkSession.builder
-                .config("spark.jars.packages", "com.johnsnowlabs.nlp:spark-nlp_2.11:2.7.5")
+                # .config("spark.jars.packages", "com.johnsnowlabs.nlp:spark-nlp_2.11:2.7.5")
                 # .config("spark.jars.packages", "com.johnsnowlabs.nlp:spark-nlp-gpu_2.12:3.0.0")
+                .config('spark.jars.packages', 'com.johnsnowlabs.nlp:spark-nlp_2.12:5.2.0')
                 .config("spark.executor.instances", "40")
                 .config("spark.driver.memory", "20g")
                 .config("spark.executor.memory", "20g")
@@ -166,3 +167,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+    

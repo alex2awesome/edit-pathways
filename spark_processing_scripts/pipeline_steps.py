@@ -180,10 +180,16 @@ def get_sparknlp_pipeline(env='bb'):
     else:
         import os
         local_model_file = 'small_bert_L4_128_en_2.6.0_2.4'
+        emb_cls = sa.BertEmbeddings
+        if not os.path.exists(local_model_file):
+            local_model_file = 'albert_embeddings'
+            emb_cls = sa.AlbertEmbeddings
         if not os.path.exists(local_model_file):
             raise FileNotFoundError('Upload model file to this directory!')
+
+
         word_embeddings = (
-            sa.BertEmbeddings
+            emb_cls
                 .load(local_model_file)
                 .setInputCols(["sentences", "token"])
                 .setOutputCol("embeddings")
