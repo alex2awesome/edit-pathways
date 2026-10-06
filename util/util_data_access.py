@@ -4,8 +4,8 @@ from botocore.exceptions import ClientError
 import ast
 import pandas as pd
 
-access_key = '***REMOVED***'
-secret_access_key = '***REMOVED***'
+access_key = os.environ.get('AWS_ACCESS_KEY_ID', '')
+secret_access_key = os.environ.get('AWS_SECRET_ACCESS_KEY', '')
 endpoint = 'http://s3.dev.obdc.bcs.bloomberg.com'
 os.environ['AWS_ACCESS_KEY_ID'] = access_key
 os.environ['AWS_SECRET_ACCESS_KEY'] = secret_access_key
